@@ -182,45 +182,58 @@
 
 {{-- Modal Tambah Alokasi Lab --}}
 <div id="modalAddLabAllocation" class="modal-backdrop">
-    <div class="modal-window">
-        <div class="modal-header-blue">
-            <h3>Tambah Alokasi Laboratorium ke Prodi</h3>
+    <div class="modal-window" style="max-width: 640px; width: 100%; border-radius: 12px;">
+        <div class="modal-header-blue" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0;">Tambah Alokasi Laboratorium ke Prodi</h3>
+            <button type="button" onclick="closeModal('modalAddLabAllocation')" style="background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 0 4px; line-height: 1;" title="Tutup">✕</button>
         </div>
-        <div class="modal-body">
-            <form action="{{ route('fakultas.allocations.laboratories.store') }}" method="POST" class="modal-form">
+        <div class="modal-body" style="padding: 24px;">
+            <form action="{{ route('fakultas.allocations.laboratories.store') }}" method="POST" style="display: flex; flex-direction: column; gap: 18px;">
                 @csrf
                 <input type="hidden" name="redirect_to" value="allocations_page">
 
-                <div class="modal-form-row">
-                    <label>Pilih Laboratorium <span style="color:#ef4444;">*</span></label>
-                    <div class="modal-input-container">
-                        <select name="laboratory_id" required>
-                            <option value="">-- Pilih Laboratorium (ACTIVE) --</option>
-                            @foreach($activeLabs ?? $laboratories as $l)
-                                <option value="{{ $l->id }}">{{ $l->name }} ({{ $l->lab_type }}, Kapasitas: {{ $l->capacity }})</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div>
+                    <label style="display: block; font-size: 13.5px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">
+                        Pilih Laboratorium <span style="color:#ef4444;">*</span>
+                    </label>
+                    <select name="laboratory_id" required style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13.5px; background: #fff; color: #1e293b; outline: none; box-sizing: border-box;">
+                        <option value="">-- Pilih Laboratorium (ACTIVE) --</option>
+                        @foreach($activeLabs ?? $laboratories as $l)
+                            <option value="{{ $l->id }}">{{ $l->name }} ({{ $l->lab_type }}, Kapasitas: {{ $l->capacity }})</option>
+                        @endforeach
+                    </select>
                 </div>
 
-                <div class="modal-form-row">
-                    <label>Program Studi <span style="color:#ef4444;">*</span></label>
-                    <div class="modal-input-container">
-                        <div style="display:flex; flex-direction:column; gap:8px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; background:#f8fafc;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                        <label style="font-size: 13.5px; font-weight: 700; color: #1e293b;">
+                            Program Studi <span style="color:#ef4444;">*</span>
+                        </label>
+                        <span style="font-size: 12px; color: #64748b;">(Pilih 1 atau beberapa Program Studi)</span>
+                    </div>
+
+                    <div style="border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 12px; background: #f8fafc; max-height: 260px; overflow-y: auto;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px;">
                             @foreach($prodis as $p)
-                                <label style="display:flex; align-items:center; gap:8px; font-weight:500; font-size:13px; cursor:pointer; color:#1e293b;">
-                                    <input type="checkbox" name="study_program_ids[]" value="{{ $p->id }}" style="width:16px; height:16px; cursor:pointer;">
-                                    <span><strong>{{ $p->kode }}</strong> — {{ $p->nama }}</span>
+                                <label style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; background: #ffffff; border: 1px solid #e2e8f0; cursor: pointer; transition: all 0.15s ease;">
+                                    <input type="checkbox" name="study_program_ids[]" value="{{ $p->id }}" style="width: 16px; height: 16px; cursor: pointer; accent-color: #0860be; flex-shrink: 0;">
+                                    <span style="font-size: 12.5px; color: #1e293b; line-height: 1.35;">
+                                        <strong style="color: #0860be;">{{ $p->kode }}</strong> — {{ $p->nama }}
+                                    </span>
                                 </label>
                             @endforeach
                         </div>
-                        <small style="color:#64748b; font-size:11px; display:block; margin-top:4px;">Dapat memilih 1 atau beberapa Program Studi aktif sekaligus (Many-to-Many).</small>
                     </div>
+                    <small style="color: #64748b; font-size: 11.5px; display: block; margin-top: 6px;">
+                        Laboratorium dapat dialokasikan ke beberapa Program Studi sekaligus (Relasi Many-to-Many).
+                    </small>
                 </div>
 
-                <div class="modal-footer-buttons" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <div class="modal-footer-buttons" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
                     <button type="button" class="btn-modal-cancel" onclick="closeModal('modalAddLabAllocation')">Batal</button>
-                    <button type="submit" class="btn-modal-submit" style="background:#9333ea; color:#fff; border:none; padding:8px 18px; border-radius:6px; font-weight:600; cursor:pointer;">Simpan Alokasi</button>
+                    <button type="submit" style="display: inline-flex; align-items: center; gap: 6px; background: #0860be; color: #fff; border: none; padding: 9px 20px; border-radius: 6px; font-weight: 600; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 6px rgba(8,96,190,0.25);">
+                        <span>Simpan Alokasi</span>
+                    </button>
                 </div>
             </form>
         </div>
