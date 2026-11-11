@@ -151,6 +151,7 @@ class MataKuliahImportTest extends TestCase
             'semester' => 3,
         ]);
     }
+<<<<<<< HEAD
 
     public function test_can_download_excel_template_for_mata_kuliah(): void
     {
@@ -244,4 +245,6 @@ class MataKuliahImportTest extends TestCase
             'kategori' => 'MK Universitas',
         ]);
     }
+=======
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 }

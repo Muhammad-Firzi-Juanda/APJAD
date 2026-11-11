@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+<<<<<<< HEAD
 use App\Enums\UserRole;
+=======
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 use App\Models\Course;
 use App\Models\Fakultas;
 use App\Models\Jadwal;
@@ -20,7 +23,11 @@ class FakultasDashboardController extends Controller
     private function getFacultyId(): int
     {
         $user = Auth::user();
+<<<<<<< HEAD
         if ($user && $user->role === UserRole::ADMIN) {
+=======
+        if ($user && $user->role === \App\Enums\UserRole::ADMIN) {
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
             $requestedFacultyId = request()->input('faculty_id') ?? request()->input('fakultas_id');
             if ($requestedFacultyId) {
                 return (int) $requestedFacultyId;

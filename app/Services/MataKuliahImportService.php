@@ -8,8 +8,11 @@ use App\Models\MataKuliahDetail;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+<<<<<<< HEAD
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+=======
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class MataKuliahImportService
@@ -117,6 +120,7 @@ class MataKuliahImportService
         $sheet->fromArray([$headers], null, 'A1');
 
         $sheet->fromArray([
+<<<<<<< HEAD
             ['UNV101', 'Pendidikan Agama Islam', 2, 1, 'A', 'Wajib', 'Universitas', 'Dr. H. Ahmad Fauzi, M.Ag', '', 2, 40, 'Tidak'],
             ['UNV102', 'Pendidikan Pancasila', 2, 1, 'A', 'Wajib', 'Universitas', 'Drs. Bambang Wijaya, M.Pd', '', 2, 40, 'Tidak'],
             ['FST101', 'Kalkulus I', 3, 1, 'A', 'Wajib', 'Fakultas', 'Dr. Ir. Hendra Gunawan, M.Si', '', 2, 40, 'Tidak'],
@@ -141,6 +145,13 @@ class MataKuliahImportService
         $sheet->getRowDimension(1)->setRowHeight(24);
 
         foreach (range('A', 'L') as $col) {
+=======
+            ['TIF101', 'Algoritma dan Pemrograman', 3, 1, 'Wajib', 'Informatika', 'Budi Santoso', 'Siti Aminah', 2, 40, 'Tidak'],
+            ['TIF102', 'Kecerdasan Buatan', 3, 5, 'Pilihan', 'Informatika', 'Budi Santoso', '', 1, 30, 'Ya'],
+        ], null, 'A2');
+
+        foreach (range('A', 'K') as $col) {
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -830,9 +841,12 @@ class MataKuliahImportService
             }
 
             $baseKode = preg_replace('/-[A-Za-z0-9]+$/', '', $fullKode);
+<<<<<<< HEAD
             if ($kelas) {
                 $fullKode = $baseKode.'-'.$kelas;
             }
+=======
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 
             // 1. Simpan / Sinkronkan Master MK Tunggal (hindari duplikasi master untuk MK Universitas / Fakultas)
             $masterMk = MataKuliah::firstOrCreate(

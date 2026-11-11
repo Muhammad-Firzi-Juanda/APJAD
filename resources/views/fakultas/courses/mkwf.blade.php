@@ -40,13 +40,18 @@
             @endif
 
             {{-- Header Toolbar --}}
+<<<<<<< HEAD
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+=======
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                 <div>
                     <h1 class="page-title" style="margin-bottom:4px;">MKWF (Mata Kuliah Wajib Fakultas)</h1>
                     <p style="color:#64748b; font-size:0.95rem; margin:0;">
                         Kelola data mata kuliah kurikulum wajib tingkat fakultas (Kode kategori: <strong>FST</strong>).
                     </p>
                 </div>
+<<<<<<< HEAD
                 <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                     <a href="{{ route('fakultas.courses.template', ['category' => 'FST']) }}" style="display:inline-flex; align-items:center; gap:6px; background:#fff; color:#0369a1; border:1px solid #bae6fd; padding:9px 14px; border-radius:6px; font-weight:600; text-decoration:none; font-size:13px;" download>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -65,6 +70,12 @@
                         <span>Tambah MKWF</span>
                     </button>
                 </div>
+=======
+                <button type="button" onclick="openModal('modalAddCourse')" style="display:inline-flex; align-items:center; gap:8px; background:#0860be; color:#fff; padding:10px 18px; border-radius:6px; border:none; font-weight:600; cursor:pointer; font-size:14px; box-shadow:0 2px 6px rgba(8,96,190,0.25);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>Tambah MKWF</span>
+                </button>
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
             </div>
 
             {{-- Filter Bar --}}
@@ -193,10 +204,14 @@
                 </div>
 
                 @if($courses->hasPages())
+<<<<<<< HEAD
                     <div class="pagination-wrapper" style="padding:14px 18px; border-top:1px solid #e2e8f0;">
                         <style>
                             .pagination-wrapper svg { width: 18px !important; height: 18px !important; max-width: 18px !important; max-height: 18px !important; display: inline-block !important; }
                         </style>
+=======
+                    <div style="padding:16px; border-top:1px solid #e2e8f0;">
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                         {{ $courses->links() }}
                     </div>
                 @endif
@@ -341,6 +356,7 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 {{-- MODAL SMART IMPORT MKWF (EXCEL / SPREADSHEET) --}}
 <div class="modal-backdrop" id="modalImportMk">
     <div class="modal-window" id="modalImportMkWindow" style="max-width: 650px; transition: max-width 0.3s ease;">
@@ -426,6 +442,8 @@
     </div>
 </div>
 
+=======
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 <script>
 function openModal(modalId) {
     const el = document.getElementById(modalId);
@@ -514,6 +532,7 @@ function submitBulkDelete() {
     document.getElementById('formBulkDelete').submit();
 }
 
+<<<<<<< HEAD
 // SMART PREVIEW & INLINE CRUD
 window.previewItemsList = [];
 
@@ -729,6 +748,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+=======
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 document.addEventListener('click', function(e) {
     if (e.target && e.target.classList.contains('modal-backdrop')) {
         closeModal(e.target.id);

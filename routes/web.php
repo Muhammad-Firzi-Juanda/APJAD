@@ -141,20 +141,26 @@ Route::middleware('auth')->group(function () {
         // Mata Kuliah Fakultas (MKWU & MKWF)
         Route::get('/fakultas/mkwu', [FakultasCourseController::class, 'mkwuIndex'])->name('fakultas.mkwu');
         Route::get('/fakultas/mkwf', [FakultasCourseController::class, 'mkwfIndex'])->name('fakultas.mkwf');
+<<<<<<< HEAD
         Route::get('/fakultas/courses/template', [FakultasCourseController::class, 'downloadTemplate'])->name('fakultas.courses.template');
         Route::post('/fakultas/courses/preview-import', [FakultasCourseController::class, 'previewImport'])->name('fakultas.courses.preview-import');
         Route::post('/fakultas/courses/import', [FakultasCourseController::class, 'import'])->name('fakultas.courses.import');
+=======
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
         Route::post('/fakultas/courses', [FakultasCourseController::class, 'store'])->name('fakultas.courses.store');
         Route::put('/fakultas/courses/{course}', [FakultasCourseController::class, 'update'])->name('fakultas.courses.update');
         Route::post('/fakultas/courses/{course}/toggle-status', [FakultasCourseController::class, 'toggleStatus'])->name('fakultas.courses.toggle-status');
         Route::delete('/fakultas/courses/{course}', [FakultasCourseController::class, 'destroy'])->name('fakultas.courses.destroy');
         Route::post('/fakultas/courses/bulk-delete', [FakultasCourseController::class, 'bulkDestroy'])->name('fakultas.courses.bulk-delete');
 
+<<<<<<< HEAD
         // Penjadwalan Kuliah Fakultas (MKWU & MKWF)
         Route::get('/fakultas/penjadwalan', [FakultasCourseController::class, 'penjadwalanIndex'])->name('fakultas.penjadwalan');
         Route::post('/fakultas/penjadwalan/generate', [FakultasCourseController::class, 'generateJadwal'])->name('fakultas.penjadwalan.generate');
         Route::delete('/fakultas/penjadwalan/hapus-semua', [FakultasCourseController::class, 'destroyJadwalFakultas'])->name('fakultas.penjadwalan.destroy-all');
 
+=======
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
         // Resources - Ruangan & Laboratorium (Terpadu)
         Route::get('/fakultas/ruangan', [FakultasRoomController::class, 'index'])->name('fakultas.rooms.index');
         Route::post('/fakultas/ruangan', [FakultasRoomController::class, 'store'])->name('fakultas.rooms.store');

@@ -668,6 +668,7 @@ class FakultasModuleTest extends TestCase
         ]);
         $resDuplicate->assertSessionHasErrors('study_program_id');
     }
+<<<<<<< HEAD
 
     /**
      * 15. Test Fakultas dapat mengunduh Template Excel MKWU dan MKWF.
@@ -761,4 +762,6 @@ class FakultasModuleTest extends TestCase
         $resDeleteAll->assertRedirect(route('fakultas.penjadwalan'));
         $resDeleteAll->assertSessionHas('flash_success');
     }
+=======
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 }

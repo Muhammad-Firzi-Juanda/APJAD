@@ -245,6 +245,7 @@
                     </a>
                 </div>
             </div>
+<<<<<<< HEAD
 
             {{-- Penjadwalan Kuliah Fakultas --}}
             <a href="{{ route('fakultas.penjadwalan') }}" class="sidebar-link {{ ($active ?? '') === 'penjadwalan' ? 'active' : '' }}" style="margin-top: 6px;">
@@ -254,6 +255,8 @@
                 </svg>
                 <span>Penjadwalan Kuliah</span>
             </a>
+=======
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
         </nav>
     </div>
 

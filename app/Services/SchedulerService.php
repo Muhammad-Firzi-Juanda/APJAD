@@ -16,7 +16,11 @@ use Illuminate\Support\Facades\DB;
  *  1. Bentrok kelas  : satu cohort (prodi+semester) tidak boleh punya 2 MK pada waktu yang sama.
  *  2. Dosen ketua    : tidak boleh bentrok di MK mana pun (hierarki IPV #1).
  *  3. Dosen anggota  : tidak boleh bentrok juga, namun bergantian dengan ketua.
+<<<<<<< HEAD
  *  4. Slot berurutan : mulai 07:30 -> 10:00 -> 13:00 -> 14:50 -> 15:30.
+=======
+ *  4. Slot berurutan : mulai 07:30 -> 10:00 -> 13:00 -> 14:50 (jarak 10 menit).
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
  *  5. MK pilihan     : dibagi ke MAKS_PILIHAN kelompok slot. MK dalam satu
  *                      kelompok sharing slot sehingga saling bentrok; antar
  *                      kelompok memakai slot berbeda. Mahasiswa hanya boleh
@@ -35,7 +39,11 @@ class SchedulerService
     public const HARI = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
 
     /** Jam mulai slot. Slot berikutnya selalu >= slot ini. */
+<<<<<<< HEAD
     public const SLOT_MULAI = ['07:30', '10:00', '13:00', '14:50', '15:30'];
+=======
+    public const SLOT_MULAI = ['07:30', '10:00', '13:00', '14:50'];
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 
     public const PERIOD_SLOTS = [
         '07:30', '08:20', '09:10', '10:00', '10:50',
@@ -116,6 +124,7 @@ class SchedulerService
         }
 
         $p = strtolower(trim($prodi));
+<<<<<<< HEAD
         if (in_array($p, ['fakultas_all', 'mkwu_mkwf', 'fakultas_dan_universitas', 'semua_fakultas'], true)) {
             $query->where(function ($q) {
                 $q->whereIn('kategori', ['MK Universitas', 'MK Fakultas'])
@@ -137,6 +146,9 @@ class SchedulerService
                     ->orWhere('prodi', 'like', '%Fakultas%');
             });
         } elseif (str_contains($p, 'informatika') || $p === 'ti') {
+=======
+        if (str_contains($p, 'informatika') || $p === 'ti') {
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
             $query->where(function ($q) {
                 $q->where('prodi', 'like', '%Informatika%')
                     ->orWhere('prodi', 'like', '%TI%');

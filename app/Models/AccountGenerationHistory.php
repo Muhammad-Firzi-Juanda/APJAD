@@ -46,3 +46,7 @@ class AccountGenerationHistory extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
