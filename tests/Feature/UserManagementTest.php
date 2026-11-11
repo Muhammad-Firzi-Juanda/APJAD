@@ -12,6 +12,7 @@ use App\Services\AccountBulkGeneratorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Tests\TestCase;
 
 class UserManagementTest extends TestCase
@@ -637,16 +638,23 @@ class UserManagementTest extends TestCase
         // Nonaktifkan akun operasional bawaan seeder agar 5 baris contoh Fix.md Bagian 4.1 tidak bentrok jabatan aktif
         User::whereIn('role', [UserRole::FAKULTAS, UserRole::JURUSAN, UserRole::PRODI])->update(['status' => 'nonaktif']);
 
-        // 1. Download template Excel resmi
+        // 1. Download template Excel resmi dan pastikan kosong tanpa data bawaan
         $downloadResp = $this->actingAs($superAdmin)->get(route('manajemen-akun.template-excel'));
         $downloadResp->assertOk();
 
-        // 2. Uji parse & preview langsung dari template resmi (berisi 5 baris dummy Fix.md Bagian 4.1)
         /** @var AccountBulkGeneratorService $bulkService */
         $bulkService = app(AccountBulkGeneratorService::class);
-        $templatePath = $bulkService->templatePath();
-        $evaluation = $bulkService->parseAndPreviewFile($templatePath);
-        @unlink($templatePath);
+        $cleanTemplatePath = $bulkService->templatePath(false);
+        $spreadsheet = IOFactory::load($cleanTemplatePath);
+        $sheet = $spreadsheet->getActiveSheet();
+        $this->assertSame(AccountBulkGeneratorService::TEMPLATE_HEADERS, $sheet->rangeToArray('A1:H1')[0]);
+        $this->assertNull($sheet->getCell('A2')->getValue(), 'Template harus bersih dan tidak memiliki baris data dummy bawaan');
+        @unlink($cleanTemplatePath);
+
+        // 2. Uji parse & preview file dengan data contoh
+        $samplePath = $bulkService->templatePath(true);
+        $evaluation = $bulkService->parseAndPreviewFile($samplePath);
+        @unlink($samplePath);
 
         $rows = $evaluation['rows'];
         $summary = $evaluation['summary'];

@@ -41,10 +41,11 @@ class AccountBulkGeneratorService
     public const STATUS_ERROR = 'ERROR';
 
     /**
-     * Membuat file template Excel (.xlsx) sesuai spesifikasi Fix.md Bagian 4.1.
-     * Tidak menyertakan kolom Role maupun Password.
+     * Membuat file template Excel (.xlsx) sesuai spesifikasi APJAD.
+     * Tidak menyertakan data bawaan karena merupakan template isian kosong.
+     * Opsional $includeSampleData untuk pengujian parser sampel baris.
      */
-    public function templatePath(): string
+    public function templatePath(bool $includeSampleData = false): string
     {
         $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
@@ -52,16 +53,17 @@ class AccountBulkGeneratorService
 
         $sheet->fromArray([self::TEMPLATE_HEADERS], null, 'A1');
 
-        // Contoh data dummy sesuai Fix.md Bagian 4.1 (sel kosong untuk tanda "-")
-        $dummyRows = [
-            ['Martaleli Ibet', 'martaleli@fttk.ac.id', '11223344', '82177642122', 'FTTK', '', '', 'Dekan'],
-            ['Sitimah Laila', 'sitimah@fttk.ac.id', '73123790', '82377564312', 'FTTK', '', '', 'Wakil Dekan'],
-            ['Rizal Ferdi', 'rizal@fttk.ac.id', '34562199', '81289903321', 'FTTK', 'Teknik Elektro dan Teknik Informatika', '', 'Ketua Jurusan'],
-            ['Feri Irawan', 'feri@fttk.ac.id', '67784354', '85231890716', 'FTTK', 'Teknik Elektro dan Teknik Informatika', 'Teknik Informatika', 'Ketua Program Studi'],
-            ['Holland Budi', 'holland@fttk.ac.id', '54378851', '82288904366', 'FTTK', 'Teknik Elektro dan Teknik Informatika', 'Teknik Elektro', 'Ketua Program Studi'],
-        ];
+        if ($includeSampleData) {
+            $dummyRows = [
+                ['Martaleli Ibet', 'martaleli@fttk.ac.id', '11223344', '82177642122', 'FTTK', '', '', 'Dekan'],
+                ['Sitimah Laila', 'sitimah@fttk.ac.id', '73123790', '82377564312', 'FTTK', '', '', 'Wakil Dekan'],
+                ['Rizal Ferdi', 'rizal@fttk.ac.id', '34562199', '81289903321', 'FTTK', 'Teknik Elektro dan Teknik Informatika', '', 'Ketua Jurusan'],
+                ['Feri Irawan', 'feri@fttk.ac.id', '67784354', '85231890716', 'FTTK', 'Teknik Elektro dan Teknik Informatika', 'Teknik Informatika', 'Ketua Program Studi'],
+                ['Holland Budi', 'holland@fttk.ac.id', '54378851', '82288904366', 'FTTK', 'Teknik Elektro dan Teknik Informatika', 'Teknik Elektro', 'Ketua Program Studi'],
+            ];
 
-        $sheet->fromArray($dummyRows, null, 'A2');
+            $sheet->fromArray($dummyRows, null, 'A2');
+        }
 
         $headerStyle = [
             'font' => [

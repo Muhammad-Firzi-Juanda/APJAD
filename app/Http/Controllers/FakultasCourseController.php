@@ -389,26 +389,7 @@ class FakultasCourseController extends Controller
 
         $sheet->fromArray([$headers], null, 'A1');
 
-        if ($isMkwu) {
-            $sampleData = [
-                ['UNV101', 'Pendidikan Agama Islam', 2, 1, 'A', 'Wajib', 'Universitas', 'Dr. H. Ahmad Fauzi, M.Ag', '', 2, 40, 'Tidak'],
-                ['UNV102', 'Pendidikan Pancasila', 2, 1, 'A', 'Wajib', 'Universitas', 'Drs. Bambang Wijaya, M.Pd', '', 2, 40, 'Tidak'],
-                ['UNV103', 'Kewarganegaraan', 2, 2, 'A', 'Wajib', 'Universitas', 'M. Ridwan, M.H', '', 2, 40, 'Tidak'],
-                ['UNV104', 'Bahasa Indonesia', 2, 2, 'A', 'Wajib', 'Universitas', 'Dra. Sri Wahyuni, M.Hum', '', 2, 40, 'Tidak'],
-                ['UNV105', 'Bahasa Inggris', 2, 1, 'A', 'Wajib', 'Universitas', 'John Doe, M.A', '', 2, 40, 'Tidak'],
-            ];
-            $filename = 'template-mkwu-universitas.xlsx';
-        } else {
-            $sampleData = [
-                ['FST101', 'Kalkulus I', 3, 1, 'A', 'Wajib', 'Fakultas', 'Dr. Ir. Hendra Gunawan, M.Si', '', 2, 40, 'Tidak'],
-                ['FST102', 'Fisika Dasar I', 3, 1, 'A', 'Wajib', 'Fakultas', 'Prof. Dr. Ir. Suyanto, M.T', '', 2, 40, 'Tidak'],
-                ['FST103', 'Praktikum Fisika Dasar I', 1, 1, 'A', 'Wajib', 'Fakultas', 'Prof. Dr. Ir. Suyanto, M.T', 'Ahmad Asisten, S.T', 2, 25, 'Ya'],
-                ['FST201', 'Statistika & Probabilitas', 3, 3, 'A', 'Wajib', 'Fakultas', 'Dr. Rina Novita, M.Kom', '', 2, 40, 'Tidak'],
-            ];
-            $filename = 'template-mkwf-fakultas.xlsx';
-        }
-
-        $sheet->fromArray($sampleData, null, 'A2');
+        $filename = $isMkwu ? 'template-mkwu-universitas.xlsx' : 'template-mkwf-fakultas.xlsx';
 
         $headerStyle = [
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
