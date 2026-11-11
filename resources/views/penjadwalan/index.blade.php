@@ -770,82 +770,12 @@
 <div class="admin-layout">
     @if(Auth::user()->role === 'Fakultas')
         @include('fakultas.sidebar', ['active' => 'penjadwalan'])
-    @elseif(in_array(Auth::user()->role, ['Admin', 'Super Admin']))
-        @include('admin.sidebar', ['active' => 'penjadwalan'])
+    @elseif(Auth::user()->role === 'Jurusan')
+        @include('jurusan.sidebar', ['active' => 'penjadwalan'])
+    @elseif(Auth::user()->role === 'Prodi')
+        @include('prodi.sidebar', ['active' => 'penjadwalan'])
     @else
-        <aside class="admin-sidebar">
-            <div class="sidebar-top">
-                <div class="sidebar-brand">
-                    <h2>APJAD</h2>
-                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">{{ Auth::user()->role === 'Prodi' ? 'Admin Prodi' : Auth::user()->role }}</span>
-                </div>
-                <nav class="sidebar-nav">
-                    <a href="{{ route('prodi.dashboard') }}" class="sidebar-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="{{ route('prodi.dashboard') }}#section-dosen" class="sidebar-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                        <span>Data Dosen</span>
-                    </a>
-                    <a href="{{ route('prodi.dashboard') }}#section-mk" class="sidebar-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 19.5h16M6.5 15.5l5-3 5 3m-10 0l5-3 5 3M12 12l-9-5h18l-9 5"></path>
-                        </svg>
-                        <span>Mata Kuliah</span>
-                    </a>
-                    <a href="{{ route('prodi.dashboard') }}#section-rombel" class="sidebar-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                            <path d="M3 9h18M9 3v18"></path>
-                        </svg>
-                        <span>Rombel</span>
-                    </a>
-                    <a href="{{ route('prodi.dashboard') }}#section-jadwal" class="sidebar-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        <span>Jadwal Kuliah</span>
-                    </a>
-                    <a href="{{ route('penjadwalan.index') }}" class="sidebar-link active">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                        </svg>
-                        <span>Penjadwalan</span>
-                    </a>
-                </nav>
-            </div>
-
-            <div class="sidebar-bottom">
-                <button type="button" class="sidebar-link" onclick="openModal('modalEditProfile')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span>Edit Profile</span>
-                </button>
-                <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display: none;">
-                    @csrf
-                </form>
-                <a href="{{ route('logout') }}" class="sidebar-link" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    <span>Logout</span>
-                </a>
-            </div>
-        </aside>
+        @include('admin.sidebar', ['active' => 'dashboard'])
     @endif
 
     <main class="admin-main">

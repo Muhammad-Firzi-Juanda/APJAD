@@ -54,7 +54,7 @@
                 </a>
 
                 <a href="{{ route('master-data.jurusan.index') }}" class="stat-card" style="text-decoration: none; color: inherit;">
-                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #d97706;">
+                    <div class="stat-icon jurusan-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
@@ -112,7 +112,7 @@
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #d97706;">
+                    <div class="stat-icon jurusan-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
@@ -137,7 +137,7 @@
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #059669;">
+                    <div class="stat-icon aktif-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                             <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -150,7 +150,7 @@
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #dc2626;">
+                    <div class="stat-icon nonaktif-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="15" y1="9" x2="9" y2="15"></line>
