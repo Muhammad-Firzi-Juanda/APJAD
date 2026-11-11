@@ -102,9 +102,9 @@ class GeneticSchedulerService extends SchedulerService
                 }
             }
 
-            // Bebas dari bentrok sholat Jumat
+            // Bebas dari bentrok sholat Jumat (11:50 - 12:50 / 710 - 770 menit)
             if ($slot['hari'] === 'Jumat') {
-                if ($slot['mulai'] >= 810 || $slot['selesai'] <= 690) {
+                if ($slot['mulai'] >= 770 || $slot['selesai'] <= 710) {
                     $itemScore += 2;
                 }
             } else {

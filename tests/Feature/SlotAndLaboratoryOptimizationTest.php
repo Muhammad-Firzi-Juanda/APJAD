@@ -101,11 +101,11 @@ class SlotAndLaboratoryOptimizationTest extends TestCase
         $service = app(SchedulerService::class);
         $slotsJumat3Sks = $service->getModularSlotMulaiForSks(3, 'Jumat');
 
-        // Untuk MK 3 SKS (150 menit), jam 10:00 akan selesai jam 12:30 (menabrak sholat Jumat 11:30 - 13:30)
+        // Untuk MK 3 SKS (150 menit), jam 10:00 akan selesai jam 12:30 (menabrak sholat Jumat 11:50 - 12:50)
         // Maka jam 10:00 tidak boleh masuk ke slot valid hari Jumat
         $this->assertNotContains('10:00', $slotsJumat3Sks, 'Slot 10:00 Jumat harus diblokir karena menabrak sholat Jumat.');
 
-        // Jam 07:30 selesai 10:00 (sebelum 11:30) dan jam 13:50/15:30 (setelah 13:30) diizinkan
+        // Jam 07:30 selesai 10:00 (sebelum 11:50) dan jam 13:00/15:30 (setelah 12:50) diizinkan
         $this->assertContains('07:30', $slotsJumat3Sks);
     }
 }

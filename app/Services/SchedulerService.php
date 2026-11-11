@@ -535,8 +535,8 @@ class SchedulerService
                 $mulaiMenit = $this->menit($mulai);
                 $selesaiMenit = $mulaiMenit + $durasi;
 
-                // Proteksi Sholat Jumat (11:30 - 13:30 / 690 - 810 menit)
-                if ($hari === 'Jumat' && $mulaiMenit < 810 && $selesaiMenit > 690) {
+                // Proteksi Sholat Jumat (11:50 - 12:50 / 710 - 770 menit)
+                if ($hari === 'Jumat' && $mulaiMenit < 770 && $selesaiMenit > 710) {
                     continue;
                 }
 
@@ -616,9 +616,9 @@ class SchedulerService
                 continue;
             }
 
-            // Validasi hari Jumat: lindungi waktu sholat Jumat (11:30 - 13:30 / 690 - 810 menit)
+            // Validasi hari Jumat: lindungi waktu sholat Jumat (11:50 - 12:50 / 710 - 770 menit)
             if ($hari === 'Jumat') {
-                if ($start < 810 && $end > 690) {
+                if ($start < 770 && $end > 710) {
                     continue;
                 }
             } else {
@@ -702,8 +702,8 @@ class SchedulerService
                 $mulaiMenit = $this->menit($mulai);
                 $selesaiMenit = $mulaiMenit + $durasi;
 
-                // Proteksi Sholat Jumat (11:30 - 13:30 / 690 - 810 menit)
-                if ($hari === 'Jumat' && $mulaiMenit < 810 && $selesaiMenit > 690) {
+                // Proteksi Sholat Jumat (11:50 - 12:50 / 710 - 770 menit)
+                if ($hari === 'Jumat' && $mulaiMenit < 770 && $selesaiMenit > 710) {
                     continue;
                 }
 
