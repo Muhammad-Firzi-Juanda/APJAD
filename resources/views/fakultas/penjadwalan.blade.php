@@ -54,12 +54,14 @@
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                             <span>Unduh Template ▾</span>
                         </button>
-                        <div id="dropdownTemplateMenu" style="display:none; position:absolute; right:0; top:calc(100% + 4px); background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.1); min-width:180px; z-index:100; padding:6px 0;">
-                            <a href="{{ route('fakultas.courses.template', ['category' => 'UNV']) }}" style="display:block; padding:8px 16px; font-size:13px; color:#1e293b; text-decoration:none; font-weight:500;">
-                                📘 Template MKWU (.xlsx)
+                        <div id="dropdownTemplateMenu" style="display:none; position:absolute; right:0; top:calc(100% + 4px); background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.1); min-width:190px; z-index:100; padding:6px 0;">
+                            <a href="{{ route('fakultas.courses.template', ['category' => 'UNV']) }}" style="display:flex; align-items:center; gap:8px; padding:8px 16px; font-size:13px; color:#1e293b; text-decoration:none; font-weight:500;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                                <span>Template MKWU (.xlsx)</span>
                             </a>
-                            <a href="{{ route('fakultas.courses.template', ['category' => 'FST']) }}" style="display:block; padding:8px 16px; font-size:13px; color:#1e293b; text-decoration:none; font-weight:500;">
-                                📗 Template MKWF (.xlsx)
+                            <a href="{{ route('fakultas.courses.template', ['category' => 'FST']) }}" style="display:flex; align-items:center; gap:8px; padding:8px 16px; font-size:13px; color:#1e293b; text-decoration:none; font-weight:500;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                                <span>Template MKWF (.xlsx)</span>
                             </a>
                         </div>
                     </div>
@@ -85,43 +87,57 @@
 
             {{-- 4 KPI Cards --}}
             <div class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:16px; margin-bottom:24px;">
-                <div class="stat-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:18px; display:flex; align-items:center; gap:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                    <div style="width:48px; height:48px; border-radius:8px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:22px;">
-                        🗓️
+                <div class="stat-card">
+                    <div class="stat-icon users-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
                     </div>
-                    <div>
-                        <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Total Jadwal Terplot</div>
-                        <div style="font-size:24px; font-weight:700; color:#1e293b;">{{ $totalJadwal }}</div>
-                    </div>
-                </div>
-
-                <div class="stat-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:18px; display:flex; align-items:center; gap:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                    <div style="width:48px; height:48px; border-radius:8px; background:#f0fdf4; color:#16a34a; display:flex; align-items:center; justify-content:center; font-size:22px;">
-                        ⏱️
-                    </div>
-                    <div>
-                        <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Total SKS Terjadwal</div>
-                        <div style="font-size:24px; font-weight:700; color:#1e293b;">{{ $totalSks }}</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total Jadwal Terplot</div>
+                        <div class="stat-value">{{ $totalJadwal }}</div>
                     </div>
                 </div>
 
-                <div class="stat-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:18px; display:flex; align-items:center; gap:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                    <div style="width:48px; height:48px; border-radius:8px; background:#e0f2fe; color:#0284c7; display:flex; align-items:center; justify-content:center; font-size:22px;">
-                        📘
+                <div class="stat-card">
+                    <div class="stat-icon aktif-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
                     </div>
-                    <div>
-                        <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Jadwal MKWU (Univ)</div>
-                        <div style="font-size:24px; font-weight:700; color:#1e293b;">{{ $totalMkwu }} / {{ $mkwuCount }} MK</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total SKS Terjadwal</div>
+                        <div class="stat-value">{{ $totalSks }}</div>
                     </div>
                 </div>
 
-                <div class="stat-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:18px; display:flex; align-items:center; gap:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                    <div style="width:48px; height:48px; border-radius:8px; background:#f3e8ff; color:#9333ea; display:flex; align-items:center; justify-content:center; font-size:22px;">
-                        📗
+                <div class="stat-card">
+                    <div class="stat-icon mkwu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
                     </div>
-                    <div>
-                        <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Jadwal MKWF (Fakultas)</div>
-                        <div style="font-size:24px; font-weight:700; color:#1e293b;">{{ $totalMkwf }} / {{ $mkwfCount }} MK</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Jadwal MKWU (Univ)</div>
+                        <div class="stat-value">{{ $totalMkwu }} / {{ $mkwuCount }} MK</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon mkwf-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Jadwal MKWF (Fakultas)</div>
+                        <div class="stat-value">{{ $totalMkwf }} / {{ $mkwfCount }} MK</div>
                     </div>
                 </div>
             </div>
@@ -321,7 +337,9 @@
                             @empty
                                 <tr>
                                     <td colspan="10" style="padding:36px 20px; text-align:center;">
-                                        <div style="font-size:32px; margin-bottom:10px;">📋</div>
+                                        <div style="width:48px; height:48px; border-radius:50%; background:#f1f5f9; display:inline-flex; align-items:center; justify-content:center; color:#94a3b8; margin-bottom:12px;">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        </div>
                                         <h4 style="margin:0 0 6px; font-size:15px; color:#1e293b;">Belum ada jadwal Fakultas yang digenerate</h4>
                                         <p style="margin:0; font-size:13px; color:#64748b;">
                                             Silakan tentukan pengaturan di atas lalu klik tombol <strong>Mulai Generate Jadwal Sekarang</strong>.
@@ -569,8 +587,12 @@ function renderInteractivePreview() {
                     </span>
                 </td>
                 <td style="padding:8px; text-align:center;">
-                    <button type="button" onclick="editPreviewItem(${index})" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:3px 7px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer;" title="Edit baris">✏️</button>
-                    <button type="button" onclick="deletePreviewItem(${index})" style="background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:3px 7px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer; margin-left:3px;" title="Hapus baris">🗑️</button>
+                    <button type="button" onclick="editPreviewItem(${index})" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center;" title="Edit baris">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button type="button" onclick="deletePreviewItem(${index})" style="background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer; margin-left:3px; display:inline-flex; align-items:center;" title="Hapus baris">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
                 </td>
             `;
         }

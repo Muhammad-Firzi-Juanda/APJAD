@@ -1287,15 +1287,15 @@
                                         </button>
                                         @if ($allFailuresCount > 0)
                                             <button type="button" class="log-filter-btn filter-btn-danger" data-filter="gagal" onclick="applyLogFilter('gagal', this)">
-                                                🔴 Butuh Penyesuaian ({{ $allFailuresCount }})
+                                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#ef4444; margin-right:6px;"></span>Butuh Penyesuaian ({{ $allFailuresCount }})
                                             </button>
                                         @endif
                                         <button type="button" class="log-filter-btn filter-btn-success" data-filter="sukses" onclick="applyLogFilter('sukses', this)">
-                                            🟢 Berhasil ({{ $totalBerhasil }})
+                                            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981; margin-right:6px;"></span>Berhasil ({{ $totalBerhasil }})
                                         </button>
                                         @if ($totalPeringatan > 0)
                                             <button type="button" class="log-filter-btn filter-btn-warning" data-filter="warning" onclick="applyLogFilter('warning', this)">
-                                                🟡 Catatan ({{ $totalPeringatan }})
+                                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#f59e0b; margin-right:6px;"></span>Catatan ({{ $totalPeringatan }})
                                             </button>
                                         @endif
                                     </div>
@@ -2456,8 +2456,12 @@ function renderInteractivePreview() {
                 <td style="padding:6px 8px; font-size:11.5px; color:#334155;">${item.dosen_ketua || '-'}</td>
                 <td style="padding:6px 8px; text-align:center;">${statusBadge}</td>
                 <td style="padding:6px 8px; text-align:center; white-space:nowrap;">
-                    <button type="button" onclick="editPreviewItem(${index})" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:3px 7px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer;" title="Edit baris ini">✏️</button>
-                    <button type="button" onclick="deletePreviewItem(${index})" style="background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:3px 7px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer; margin-left:3px;" title="Hapus baris ini">🗑️</button>
+                    <button type="button" onclick="editPreviewItem(${index})" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center;" title="Edit baris ini">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button type="button" onclick="deletePreviewItem(${index})" style="background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer; margin-left:3px; display:inline-flex; align-items:center;" title="Hapus baris ini">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
                 </td>
             `;
         }

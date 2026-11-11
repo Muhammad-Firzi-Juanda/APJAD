@@ -49,7 +49,14 @@
                 </div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
                     <a href="{{ route('fakultas.allocations.rooms') }}" style="display:inline-flex; align-items:center; gap:8px; background:#e0f2fe; color:#0369a1; padding:10px 16px; border-radius:6px; border:1px solid #bae6fd; font-weight:600; text-decoration:none; font-size:13.5px;">
-                        <span>📍 Kelola Alokasi Ruangan ke Prodi</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="16 3 21 3 21 8"></polyline>
+                            <line x1="4" y1="20" x2="21" y2="3"></line>
+                            <polyline points="21 16 21 21 16 21"></polyline>
+                            <line x1="15" y1="15" x2="21" y2="21"></line>
+                            <line x1="4" y1="4" x2="9" y2="9"></line>
+                        </svg>
+                        <span>Kelola Alokasi Ruangan ke Prodi</span>
                     </a>
                     <button type="button" onclick="openModal('modalAddRoom')" style="display:inline-flex; align-items:center; gap:8px; background:#0860be; color:#fff; padding:10px 18px; border-radius:6px; border:none; font-weight:600; cursor:pointer; font-size:14px; box-shadow:0 2px 6px rgba(8,96,190,0.25);">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -164,25 +171,33 @@
                                         </form>
                                     </td>
                                     <td style="padding:12px 16px; text-align:right;">
-                                        <button type="button" 
-                                            class="btn-edit-room"
-                                            data-id="{{ $room->id }}"
-                                            data-code="{{ $room->code ?? '' }}"
-                                            data-name="{{ $room->name }}"
-                                            data-capacity="{{ $room->capacity }}"
-                                            data-type="{{ $room->type }}"
-                                            data-status="{{ $room->status }}"
-                                            onclick="openEditModalFromBtn(this)" 
-                                            style="padding:6px 12px; background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; font-weight:500; cursor:pointer; margin-right:4px;">
-                                            Edit
-                                        </button>
-                                        <form action="{{ route('fakultas.rooms.destroy', $room) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus {{ $room->name }}?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" style="padding:6px 10px; background:#fff; color:#ef4444; border:1px solid #fca5a5; border-radius:4px; font-size:12px; font-weight:500; cursor:pointer;">
-                                                Hapus
+                                        <div style="display:inline-flex; gap:6px; align-items:center;">
+                                            <button type="button" 
+                                                class="btn-action edit-btn btn-edit-room"
+                                                title="Edit Ruangan"
+                                                data-id="{{ $room->id }}"
+                                                data-code="{{ $room->code ?? '' }}"
+                                                data-name="{{ $room->name }}"
+                                                data-capacity="{{ $room->capacity }}"
+                                                data-type="{{ $room->type }}"
+                                                data-status="{{ $room->status }}"
+                                                onclick="openEditModalFromBtn(this)">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                </svg>
                                             </button>
-                                        </form>
+                                            <form action="{{ route('fakultas.rooms.destroy', $room) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus {{ $room->name }}?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn-action delete-btn" title="Hapus Ruangan">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

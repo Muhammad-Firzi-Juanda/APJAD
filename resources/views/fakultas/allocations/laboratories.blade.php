@@ -45,8 +45,9 @@
                         Relasi Many-to-Many: Satu laboratorium milik Fakultas dapat dialokasikan ke beberapa Program Studi (contoh: Lab TI &rarr; TI, Lab Energi &rarr; TE).
                     </p>
                 </div>
-                <button type="button" onclick="openModal('modalAddLabAllocation')" style="display:inline-flex; align-items:center; gap:8px; background:#9333ea; color:#fff; padding:10px 18px; border-radius:6px; border:none; font-weight:600; cursor:pointer; font-size:14px;">
-                    <span>+ Tambah Alokasi Laboratorium</span>
+                <button type="button" onclick="openModal('modalAddLabAllocation')" style="display:inline-flex; align-items:center; gap:8px; background:#0860be; color:#fff; padding:10px 18px; border-radius:6px; border:none; font-weight:600; cursor:pointer; font-size:14px; box-shadow:0 2px 6px rgba(8,96,190,0.25);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>Tambah Alokasi Laboratorium</span>
                 </button>
             </div>
 
@@ -149,8 +150,11 @@
                                             @csrf
                                             @method('DELETE')
                                             <input type="hidden" name="redirect_to" value="allocations_page">
-                                            <button type="submit" style="padding:6px 12px; background:#fff; color:#ef4444; border:1px solid #fca5a5; border-radius:4px; font-size:12px; font-weight:500; cursor:pointer;">
-                                                Hapus Alokasi
+                                            <button type="submit" class="btn-action delete-btn" title="Hapus Alokasi">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                </svg>
                                             </button>
                                         </form>
                                     </td>

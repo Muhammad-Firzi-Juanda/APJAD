@@ -159,26 +159,34 @@
                                         </form>
                                     </td>
                                     <td style="padding:12px 16px; text-align:right;">
-                                        <button type="button" 
-                                            class="btn-edit-course"
-                                            data-id="{{ $c->id }}"
-                                            data-code="{{ $c->code }}"
-                                            data-name="{{ $c->name }}"
-                                            data-sks="{{ $c->sks }}"
-                                            data-semester="{{ $c->semester }}"
-                                            data-type="{{ $c->type }}"
-                                            data-status="{{ $c->status }}"
-                                            onclick="openEditModalFromBtn(this)" 
-                                            style="padding:6px 12px; background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; font-weight:500; cursor:pointer; margin-right:4px;">
-                                            Edit
-                                        </button>
-                                        <form action="{{ route('fakultas.courses.destroy', $c) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus MKWU {{ $c->code }}?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" style="padding:6px 10px; background:#fff; color:#ef4444; border:1px solid #fca5a5; border-radius:4px; font-size:12px; font-weight:500; cursor:pointer;">
-                                                Hapus
+                                        <div style="display:inline-flex; gap:6px; align-items:center;">
+                                            <button type="button" 
+                                                class="btn-action edit-btn btn-edit-course"
+                                                title="Edit MKWU"
+                                                data-id="{{ $c->id }}"
+                                                data-code="{{ $c->code }}"
+                                                data-name="{{ $c->name }}"
+                                                data-sks="{{ $c->sks }}"
+                                                data-semester="{{ $c->semester }}"
+                                                data-type="{{ $c->type }}"
+                                                data-status="{{ $c->status }}"
+                                                onclick="openEditModalFromBtn(this)">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                </svg>
                                             </button>
-                                        </form>
+                                            <form action="{{ route('fakultas.courses.destroy', $c) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus MKWU {{ $c->code }}?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn-action delete-btn" title="Hapus MKWU">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -599,8 +607,12 @@ function renderInteractivePreview() {
                     </span>
                 </td>
                 <td style="padding:8px; text-align:center;">
-                    <button type="button" onclick="editPreviewItem(${index})" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:3px 7px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer;" title="Edit baris">✏️</button>
-                    <button type="button" onclick="deletePreviewItem(${index})" style="background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:3px 7px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer; margin-left:3px;" title="Hapus baris">🗑️</button>
+                    <button type="button" onclick="editPreviewItem(${index})" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center;" title="Edit baris">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button type="button" onclick="deletePreviewItem(${index})" style="background:#fef2f2; color:#dc2626; border:1px solid #fecaca; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer; margin-left:3px; display:inline-flex; align-items:center;" title="Hapus baris">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
                 </td>
             `;
         }
