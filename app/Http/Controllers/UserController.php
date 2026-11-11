@@ -78,26 +78,14 @@ class UserController extends Controller
     /**
      * Endpoint /manajemen-akun dan /manajemen-akun/daftar.
      */
-    public function manajemenAkun(Request $request): RedirectResponse
+    public function manajemenAkun(Request $request): View
     {
-        $currentUser = Auth::user();
-        $requestedRole = $request->query('role');
-
-        if ($requestedRole !== null && ! AccountAuthorizationService::canViewRole($currentUser, (string) $requestedRole)) {
-            abort(403, 'Akses ditolak: Anda tidak memiliki izin untuk melihat kategori akun tersebut.');
+        $role = (string) $request->query('role', 'Semua');
+        if (empty($role) || ! in_array($role, [UserRole::FAKULTAS, UserRole::JURUSAN, UserRole::PRODI], true)) {
+            $role = 'Semua';
         }
 
-        $targetRoute = match ($requestedRole) {
-            UserRole::SUPER_ADMIN => 'manajemen-akun.super-admin',
-            UserRole::FAKULTAS => 'manajemen-akun.fakultas',
-            UserRole::JURUSAN => 'manajemen-akun.jurusan',
-            UserRole::PRODI => 'manajemen-akun.prodi',
-            default => 'manajemen-akun.fakultas',
-        };
-
-        $queryParams = collect($request->query())->except('role')->all();
-
-        return redirect()->route($targetRoute, $queryParams);
+        return $this->renderRolePage($request, $role);
     }
 
     /**
@@ -107,7 +95,7 @@ class UserController extends Controller
     {
         $request->merge(['open_manual' => '1']);
 
-        return $this->renderRolePage($request, UserRole::FAKULTAS, 'manajemen-akun-tambah-manual');
+        return $this->renderRolePage($request, 'Semua', 'manajemen-akun');
     }
 
     /**
@@ -156,15 +144,15 @@ class UserController extends Controller
     }
 
     /**
-     * Render halaman manajemen akun terpisah berdasarkan role.
+     * Render halaman manajemen akun terpisah berdasarkan role atau semua akun operasional.
      */
-    private function renderRolePage(Request $request, string $pageRole, ?string $overrideActiveMenu = null): View
+    private function renderRolePage(Request $request, string $pageRole = 'Semua', ?string $overrideActiveMenu = null): View
     {
         $currentUser = Auth::user();
         $isSuperAdmin = $currentUser->role === UserRole::SUPER_ADMIN;
         $isAdmin = $currentUser->role === UserRole::ADMIN;
 
-        if (! AccountAuthorizationService::canViewRole($currentUser, $pageRole)) {
+        if ($pageRole !== 'Semua' && ! AccountAuthorizationService::canViewRole($currentUser, $pageRole)) {
             abort(403, 'Akses ditolak: Anda tidak memiliki izin untuk mengakses kategori akun ini.');
         }
 
@@ -174,22 +162,27 @@ class UserController extends Controller
         $filterProdiId = $request->query('prodi_id');
         $search = trim((string) $request->query('search'));
 
-        $query = User::with(['fakultas', 'jurusan', 'prodi'])
-            ->where('role', $pageRole);
+        $query = User::with(['fakultas', 'jurusan', 'prodi']);
+
+        if ($pageRole === 'Semua') {
+            $query->whereIn('role', [UserRole::FAKULTAS, UserRole::JURUSAN, UserRole::PRODI]);
+        } else {
+            $query->where('role', $pageRole);
+        }
 
         if ($filterStatus && in_array($filterStatus, ['aktif', 'nonaktif'], true)) {
             $query->where('status', $filterStatus);
         }
 
-        if (in_array($pageRole, [UserRole::FAKULTAS, UserRole::JURUSAN, UserRole::PRODI], true) && ! empty($filterFakultasId)) {
+        if (in_array($pageRole, ['Semua', UserRole::FAKULTAS, UserRole::JURUSAN, UserRole::PRODI], true) && ! empty($filterFakultasId)) {
             $query->where('fakultas_id', (int) $filterFakultasId);
         }
 
-        if (in_array($pageRole, [UserRole::JURUSAN, UserRole::PRODI], true) && ! empty($filterJurusanId)) {
+        if (in_array($pageRole, ['Semua', UserRole::JURUSAN, UserRole::PRODI], true) && ! empty($filterJurusanId)) {
             $query->where('jurusan_id', (int) $filterJurusanId);
         }
 
-        if ($pageRole === UserRole::PRODI && ! empty($filterProdiId)) {
+        if (in_array($pageRole, ['Semua', UserRole::PRODI], true) && ! empty($filterProdiId)) {
             $query->where('prodi_id', (int) $filterProdiId);
         }
 
@@ -210,35 +203,29 @@ class UserController extends Controller
         $jurusan = Jurusan::active()->with('fakultas')->orderBy('nama')->get();
         $prodi = Prodi::active()->with(['fakultas', 'jurusan'])->orderBy('nama')->get();
 
-        $pageRouteName = self::roleRouteName($pageRole);
-        $activeMenu = $overrideActiveMenu ?? match ($pageRole) {
-            UserRole::SUPER_ADMIN => 'manajemen-akun-super-admin',
-            UserRole::FAKULTAS => 'manajemen-akun-fakultas',
-            UserRole::JURUSAN => 'manajemen-akun-jurusan',
-            UserRole::PRODI => 'manajemen-akun-prodi',
-            default => 'manajemen-akun-fakultas',
-        };
+        $pageRouteName = 'manajemen-akun';
+        $activeMenu = $overrideActiveMenu ?? 'manajemen-akun';
 
         $pageTitle = match ($pageRole) {
             UserRole::SUPER_ADMIN => 'Akun Super Admin',
             UserRole::FAKULTAS => 'Manajemen Akun Fakultas',
             UserRole::JURUSAN => 'Manajemen Akun Jurusan',
             UserRole::PRODI => 'Manajemen Akun Program Studi',
-            default => 'Manajemen Akun',
+            default => 'Manajemen Akun Pengguna',
         };
         $pageDescription = match ($pageRole) {
             UserRole::SUPER_ADMIN => 'Daftar akun Super Admin pembuat akun operasional (read-only).',
             UserRole::FAKULTAS => 'Kelola akun tingkat Fakultas (Dekan & Wakil Dekan) yang terikat pada satu Fakultas.',
             UserRole::JURUSAN => 'Kelola akun tingkat Jurusan (Ketua Jurusan) yang terikat pada Fakultas dan Jurusan.',
             UserRole::PRODI => 'Kelola akun tingkat Program Studi (Ketua Program Studi) yang terikat pada Fakultas, Jurusan, dan Program Studi.',
-            default => 'Kelola akun pengguna sistem.',
+            default => 'Kelola seluruh akun pengguna operasional (Fakultas, Jurusan, dan Program Studi).',
         };
 
-        $canCreateAccount = in_array($pageRole, [UserRole::FAKULTAS, UserRole::JURUSAN, UserRole::PRODI], true)
-            && AccountAuthorizationService::canCreateRole($currentUser, $pageRole);
+        $canCreateAccount = in_array($pageRole, ['Semua', UserRole::FAKULTAS, UserRole::JURUSAN, UserRole::PRODI], true)
+            && ($isSuperAdmin || $isAdmin);
 
         $canManageAccounts = ($isAdmin || $isSuperAdmin)
-            && in_array($pageRole, [UserRole::FAKULTAS, UserRole::JURUSAN, UserRole::PRODI], true);
+            && in_array($pageRole, ['Semua', UserRole::FAKULTAS, UserRole::JURUSAN, UserRole::PRODI], true);
         $autoOpenManualModal = $request->boolean('open_manual');
 
         return view('admin.manajemen-akun', compact(

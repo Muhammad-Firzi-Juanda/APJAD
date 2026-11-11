@@ -4,13 +4,15 @@
 
 @section('content')
 @php
-    $showFakultas = in_array($pageRole, ['Fakultas', 'Jurusan', 'Prodi'], true);
-    $showJurusan = in_array($pageRole, ['Jurusan', 'Prodi'], true);
-    $showProdi = $pageRole === 'Prodi';
+    $isAllRoles = in_array($pageRole, ['Semua', 'all', '', null], true);
+    $showFakultas = $isAllRoles || in_array($pageRole, ['Fakultas', 'Jurusan', 'Prodi'], true);
+    $showJurusan = $isAllRoles || in_array($pageRole, ['Jurusan', 'Prodi'], true);
+    $showProdi = $isAllRoles || $pageRole === 'Prodi';
     $colCount = 5 + ($showFakultas ? 1 : 0) + ($showJurusan ? 1 : 0) + ($showProdi ? 1 : 0);
     $defaultJabatan = match ($pageRole) {
         'Jurusan' => 'Ketua Jurusan',
         'Prodi' => 'Ketua Program Studi',
+        'Fakultas' => 'Dekan',
         default => 'Dekan',
     };
 @endphp
@@ -83,22 +85,20 @@
                 @endif
             </div>
 
-            <!-- Role Category Navigation Tabs -->
+            <!-- Role Category Navigation Filter Tabs -->
             <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
-                <a href="{{ route('manajemen-akun.fakultas') }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; {{ $pageRole === 'Fakultas' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
+                <a href="{{ route('manajemen-akun', array_merge(request()->except('role', 'page'), ['role' => 'Semua'])) }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; {{ $isAllRoles ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
+                    Semua Akun
+                </a>
+                <a href="{{ route('manajemen-akun', array_merge(request()->except('role', 'page'), ['role' => 'Fakultas'])) }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; {{ $pageRole === 'Fakultas' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
                     Akun Fakultas
                 </a>
-                <a href="{{ route('manajemen-akun.jurusan') }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; {{ $pageRole === 'Jurusan' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
+                <a href="{{ route('manajemen-akun', array_merge(request()->except('role', 'page'), ['role' => 'Jurusan'])) }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; {{ $pageRole === 'Jurusan' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
                     Akun Jurusan
                 </a>
-                <a href="{{ route('manajemen-akun.prodi') }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; {{ $pageRole === 'Prodi' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
+                <a href="{{ route('manajemen-akun', array_merge(request()->except('role', 'page'), ['role' => 'Prodi'])) }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; {{ $pageRole === 'Prodi' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
                     Akun Program Studi
                 </a>
-                @if($isAdmin ?? false)
-                    <a href="{{ route('manajemen-akun.super-admin') }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; {{ $pageRole === 'Super Admin' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
-                        Akun Super Admin
-                    </a>
-                @endif
                 <a href="{{ route('manajemen-akun.riwayat-generate') }}" style="margin-left: auto; padding: 8px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; text-decoration: none; background: #f8fafc; color: #0860be; border: 1px solid #bae6fd;">
                     Riwayat Generate Akun
                 </a>
@@ -106,7 +106,8 @@
 
             <!-- Filter Toolbar -->
             <div style="background: #ffffff; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                <form action="{{ route($pageRouteName) }}" method="GET" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+                <form action="{{ route('manajemen-akun') }}" method="GET" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+                    <input type="hidden" name="role" value="{{ $isAllRoles ? 'Semua' : $pageRole }}">
                     <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
                         @if($showFakultas)
                             <div style="display: flex; align-items: center; gap: 6px;">
@@ -170,7 +171,7 @@
                             Cari
                         </button>
                         @if(!empty($filterStatus) || !empty($filterFakultasId) || !empty($filterJurusanId) || !empty($filterProdiId) || !empty($search))
-                            <a href="{{ route($pageRouteName) }}" style="padding: 6px 12px; background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; font-weight: 600; text-decoration: none;">
+                            <a href="{{ route('manajemen-akun', ['role' => $isAllRoles ? 'Semua' : $pageRole]) }}" style="padding: 6px 12px; background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; font-weight: 600; text-decoration: none;">
                                 Reset
                             </a>
                         @endif
@@ -208,11 +209,18 @@
                                     </td>
                                     <td style="padding: 12px;">
                                         <div style="font-weight: 600; color: #0f172a;">{{ $u->nama }}</div>
-                                        @if(!empty($u->jabatan))
-                                            <span style="display: inline-block; margin-top: 3px; padding: 2px 8px; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-size: 0.74rem; font-weight: 700;">
-                                                {{ $u->jabatan }}
-                                            </span>
-                                        @endif
+                                        <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px;">
+                                            @if(!empty($u->jabatan))
+                                                <span style="display: inline-block; padding: 2px 8px; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-size: 0.74rem; font-weight: 700;">
+                                                    {{ $u->jabatan }}
+                                                </span>
+                                            @endif
+                                            @if($isAllRoles)
+                                                <span style="display: inline-block; padding: 2px 8px; border-radius: 999px; background: #f1f5f9; color: #475569; font-size: 0.74rem; font-weight: 600;">
+                                                    {{ $u->role }}
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td style="padding: 12px; font-size: 0.85rem; color: #475569;">
                                         <div>{{ $u->email }}</div>
@@ -261,7 +269,7 @@
                                     <td style="padding: 12px;">
                                         @php
                                             $canManageThisUser = ($canManageAccounts ?? false)
-                                                && Auth::user()->role === \App\Enums\UserRole::ADMIN
+                                                && in_array(Auth::user()->role, [\App\Enums\UserRole::ADMIN, \App\Enums\UserRole::SUPER_ADMIN], true)
                                                 && $u->id !== Auth::id()
                                                 && in_array($u->role, [\App\Enums\UserRole::FAKULTAS, \App\Enums\UserRole::JURUSAN, \App\Enums\UserRole::PRODI], true);
                                         @endphp
@@ -354,7 +362,7 @@
                             @empty
                                 <tr>
                                     <td colspan="{{ $colCount }}" style="padding: 24px; text-align: center; color: #64748b;">
-                                        Belum ada data akun {{ $pageRole }} yang sesuai filter.
+                                        Belum ada data akun {{ $isAllRoles ? 'operasional' : $pageRole }} yang sesuai filter.
                                     </td>
                                 </tr>
                             @endforelse
@@ -365,7 +373,7 @@
                 @if(method_exists($users, 'hasPages') && $users->hasPages())
                     <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <div style="font-size: 0.83rem; color: #64748b;">
-                            Menampilkan {{ $users->firstItem() }}–{{ $users->lastItem() }} dari {{ $users->total() }} akun {{ $pageRole }}
+                            Menampilkan {{ $users->firstItem() }}–{{ $users->lastItem() }} dari {{ $users->total() }} akun {{ $isAllRoles ? 'operasional' : $pageRole }}
                         </div>
                         <div style="display: flex; gap: 6px; align-items: center;">
                             @if($users->onFirstPage())

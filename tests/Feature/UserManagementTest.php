@@ -140,11 +140,15 @@ class UserManagementTest extends TestCase
         $superAdmin = $this->superAdmin();
         $admin = $this->adminAkun();
 
-        $this->actingAs($superAdmin)->get('/manajemen-akun')
-            ->assertRedirect(route('manajemen-akun.fakultas'));
+        $respSaAll = $this->actingAs($superAdmin)->get('/manajemen-akun');
+        $respSaAll->assertOk();
+        $respSaAll->assertSee('Semua Akun');
+        $respSaAll->assertDontSee('Akun Super Admin');
 
-        $this->actingAs($admin)->get('/manajemen-akun')
-            ->assertRedirect(route('manajemen-akun.fakultas'));
+        $respAdminAll = $this->actingAs($admin)->get('/manajemen-akun');
+        $respAdminAll->assertOk();
+        $respAdminAll->assertSee('Semua Akun');
+        $respAdminAll->assertDontSee('Akun Super Admin');
 
         // Halaman Akun Admin ditutup (403) karena hanya ada 1 akun Admin sistem
         $this->actingAs($superAdmin)->get('/manajemen-akun/admin')->assertForbidden();
@@ -606,7 +610,8 @@ class UserManagementTest extends TestCase
         $adminPage = $this->actingAs($admin)->get('/manajemen-akun/fakultas');
         $adminPage->assertOk();
         $adminPage->assertSee('Master Data');
-        $adminPage->assertSee('Akun Super Admin');
+        $adminPage->assertDontSee('Akun Super Admin');
+        $adminPage->assertSee('Semua Akun');
         $adminPage->assertSee('Akun Fakultas');
         $adminPage->assertSee('Akun Jurusan');
         $adminPage->assertSee('Akun Program Studi');
