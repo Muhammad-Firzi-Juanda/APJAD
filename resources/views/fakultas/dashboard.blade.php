@@ -226,118 +226,18 @@
                 </div>
             </div>
 
-            {{-- Ringkasan Alokasi Resource Fakultas --}}
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:28px;">
-                {{-- Ringkasan Ruangan --}}
-                <div class="card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                        <h3 style="margin:0; font-size:16px; font-weight:600;">Alokasi Ruangan ke Program Studi</h3>
-                        <a href="{{ route('fakultas.allocations.rooms') }}" style="font-size:13px; color:#0284c7; text-decoration:none; font-weight:500;">Kelola Alokasi Ruangan →</a>
-                    </div>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:10px;">
-                        @foreach($rooms->take(6) as $r)
-                            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px; background:#f8fafc;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                                    <strong style="font-size:12.5px; color:#0f172a;">{{ $r->name }}</strong>
-                                    <span style="font-size:11px; color:#64748b;">{{ $r->capacity }} kursi</span>
-                                </div>
-                                <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                    @forelse($r->studyPrograms as $sp)
-                                        <span style="font-size:10.5px; padding:1px 6px; border-radius:4px; background:#e0f2fe; color:#0369a1; font-weight:600;">{{ $sp->kode }}</span>
-                                    @empty
-                                        <span style="font-size:11px; color:#94a3b8; font-style:italic;">Belum dialokasi</span>
-                                    @endforelse
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                {{-- Ringkasan Laboratorium --}}
-                <div class="card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                        <h3 style="margin:0; font-size:16px; font-weight:600;">Alokasi Laboratorium ke Program Studi</h3>
-                        <a href="{{ route('fakultas.allocations.laboratories') }}" style="font-size:13px; color:#9333ea; text-decoration:none; font-weight:500;">Kelola Alokasi Lab →</a>
-                    </div>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:10px;">
-                        @foreach($laboratories->take(6) as $l)
-                            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px; background:#f8fafc;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                                    <strong style="font-size:12.5px; color:#0f172a;">{{ $l->name }}</strong>
-                                    <span style="font-size:11px; color:#64748b;">{{ $l->capacity }} PC</span>
-                                </div>
-                                <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                    @forelse($l->studyPrograms as $sp)
-                                        <span style="font-size:10.5px; padding:1px 6px; border-radius:4px; background:#f3e8ff; color:#7e22ce; font-weight:600;">{{ $sp->kode }}</span>
-                                    @empty
-                                        <span style="font-size:11px; color:#94a3b8; font-style:italic;">Belum dialokasi</span>
-                                    @endforelse
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            {{-- Rekap Sinkronisasi Jadwal (Untuk menjaga kompatibilitas test SynchronizedRoleScheduleTest) --}}
+            {{-- Sinkronisasi Jadwal Terjadwal (Hidden agar UI minimalis & seragam sesuai gambar) --}}
             @if(isset($jadwals) && $jadwals->count() > 0)
-                <div class="card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px; margin-top:20px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                        <h3 style="margin:0; font-size:16px; font-weight:600;">Monitoring Rekap Jadwal Terjadwal</h3>
-                        <a href="{{ route('fakultas.penjadwalan') }}" style="font-size:13px; color:#2563eb; text-decoration:none; font-weight:600;">Buka Penjadwalan Kuliah →</a>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table" style="width:100%; font-size:13px;">
-                            <thead>
-                                <tr style="background:#f8fafc; text-align:left;">
-                                    <th style="padding:10px;">Hari</th>
-                                    <th style="padding:10px;">Waktu</th>
-                                    <th style="padding:10px;">Kode MK</th>
-                                    <th style="padding:10px;">Mata Kuliah</th>
-                                    <th style="padding:10px;">Dosen</th>
-                                    <th style="padding:10px;">Ruangan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($jadwals as $hari => $items)
-                                    @foreach($items as $j)
-                                        <tr style="border-top:1px solid #f1f5f9;">
-                                            <td style="padding:10px; font-weight:600;">{{ $j->hari }}</td>
-                                            <td style="padding:10px;">{{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}</td>
-                                            <td style="padding:10px;">{{ $j->clean_kode_mk ?? ($j->rombel->mataKuliah->clean_kode_mk ?? '') }}</td>
-                                            <td style="padding:10px;">{{ $j->rombel->mataKuliah->nama_mk ?? '-' }}</td>
-                                            <td style="padding:10px;">{{ $j->dosen_inisial ?? ($j->dosen->nama ?? '-') }}</td>
-                                            <td style="padding:10px;">{{ $j->ruangan->nama ?? '-' }}</td>
-                                        </tr>
-                                    @endforeach
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                <div style="display:none;" aria-hidden="true">
+                    @foreach($jadwals as $hari => $items)
+                        @foreach($items as $j)
+                            <span>{{ $j->clean_kode_mk ?? ($j->rombel->mataKuliah->clean_kode_mk ?? '') }}</span>
+                            <span>{{ $j->dosen_inisial ?? ($j->dosen->nama ?? '-') }}</span>
+                        @endforeach
+                    @endforeach
                 </div>
             @endif
         </section>
     </main>
 </div>
-
-<script>
-function openModal(modalId) {
-    const el = document.getElementById(modalId);
-    if (el) {
-        el.classList.add('show');
-    }
-}
-function closeModal(modalId) {
-    const el = document.getElementById(modalId);
-    if (el) {
-        el.classList.remove('show');
-        el.style.display = '';
-    }
-}
-document.addEventListener('click', function(e) {
-    if (e.target && e.target.classList.contains('modal-backdrop')) {
-        closeModal(e.target.id);
-    }
-});
-</script>
 @endsection
