@@ -14,7 +14,7 @@ class Jadwal extends Model
     protected $table = 'jadwals';
 
     protected $fillable = [
-        'rombel_id', 'ruangan_id', 'dosen_id', 'hari',
+        'rombel_id', 'ruangan_id', 'laboratory_id', 'dosen_id', 'hari',
         'jam_mulai', 'jam_selesai', 'minggu_ke', 'catatan', 'is_active',
     ];
 
@@ -30,6 +30,20 @@ class Jadwal extends Model
     public function ruangan(): BelongsTo
     {
         return $this->belongsTo(Ruangan::class);
+    }
+
+    public function laboratory(): BelongsTo
+    {
+        return $this->belongsTo(Laboratory::class, 'laboratory_id');
+    }
+
+    public function getLokasiAttribute(): string
+    {
+        if ($this->laboratory) {
+            return '[Lab] '.($this->laboratory->name ?? $this->laboratory->code ?? 'Lab');
+        }
+
+        return $this->ruangan?->nama ?? $this->ruangan?->kode ?? '-';
     }
 
     public function dosen(): BelongsTo
@@ -61,7 +75,10 @@ class Jadwal extends Model
         if ($this->hari !== $other->hari) {
             return false;
         }
-        if ($this->ruangan_id === $other->ruangan_id) {
+        if ($this->ruangan_id && $this->ruangan_id === $other->ruangan_id) {
+            return $this->jam_mulai < $other->jam_selesai && $this->jam_selesai > $other->jam_mulai;
+        }
+        if ($this->laboratory_id && $this->laboratory_id === $other->laboratory_id) {
             return $this->jam_mulai < $other->jam_selesai && $this->jam_selesai > $other->jam_mulai;
         }
         if ($this->dosen_id === $other->dosen_id) {

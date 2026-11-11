@@ -770,12 +770,14 @@
 <div class="admin-layout">
     @if(Auth::user()->role === 'Fakultas')
         @include('fakultas.sidebar', ['active' => 'penjadwalan'])
+    @elseif(in_array(Auth::user()->role, ['Admin', 'Super Admin']))
+        @include('admin.sidebar', ['active' => 'penjadwalan'])
     @else
         <aside class="admin-sidebar">
             <div class="sidebar-top">
                 <div class="sidebar-brand">
                     <h2>APJAD</h2>
-                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Prodi</span>
+                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">{{ Auth::user()->role === 'Prodi' ? 'Admin Prodi' : Auth::user()->role }}</span>
                 </div>
                 <nav class="sidebar-nav">
                     <a href="{{ route('prodi.dashboard') }}" class="sidebar-link">
@@ -816,8 +818,7 @@
                     </a>
                     <a href="{{ route('penjadwalan.index') }}" class="sidebar-link active">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                         </svg>
                         <span>Penjadwalan</span>
                     </a>

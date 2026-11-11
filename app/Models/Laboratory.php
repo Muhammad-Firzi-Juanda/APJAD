@@ -15,6 +15,7 @@ class Laboratory extends Model
 
     protected $fillable = [
         'faculty_id',
+        'code',
         'name',
         'capacity',
         'lab_type',

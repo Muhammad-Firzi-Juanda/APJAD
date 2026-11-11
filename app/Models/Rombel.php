@@ -16,7 +16,7 @@ class Rombel extends Model
 
     protected $fillable = [
         'mata_kuliah_detail_id', 'kode_rombel', 'nomor_rombel', 'kelas',
-        'kapasitas', 'ruangan_id', 'hari', 'jam_mulai', 'jam_selesai',
+        'kapasitas', 'ruangan_id', 'laboratory_id', 'hari', 'jam_mulai', 'jam_selesai',
         'dosen_pengampu_id', 'peran_dosen', 'is_active',
     ];
 
@@ -32,6 +32,11 @@ class Rombel extends Model
     public function ruangan(): BelongsTo
     {
         return $this->belongsTo(Ruangan::class);
+    }
+
+    public function laboratory(): BelongsTo
+    {
+        return $this->belongsTo(Laboratory::class, 'laboratory_id');
     }
 
     public function dosenPengampu(): BelongsTo
@@ -96,5 +101,14 @@ class Rombel extends Model
         }
 
         return 'A';
+    }
+
+    public function getLokasiAttribute(): string
+    {
+        if ($this->laboratory) {
+            return '[Lab] '.($this->laboratory->name ?? $this->laboratory->code ?? 'Lab');
+        }
+
+        return $this->ruangan?->nama ?? $this->ruangan?->kode ?? '-';
     }
 }

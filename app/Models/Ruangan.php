@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class Ruangan extends Model
 {
@@ -13,6 +15,33 @@ class Ruangan extends Model
     protected $table = 'ruangans';
 
     protected $fillable = ['kode', 'nama', 'tipe', 'kapasitas', 'gedung', 'lantai', 'is_active'];
+
+    protected static function booted(): void
+    {
+        static::saved(function (Ruangan $ruangan) {
+            // Auto-sync ke tabel kanonikal 'ruangan' jika ada
+            if (Schema::hasTable('ruangan')) {
+                DB::table('ruangan')->updateOrInsert(
+                    ['kode' => $ruangan->kode],
+                    [
+                        'nama' => $ruangan->nama,
+                        'tipe' => $ruangan->tipe ?: 'Ruang Kelas',
+                        'kapasitas' => $ruangan->kapasitas,
+                        'gedung' => $ruangan->gedung,
+                        'lantai' => (string) ($ruangan->lantai ?? '1'),
+                        'is_active' => (bool) $ruangan->is_active,
+                        'updated_at' => now(),
+                    ]
+                );
+            }
+        });
+
+        static::deleted(function (Ruangan $ruangan) {
+            if (Schema::hasTable('ruangan')) {
+                DB::table('ruangan')->where('kode', $ruangan->kode)->delete();
+            }
+        });
+    }
 
     public function jadwals(): HasMany
     {

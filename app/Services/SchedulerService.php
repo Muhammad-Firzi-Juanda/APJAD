@@ -532,10 +532,18 @@ class SchedulerService
 
         foreach ($this->hariTersedia as $hari) {
             foreach ($this->slotMulaiTersedia as $mulai) {
+                $mulaiMenit = $this->menit($mulai);
+                $selesaiMenit = $mulaiMenit + $durasi;
+
+                // Proteksi Sholat Jumat (11:30 - 13:30 / 690 - 810 menit)
+                if ($hari === 'Jumat' && $mulaiMenit < 810 && $selesaiMenit > 690) {
+                    continue;
+                }
+
                 $slot = [
                     'hari' => $hari,
-                    'mulai' => $this->menit($mulai),
-                    'selesai' => $this->menit($mulai) + $durasi,
+                    'mulai' => $mulaiMenit,
+                    'selesai' => $selesaiMenit,
                 ];
 
                 if ($this->cohortBentrok($cohort, $slot)) {
@@ -579,7 +587,7 @@ class SchedulerService
         return $terbaik;
     }
 
-    public function getModularSlotMulaiForSks(int $sks): array
+    public function getModularSlotMulaiForSks(int $sks, ?string $hari = null): array
     {
         if (! empty($this->slotMulaiTersedia) && $this->slotMulaiTersedia !== self::SLOT_MULAI) {
             return $this->slotMulaiTersedia;
@@ -591,13 +599,13 @@ class SchedulerService
             450, // 07:30
             600, // 10:00
             780, // 13:00
+            930, // 15:30
             890, // 14:50
             880, // 14:40
             500, // 08:20
             550, // 09:10
             650, // 10:50
             830, // 13:50
-            930, // 15:30
             980, // 16:20
         ];
 
@@ -608,10 +616,17 @@ class SchedulerService
                 continue;
             }
 
-            // Validasi jeda istirahat siang (12:30 - 13:00 / 750 - 780 menit)
-            if ($start < 780 && $end > 750) {
-                if (! ($end <= 750 || $start >= 780)) {
+            // Validasi hari Jumat: lindungi waktu sholat Jumat (11:30 - 13:30 / 690 - 810 menit)
+            if ($hari === 'Jumat') {
+                if ($start < 810 && $end > 690) {
                     continue;
+                }
+            } else {
+                // Validasi jeda istirahat siang hari biasa (12:30 - 13:00 / 750 - 780 menit)
+                if ($start < 780 && $end > 750) {
+                    if (! ($end <= 750 || $start >= 780)) {
+                        continue;
+                    }
                 }
             }
 
@@ -635,10 +650,23 @@ class SchedulerService
         $skor += $skorDosen;
 
         // Prioritas ketiga: posisi waktu
-        // MK berat (SKS >= 3) lebih baik di pagi
+        // User rule: mengutamakan matakuliah wajib dimulai dari pagi hingga siang (07:30 -> 10:00 -> 13:00)
+        if ($mk->tipe === 'Wajib') {
+            if ($slot['mulai'] === 450) { // 07:30 (Pagi utama)
+                $skor += 35;
+            } elseif ($slot['mulai'] === 600) { // 10:00 (Pagi kedua)
+                $skor += 25;
+            } elseif ($slot['mulai'] === 780) { // 13:00 (Siang)
+                $skor += 15;
+            }
+        }
+
+        // MK berat (SKS >= 3 atau 4 SKS) adaptif jika pagi terisi MK Fakultas, diutamakan di slot berikutnya yang efisien
         if ($mk->sks >= 3 && $slot['mulai'] < 600) { // Sebelum 10:00
             $skor += 20;
         } elseif ($mk->sks >= 3 && $slot['mulai'] >= 600 && $slot['mulai'] < 780) { // 10:00 - 13:00
+            $skor += 15;
+        } elseif ($mk->sks >= 3 && $slot['mulai'] >= 780 && $slot['mulai'] <= 930) { // 13:00 - 15:30
             $skor += 10;
         }
 
@@ -671,10 +699,18 @@ class SchedulerService
 
         foreach ($this->hariTersedia as $hari) {
             foreach ($this->slotMulaiTersedia as $mulai) {
+                $mulaiMenit = $this->menit($mulai);
+                $selesaiMenit = $mulaiMenit + $durasi;
+
+                // Proteksi Sholat Jumat (11:30 - 13:30 / 690 - 810 menit)
+                if ($hari === 'Jumat' && $mulaiMenit < 810 && $selesaiMenit > 690) {
+                    continue;
+                }
+
                 $slot = [
                     'hari' => $hari,
-                    'mulai' => $this->menit($mulai),
-                    'selesai' => $this->menit($mulai) + $durasi,
+                    'mulai' => $mulaiMenit,
+                    'selesai' => $selesaiMenit,
                 ];
 
                 if ($this->cohortBentrok($cohort, $slot)) {
