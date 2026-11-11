@@ -18,10 +18,23 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'nama',
+        'name',
         'email',
+        'nuptk',
+        'no_hp',
         'password',
         'role',
+        'jabatan',
+        'fakultas_id',
+        'faculty_id',
+        'jurusan_id',
+        'department_id',
         'prodi_id',
+        'study_program_id',
+        'status',
+        'must_change_password',
+        'created_by',
+        'updated_by',
     ];
 
     /**
@@ -43,6 +56,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
         ];
     }
 
@@ -51,7 +65,59 @@ class User extends Authenticatable
      */
     public function getNameAttribute(): ?string
     {
-        return $this->nama;
+        return $this->attributes['nama'] ?? null;
+    }
+
+    public function setNameAttribute(?string $value): void
+    {
+        $this->attributes['nama'] = $value;
+    }
+
+    public function fakultas(): BelongsTo
+    {
+        return $this->belongsTo(Fakultas::class, 'fakultas_id');
+    }
+
+    public function faculty(): BelongsTo
+    {
+        return $this->fakultas();
+    }
+
+    /**
+     * Accessor for faculty_id to map to fakultas_id attribute.
+     */
+    public function getFacultyIdAttribute(): ?int
+    {
+        return isset($this->attributes['fakultas_id']) && $this->attributes['fakultas_id'] !== null
+            ? (int) $this->attributes['fakultas_id']
+            : null;
+    }
+
+    public function setFacultyIdAttribute(int|string|null $value): void
+    {
+        $this->attributes['fakultas_id'] = $value !== null && $value !== '' ? (int) $value : null;
+    }
+
+    public function jurusan(): BelongsTo
+    {
+        return $this->belongsTo(Jurusan::class, 'jurusan_id');
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->jurusan();
+    }
+
+    public function getDepartmentIdAttribute(): ?int
+    {
+        return isset($this->attributes['jurusan_id']) && $this->attributes['jurusan_id'] !== null
+            ? (int) $this->attributes['jurusan_id']
+            : null;
+    }
+
+    public function setDepartmentIdAttribute(int|string|null $value): void
+    {
+        $this->attributes['jurusan_id'] = $value !== null && $value !== '' ? (int) $value : null;
     }
 
     /**
@@ -59,6 +125,33 @@ class User extends Authenticatable
      */
     public function prodi(): BelongsTo
     {
-        return $this->belongsTo(Prodi::class);
+        return $this->belongsTo(Prodi::class, 'prodi_id');
+    }
+
+    public function studyProgram(): BelongsTo
+    {
+        return $this->prodi();
+    }
+
+    public function getStudyProgramIdAttribute(): ?int
+    {
+        return isset($this->attributes['prodi_id']) && $this->attributes['prodi_id'] !== null
+            ? (int) $this->attributes['prodi_id']
+            : null;
+    }
+
+    public function setStudyProgramIdAttribute(int|string|null $value): void
+    {
+        $this->attributes['prodi_id'] = $value !== null && $value !== '' ? (int) $value : null;
+    }
+
+    public function isActive(): bool
+    {
+        return in_array(strtolower($this->status ?? 'aktif'), ['aktif', 'active'], true);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereIn('status', ['aktif', 'ACTIVE', 'active']);
     }
 }

@@ -26,7 +26,7 @@ class AuthController extends Controller
     private function redirectByRole(User $user): RedirectResponse
     {
         return match ($user->role) {
-            UserRole::ADMIN => redirect()->route('manajemen-akun'),
+            UserRole::ADMIN => redirect()->route('dashboard'),
             UserRole::FAKULTAS => redirect()->route('fakultas.dashboard'),
             UserRole::JURUSAN => redirect()->route('jurusan.dashboard'),
             UserRole::PRODI => redirect()->route('prodi.dashboard'),
@@ -49,11 +49,28 @@ class AuthController extends Controller
         $password = $request->input('password');
 
         if (Auth::attempt(['email' => $email, 'password' => $password])) {
-            $request->session()->regenerate();
             $user = Auth::user();
 
+            if (! $user->isActive()) {
+                Auth::logout();
+
+                $errorMsg = 'Akun Anda sedang dinonaktifkan. Silakan hubungi administrator sistem.';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMsg,
+                    ], 403);
+                }
+
+                return redirect()->route('login')
+                    ->withInput($request->only('email'))
+                    ->with('flash_error', $errorMsg);
+            }
+
+            $request->session()->regenerate();
+
             $redirectRoute = match ($user->role) {
-                UserRole::ADMIN => route('manajemen-akun'),
+                UserRole::ADMIN => route('dashboard'),
                 UserRole::FAKULTAS => route('fakultas.dashboard'),
                 UserRole::JURUSAN => route('jurusan.dashboard'),
                 UserRole::PRODI => route('prodi.dashboard'),
@@ -65,10 +82,16 @@ class AuthController extends Controller
                     'success' => true,
                     'message' => 'Login Berhasil',
                     'redirect' => $redirectRoute,
+                    'must_change_password' => (bool) $user->must_change_password,
                 ]);
             }
 
-            return redirect()->intended($redirectRoute);
+            $response = redirect()->intended($redirectRoute);
+            if ($user->must_change_password) {
+                $response->with('flash_warning', 'Anda masuk menggunakan password sementara. Demi keamanan, Anda wajib segera mengganti password melalui menu Edit Profile.');
+            }
+
+            return $response;
         }
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -111,6 +134,7 @@ class AuthController extends Controller
         }
 
         $user->password = $request->input('password_baru');
+        $user->must_change_password = false;
         $user->save();
 
         return redirect()->back(fallback: route('dashboard'))->with('flash_success', 'Password berhasil diubah!');
@@ -143,6 +167,7 @@ class AuthController extends Controller
             }
 
             $user->password = $request->input('password_baru');
+            $user->must_change_password = false;
         }
 
         $user->nama = trim($request->input('nama'));

@@ -4,83 +4,12 @@
 
 @section('content')
 <div class="admin-layout">
-    <aside class="admin-sidebar">
-        <div class="sidebar-top">
-            <div class="sidebar-brand">
-                <h2>APJAD</h2>
-                <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Fakultas</span>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="#section-dashboard" class="sidebar-link active" onclick="showSection(event, 'section-dashboard', this)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="14" width="7" height="7"></rect>
-                        <rect x="3" y="14" width="7" height="7"></rect>
-                    </svg>
-                    <span>Dashboard</span>
-                </a>
-                <a href="#section-prodi" class="sidebar-link" onclick="showSection(event, 'section-prodi', this)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                        <path d="M2 17l10 5 10-5"></path>
-                        <path d="M2 12l10 5 10-5"></path>
-                    </svg>
-                    <span>Program Studi</span>
-                </a>
-                <a href="#section-jadwal" class="sidebar-link" onclick="showSection(event, 'section-jadwal', this)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                        <path d="M3 9h18M9 3v18"></path>
-                    </svg>
-                    <span>Rekap Jadwal</span>
-                </a>
-                <a href="{{ route('jadwal-kuliah.index') }}" class="sidebar-link">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                    <span>Data Mata Kuliah</span>
-                </a>
-                <a href="{{ route('penjadwalan.index') }}" class="sidebar-link">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    <span>Penjadwalan Otomatis</span>
-                </a>
-            </nav>
-        </div>
-
-        <div class="sidebar-bottom">
-            <button type="button" class="sidebar-link" onclick="openModal('modalEditProfile')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span>Edit Profile</span>
-            </button>
-            <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display: none;">
-                @csrf
-            </form>
-            <a href="{{ route('logout') }}" class="sidebar-link" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-                <span>Logout</span>
-            </a>
-        </div>
-    </aside>
+    @include('fakultas.sidebar', ['active' => 'dashboard'])
 
     <main class="admin-main">
         <header class="admin-header">
             <div class="user-badge">
-                <span>{{ Auth::user()->role }}, <span class="user-name">{{ Auth::user()->nama }}</span></span>
+                <span>{{ Auth::user()->role }}, <span class="user-name">{{ Auth::user()->nama }}</span> ({{ $faculty->kode ?? 'FTTK' }})</span>
             </div>
         </header>
 
@@ -92,427 +21,289 @@
                 </div>
             @endif
 
-            <h1 class="page-title">Dashboard Fakultas</h1>
-
-            {{-- Stats Cards --}}
-            <div class="stats-grid content-section" id="section-dashboard">
-                <div class="stat-card">
-                    <div class="stat-icon prodi-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                            <path d="M2 17l10 5 10-5"></path>
-                            <path d="M2 12l10 5 10-5"></path>
-                        </svg>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Total Program Studi</p>
-                        <p class="stat-value">{{ $stats['total_prodi'] }}</p>
-                    </div>
+            @if (session('flash_error'))
+                <div class="flash-alert error" style="background:#fee2e2; color:#b91c1c; border-left:4px solid #ef4444; padding:12px 16px; border-radius:6px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>{{ session('flash_error') }}</span>
+                    <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:#b91c1c;">✕</button>
                 </div>
+            @endif
 
-                <div class="stat-card">
-                    <div class="stat-icon dosen-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Total Dosen</p>
-                        <p class="stat-value">{{ $stats['total_dosen'] }}</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon mata-kuliah-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 19.5h16M6.5 15.5l5-3 5 3m-10 0l5-3 5 3M12 12l-9-5h18l-9 5"></path>
-                        </svg>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Total Mata Kuliah</p>
-                        <p class="stat-value">{{ $stats['total_mata_kuliah'] }}</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon kelas-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                            <path d="M3 9h18M9 3v18"></path>
-                        </svg>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Jadwal Aktif</p>
-                        <p class="stat-value">{{ $stats['total_jadwal'] }}</p>
-                    </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                <div>
+                    <h1 class="page-title" style="margin-bottom:4px;">Dashboard Fakultas</h1>
+                    <p style="color:#64748b; font-size:14px; margin:0;">
+                        {{ $faculty->nama ?? 'Fakultas Teknik dan Teknologi Kemaritiman' }} ({{ $faculty->kode ?? 'FTTK' }}) — Pengelolaan MKWU, MKWF, Ruangan, Laboratorium, dan Alokasi Resource ke Program Studi
+                    </p>
                 </div>
             </div>
 
-            {{-- Daftar Program Studi --}}
-            <div id="section-prodi" class="content-section" style="margin-top: 32px; display: none;">
-                <div class="tab-header">
-                    <h2>Daftar Program Studi</h2>
-                    <button type="button" class="btn-add" onclick="openProdiModal()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        Tambah Prodi
-                    </button>
-                </div>
-                <div class="table-card">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Kode</th>
-                                <th>Nama Program Studi</th>
-                                <th>Kaprodi</th>
-                                <th>Fakultas</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($prodis as $i => $p)
-                                <tr>
-                                    <td>{{ $i + 1 }}</td>
-                                    <td><strong>{{ $p->kode }}</strong></td>
-                                    <td>{{ $p->nama }}</td>
-                                    <td>{{ $p->kaprodi ?? '-' }}</td>
-                                    <td>{{ $p->fakultas->nama ?? '-' }}</td>
-                                    <td>
-                                        <div class="action-buttons-group">
-                                            <button type="button" class="btn-action edit-btn" title="Edit" onclick="openProdiModal({{ json_encode($p) }})">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                                </svg>
-                                            </button>
-                                            <button type="button" class="btn-action delete-btn" title="Hapus" onclick="openHapusModal({{ $p->id }})">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                                    <path d="M19 6l-1 14H6L5 6"></path>
-                                                    <path d="M10 11v6M14 11v6"></path>
-                                                    <path d="M9 6V4h6v2"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr><td colspan="6" style="text-align:center; padding:24px;">Belum ada data program studi.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+            {{-- 6 KPI Cards sesuai Prompt4 Section 11 --}}
+            <div class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:16px; margin-bottom:28px;">
+                <a href="{{ route('fakultas.mkwu') }}" class="stat-card" style="text-decoration:none; background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px; display:flex; align-items:center; gap:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="width:48px; height:48px; border-radius:8px; background:#eff6ff; color:#3b82f6; display:flex; align-items:center; justify-content:center; font-size:20px;">
+                        📘
+                    </div>
+                    <div>
+                        <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Total MKWU</div>
+                        <div style="font-size:24px; font-weight:700; color:#1e293b;">{{ $stats['total_mkwu'] }}</div>
+                    </div>
+                </a>
+
+                <a href="{{ route('fakultas.mkwf') }}" class="stat-card" style="text-decoration:none; background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px; display:flex; align-items:center; gap:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="width:48px; height:48px; border-radius:8px; background:#f0fdf4; color:#22c55e; display:flex; align-items:center; justify-content:center; font-size:20px;">
+                        📗
+                    </div>
+                    <div>
+                        <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Total MKWF</div>
+                        <div style="font-size:24px; font-weight:700; color:#1e293b;">{{ $stats['total_mkwf'] }}</div>
+                    </div>
+                </a>
+
+                <a href="{{ route('fakultas.rooms.index') }}" class="stat-card" style="text-decoration:none; background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px; display:flex; align-items:center; gap:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="width:48px; height:48px; border-radius:8px; background:#fef3c7; color:#f59e0b; display:flex; align-items:center; justify-content:center; font-size:20px;">
+                        🏢
+                    </div>
+                    <div>
+                        <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Total Ruangan</div>
+                        <div style="font-size:24px; font-weight:700; color:#1e293b;">{{ $stats['total_rooms'] }}</div>
+                    </div>
+                </a>
+
+                <a href="{{ route('fakultas.laboratories.index') }}" class="stat-card" style="text-decoration:none; background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px; display:flex; align-items:center; gap:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="width:48px; height:48px; border-radius:8px; background:#f3e8ff; color:#a855f7; display:flex; align-items:center; justify-content:center; font-size:20px;">
+                        🔬
+                    </div>
+                    <div>
+                        <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Total Laboratorium</div>
+                        <div style="font-size:24px; font-weight:700; color:#1e293b;">{{ $stats['total_laboratories'] }}</div>
+                    </div>
+                </a>
+
+                <a href="{{ route('fakultas.allocations.rooms') }}" class="stat-card" style="text-decoration:none; background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px; display:flex; align-items:center; gap:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="width:48px; height:48px; border-radius:8px; background:#e0f2fe; color:#0284c7; display:flex; align-items:center; justify-content:center; font-size:20px;">
+                        📍
+                    </div>
+                    <div>
+                        <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Alokasi Ruangan</div>
+                        <div style="font-size:24px; font-weight:700; color:#1e293b;">{{ $stats['total_room_allocations'] }}</div>
+                    </div>
+                </a>
+
+                <a href="{{ route('fakultas.allocations.laboratories') }}" class="stat-card" style="text-decoration:none; background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px; display:flex; align-items:center; gap:16px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="width:48px; height:48px; border-radius:8px; background:#fce7f3; color:#ec4899; display:flex; align-items:center; justify-content:center; font-size:20px;">
+                        🧪
+                    </div>
+                    <div>
+                        <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Alokasi Laboratorium</div>
+                        <div style="font-size:24px; font-weight:700; color:#1e293b;">{{ $stats['total_lab_allocations'] }}</div>
+                    </div>
+                </a>
             </div>
 
-            {{-- Rekap Jadwal --}}
-            <div id="section-jadwal" class="content-section" style="margin-top: 40px; display: none;">
-                <div class="tab-header">
-                    <h2>Rekap Jadwal Aktif</h2>
-                </div>
-                @php $hariList = ['Senin','Selasa','Rabu','Kamis','Jumat']; @endphp
-                @foreach ($hariList as $hari)
-                    @if (isset($jadwals[$hari]) && $jadwals[$hari]->isNotEmpty())
-                        <h3 style="margin: 18px 0 8px; font-size:15px; color:#1e3a5f;">{{ $hari }}</h3>
-                        <table class="data-table">
+            {{-- Ringkasan Mata Kuliah --}}
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:28px;">
+                {{-- Preview MKWU --}}
+                <div class="card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <h3 style="margin:0; font-size:16px; font-weight:600;">Mata Kuliah Wajib Universitas (MKWU)</h3>
+                        <a href="{{ route('fakultas.mkwu') }}" style="font-size:13px; color:#2563eb; text-decoration:none; font-weight:500;">Kelola MKWU →</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table" style="width:100%; font-size:13px;">
                             <thead>
-                                <tr>
-                                    <th>Jam</th>
-                                    <th>Kode MK</th>
-                                    <th>Mata Kuliah</th>
-                                    <th style="text-align:center;">SKS</th>
-                                    <th style="text-align:center;">Kelas</th>
-                                    <th>Dosen</th>
-                                    <th>Ruangan</th>
-                                    <th>Prodi</th>
+                                <tr style="background:#f8fafc; text-align:left;">
+                                    <th style="padding:10px;">Kode</th>
+                                    <th style="padding:10px;">Nama</th>
+                                    <th style="padding:10px;">SKS</th>
+                                    <th style="padding:10px;">Sem</th>
+                                    <th style="padding:10px;">Jenis</th>
+                                    <th style="padding:10px;">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($jadwals[$hari] as $j)
-                                    <tr>
-                                        <td style="white-space:nowrap; font-weight:600; color:#0860be;">{{ substr($j->jam_mulai, 0, 5) }} – {{ substr($j->jam_selesai, 0, 5) }}</td>
-                                        <td style="white-space:nowrap;"><strong>{{ $j->clean_kode_mk }}</strong></td>
-                                        <td style="font-weight:600; color:#0f172a;">{{ $j->rombel->mataKuliah->nama_mk ?? '-' }}</td>
-                                        <td style="text-align:center;"><span style="display:inline-block; padding:2px 8px; background:#e2e8f0; border-radius:12px; font-size:0.85rem; font-weight:600;">{{ $j->rombel->mataKuliah->sks ?? '-' }}</span></td>
-                                        <td style="text-align:center;">
-                                            <span style="display:inline-block; padding:2px 8px; background:#dbeafe; color:#1e40af; border-radius:12px; font-weight:700; font-size:0.8rem;">
-                                                {{ $j->kelas_label }}
+                                @forelse($recentMkwu as $mk)
+                                    <tr style="border-top:1px solid #f1f5f9;">
+                                        <td style="padding:10px; font-weight:600;">{{ $mk->code }}</td>
+                                        <td style="padding:10px;">{{ $mk->name }}</td>
+                                        <td style="padding:10px;">{{ $mk->sks }}</td>
+                                        <td style="padding:10px;">{{ $mk->semester }}</td>
+                                        <td style="padding:10px;">
+                                            <span style="display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; background:{{ $mk->type === 'THEORY' ? '#e0e7ff; color:#3730a3' : '#fef3c7; color:#92400e' }};">
+                                                {{ $mk->type === 'THEORY' ? 'Teori' : 'Praktikum' }}
                                             </span>
                                         </td>
-                                        <td>
-                                            <span title="{{ $j->dosen->nama ?? '-' }}" style="font-weight:700; color:#1e3a5f; cursor:help; background:#f8fafc; padding:3px 8px; border-radius:6px; font-size:0.85rem; display:inline-block; border:1px solid #cbd5e1;">
-                                                {{ $j->dosen_inisial }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            @if($j->ruangan?->kode)
-                                                <span style="display:inline-block; padding:3px 8px; background:#ecfdf5; color:#047857; font-weight:600; border-radius:6px; font-size:0.85rem;">{{ $j->ruangan->kode }}</span>
-                                            @else
-                                                <span style="color:#94a3b8; font-style:italic;">-</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <span style="font-size:0.75rem; padding:2px 8px; border-radius:10px; font-weight:600; white-space:nowrap; {{ str_contains(strtolower($j->rombel->mataKuliah->prodi ?? ''), 'informatika') ? 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;' : 'background:#fef3c7; color:#b45309; border:1px solid #fde68a;' }}">
-                                                {{ $j->rombel->mataKuliah->prodi ?? '-' }}
+                                        <td style="padding:10px;">
+                                            <span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; background:{{ $mk->status === 'ACTIVE' ? '#dcfce7; color:#15803d' : '#fee2e2; color:#b91c1c' }};">
+                                                {{ $mk->status }}
                                             </span>
                                         </td>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    @endif
-                @endforeach
-                @if ($jadwals->isEmpty())
-                    <div class="table-card" style="margin-top: 15px;">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Jam</th>
-                                    <th>Kode MK</th>
-                                    <th>Mata Kuliah</th>
-                                    <th style="text-align:center;">SKS</th>
-                                    <th style="text-align:center;">Kelas</th>
-                                    <th>Dosen</th>
-                                    <th>Ruangan</th>
-                                    <th>Prodi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="8" style="text-align:center; padding:24px; color:#666;">Belum ada jadwal aktif.</td>
-                                </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" style="padding:16px; text-align:center; color:#94a3b8;">Belum ada MKWU.</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
-                @endif
+                </div>
+
+                {{-- Preview MKWF --}}
+                <div class="card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <h3 style="margin:0; font-size:16px; font-weight:600;">Mata Kuliah Wajib Fakultas (MKWF)</h3>
+                        <a href="{{ route('fakultas.mkwf') }}" style="font-size:13px; color:#2563eb; text-decoration:none; font-weight:500;">Kelola MKWF →</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table" style="width:100%; font-size:13px;">
+                            <thead>
+                                <tr style="background:#f8fafc; text-align:left;">
+                                    <th style="padding:10px;">Kode</th>
+                                    <th style="padding:10px;">Nama</th>
+                                    <th style="padding:10px;">SKS</th>
+                                    <th style="padding:10px;">Sem</th>
+                                    <th style="padding:10px;">Jenis</th>
+                                    <th style="padding:10px;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($recentMkwf as $mk)
+                                    <tr style="border-top:1px solid #f1f5f9;">
+                                        <td style="padding:10px; font-weight:600;">{{ $mk->code }}</td>
+                                        <td style="padding:10px;">{{ $mk->name }}</td>
+                                        <td style="padding:10px;">{{ $mk->sks }}</td>
+                                        <td style="padding:10px;">{{ $mk->semester }}</td>
+                                        <td style="padding:10px;">
+                                            <span style="display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; background:{{ $mk->type === 'THEORY' ? '#e0e7ff; color:#3730a3' : '#fef3c7; color:#92400e' }};">
+                                                {{ $mk->type === 'THEORY' ? 'Teori' : 'Praktikum' }}
+                                            </span>
+                                        </td>
+                                        <td style="padding:10px;">
+                                            <span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; background:{{ $mk->status === 'ACTIVE' ? '#dcfce7; color:#15803d' : '#fee2e2; color:#b91c1c' }};">
+                                                {{ $mk->status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" style="padding:16px; text-align:center; color:#94a3b8;">Belum ada MKWF.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+
+            {{-- Ringkasan Alokasi Resource Fakultas --}}
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:28px;">
+                {{-- Ringkasan Ruangan --}}
+                <div class="card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                        <h3 style="margin:0; font-size:16px; font-weight:600;">Alokasi Ruangan ke Program Studi</h3>
+                        <a href="{{ route('fakultas.allocations.rooms') }}" style="font-size:13px; color:#0284c7; text-decoration:none; font-weight:500;">Kelola Alokasi Ruangan →</a>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:10px;">
+                        @foreach($rooms->take(6) as $r)
+                            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px; background:#f8fafc;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                    <strong style="font-size:12.5px; color:#0f172a;">{{ $r->name }}</strong>
+                                    <span style="font-size:11px; color:#64748b;">{{ $r->capacity }} kursi</span>
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                                    @forelse($r->studyPrograms as $sp)
+                                        <span style="font-size:10.5px; padding:1px 6px; border-radius:4px; background:#e0f2fe; color:#0369a1; font-weight:600;">{{ $sp->kode }}</span>
+                                    @empty
+                                        <span style="font-size:11px; color:#94a3b8; font-style:italic;">Belum dialokasi</span>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Ringkasan Laboratorium --}}
+                <div class="card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                        <h3 style="margin:0; font-size:16px; font-weight:600;">Alokasi Laboratorium ke Program Studi</h3>
+                        <a href="{{ route('fakultas.allocations.laboratories') }}" style="font-size:13px; color:#9333ea; text-decoration:none; font-weight:500;">Kelola Alokasi Lab →</a>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:10px;">
+                        @foreach($laboratories->take(6) as $l)
+                            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px; background:#f8fafc;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                    <strong style="font-size:12.5px; color:#0f172a;">{{ $l->name }}</strong>
+                                    <span style="font-size:11px; color:#64748b;">{{ $l->capacity }} PC</span>
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                                    @forelse($l->studyPrograms as $sp)
+                                        <span style="font-size:10.5px; padding:1px 6px; border-radius:4px; background:#f3e8ff; color:#7e22ce; font-weight:600;">{{ $sp->kode }}</span>
+                                    @empty
+                                        <span style="font-size:11px; color:#94a3b8; font-style:italic;">Belum dialokasi</span>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- Rekap Sinkronisasi Jadwal (Untuk menjaga kompatibilitas test SynchronizedRoleScheduleTest) --}}
+            @if(isset($jadwals) && $jadwals->count() > 0)
+                <div class="card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px; margin-top:20px;">
+                    <h3 style="margin:0 0 16px; font-size:16px; font-weight:600;">Monitoring Rekap Jadwal Terjadwal</h3>
+                    <div class="table-responsive">
+                        <table class="data-table" style="width:100%; font-size:13px;">
+                            <thead>
+                                <tr style="background:#f8fafc; text-align:left;">
+                                    <th style="padding:10px;">Hari</th>
+                                    <th style="padding:10px;">Waktu</th>
+                                    <th style="padding:10px;">Kode MK</th>
+                                    <th style="padding:10px;">Mata Kuliah</th>
+                                    <th style="padding:10px;">Dosen</th>
+                                    <th style="padding:10px;">Ruangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($jadwals as $hari => $items)
+                                    @foreach($items as $j)
+                                        <tr style="border-top:1px solid #f1f5f9;">
+                                            <td style="padding:10px; font-weight:600;">{{ $j->hari }}</td>
+                                            <td style="padding:10px;">{{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}</td>
+                                            <td style="padding:10px;">{{ $j->clean_kode_mk ?? ($j->rombel->mataKuliah->clean_kode_mk ?? '') }}</td>
+                                            <td style="padding:10px;">{{ $j->rombel->mataKuliah->nama_mk ?? '-' }}</td>
+                                            <td style="padding:10px;">{{ $j->dosen_inisial ?? ($j->dosen->nama ?? '-') }}</td>
+                                            <td style="padding:10px;">{{ $j->ruangan->nama ?? '-' }}</td>
+                                        </tr>
+                                    @endforeach
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
         </section>
     </main>
 </div>
 
-{{-- MODAL: TAMBAH/EDIT PRODI --}}
-<div class="modal-backdrop" id="modalProdi">
-    <div class="modal-window">
-        <div class="modal-header-blue">
-            <h3 id="modalProdiTitle">Tambah Program Studi</h3>
-        </div>
-        <div class="modal-body">
-            <form id="formProdi" action="{{ route('prodi.store') }}" method="POST" class="modal-form">
-                @csrf
-                <input type="hidden" id="prodi_id" name="prodi_id">
-                <div class="modal-form-row">
-                    <label for="prodi_nama">Nama Program Studi</label>
-                    <div class="modal-input-container">
-                        <input type="text" id="prodi_nama" name="nama" required placeholder="Teknik Informatika">
-                    </div>
-                </div>
-                <div class="modal-form-row">
-                    <label for="prodi_kode">Kode</label>
-                    <div class="modal-input-container">
-                        <input type="text" id="prodi_kode" name="kode" placeholder="TI, SI, dll">
-                    </div>
-                </div>
-                <div class="modal-form-row">
-                    <label for="prodi_fakultas_id">Fakultas</label>
-                    <div class="modal-input-container">
-                        <select id="prodi_fakultas_id" name="fakultas_id" required>
-                            <option value="">Pilih Fakultas</option>
-                            @foreach ($fakultas as $f)
-                                <option value="{{ $f->id }}">{{ $f->nama }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-form-row">
-                    <label for="prodi_kaprodi">Kaprodi</label>
-                    <div class="modal-input-container">
-                        <input type="text" id="prodi_kaprodi" name="kaprodi" placeholder="Dr. Nama Kaprodi, M.Sc">
-                    </div>
-                </div>
-                <div class="modal-footer-buttons">
-                    <button type="button" class="btn-modal-cancel" onclick="closeModal('modalProdi')">Batal</button>
-                    <button type="submit" class="btn-modal-submit">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-{{-- MODAL: HAPUS PRODI --}}
-<div class="modal-backdrop" id="modalHapusProdi">
-    <div class="modal-window" style="max-width:420px;">
-        <div class="modal-header-blue" style="background:#ef4444;">
-            <h3>Hapus Program Studi</h3>
-        </div>
-        <div class="modal-body">
-            <p style="color:#374151; margin-bottom:20px;">Apakah Anda yakin ingin menghapus program studi ini? Tindakan ini tidak dapat dibatalkan.</p>
-            <form id="formHapusProdi" method="POST" class="modal-form">
-                @csrf
-                @method('DELETE')
-                <div class="modal-footer-buttons">
-                    <button type="button" class="btn-modal-cancel" onclick="closeModal('modalHapusProdi')">Batal</button>
-                    <button type="submit" class="btn-modal-submit" style="background:#ef4444;">Hapus</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-{{-- MODAL: EDIT PROFILE --}}
-<div class="modal-backdrop" id="modalEditProfile">
-    <div class="modal-window">
-        <div class="modal-header-blue">
-            <h3>Edit Profile</h3>
-        </div>
-        <div class="modal-body">
-            <form action="{{ route('profile.update') }}" method="POST" class="modal-form">
-                @csrf
-                <div class="modal-form-row">
-                    <label for="profile_nama">Nama</label>
-                    <div class="modal-input-container">
-                        <input type="text" id="profile_nama" name="nama" value="{{ Auth::user()->nama }}" required>
-                    </div>
-                </div>
-                <div class="modal-form-row">
-                    <label for="profile_email">E-mail</label>
-                    <div class="modal-input-container">
-                        <input type="email" id="profile_email" name="email" value="{{ Auth::user()->email }}" required>
-                    </div>
-                </div>
-                <div class="modal-form-row">
-                    <label for="profile_password_lama">Password lama</label>
-                    <div class="modal-input-container">
-                        <input type="password" id="profile_password_lama" name="password_lama" placeholder="Isi jika ingin ganti password">
-                        <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibilityModal('profile_password_lama', this)">
-                            <svg id="profile_password_lama_eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="modal-form-row">
-                    <label for="profile_password_baru">Password Baru</label>
-                    <div class="modal-input-container">
-                        <input type="password" id="profile_password_baru" name="password_baru" placeholder="Kosongkan jika tidak diubah">
-                        <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibilityModal('profile_password_baru', this)">
-                            <svg id="profile_password_baru_eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="modal-form-row">
-                    <label for="profile_password_baru_confirmation">Konfirmasi Password Baru</label>
-                    <div class="modal-input-container">
-                        <input type="password" id="profile_password_baru_confirmation" name="password_baru_confirmation" placeholder="Ulangi password baru">
-                        <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibilityModal('profile_password_baru_confirmation', this)">
-                            <svg id="profile_password_baru_confirmation_eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="modal-footer-buttons">
-                    <button type="button" class="btn-modal-cancel" onclick="closeModal('modalEditProfile')">Batal</button>
-                    <button type="submit" class="btn-modal-submit">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <script>
-function openModal(id) { document.getElementById(id).classList.add('show'); }
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-
-function showSection(event, id, element) {
-    if (event) event.preventDefault();
-
-    document.querySelectorAll('.content-section').forEach(function(sec) {
-        sec.style.display = 'none';
-    });
-
-    let target = document.getElementById(id);
-    if (target) {
-        target.style.display = target.classList.contains('stats-grid') ? 'grid' : 'block';
+function openModal(modalId) {
+    const el = document.getElementById(modalId);
+    if (el) {
+        el.classList.add('show');
     }
-
-    if (element) {
-        document.querySelectorAll('.sidebar-nav .sidebar-link').forEach(function(link) {
-            link.classList.remove('active');
-        });
-        element.classList.add('active');
-    }
-
-    // Update hash without scrolling
-    history.replaceState(null, null, '#' + id);
 }
-
-// On page load: check URL hash and activate correct section
-document.addEventListener('DOMContentLoaded', function () {
-    const hash = window.location.hash; // e.g. "#section-prodi"
-    if (hash) {
-        const sectionId = hash.replace('#', '');
-        const section = document.getElementById(sectionId);
-        const matchingLink = document.querySelector('.sidebar-nav a[href="#' + sectionId + '"]');
-        if (section) {
-            // Hide all sections first
-            document.querySelectorAll('.content-section').forEach(function(sec) {
-                sec.style.display = 'none';
-            });
-            // Show target section
-            section.style.display = section.classList.contains('stats-grid') ? 'grid' : 'block';
-            // Update active link
-            document.querySelectorAll('.sidebar-nav .sidebar-link').forEach(function(link) {
-                link.classList.remove('active');
-            });
-            if (matchingLink) matchingLink.classList.add('active');
-        }
+function closeModal(modalId) {
+    const el = document.getElementById(modalId);
+    if (el) {
+        el.classList.remove('show');
+        el.style.display = '';
+    }
+}
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('modal-backdrop')) {
+        closeModal(e.target.id);
     }
 });
-
-function openProdiModal(prodi = null) {
-    const form = document.getElementById('formProdi');
-    const title = document.getElementById('modalProdiTitle');
-    const idInput = document.getElementById('prodi_id');
-
-    form.reset();
-    idInput.value = '';
-    form.action = '{{ route("prodi.store") }}';
-
-    let oldMethod = form.querySelector('input[name="_method"]');
-    if (oldMethod) oldMethod.remove();
-
-    if (prodi) {
-        title.textContent = 'Edit Program Studi';
-        idInput.value = prodi.id;
-        document.getElementById('prodi_nama').value = prodi.nama || '';
-        document.getElementById('prodi_kode').value = prodi.kode || '';
-        document.getElementById('prodi_kaprodi').value = prodi.kaprodi || '';
-        document.getElementById('prodi_fakultas_id').value = prodi.fakultas_id || '';
-        form.action = '/prodi/' + prodi.id;
-        let method = document.createElement('input');
-        method.type = 'hidden';
-        method.name = '_method';
-        method.value = 'PUT';
-        form.appendChild(method);
-    } else {
-        title.textContent = 'Tambah Program Studi';
-    }
-
-    openModal('modalProdi');
-}
-
-function openHapusModal(prodiId) {
-    const form = document.getElementById('formHapusProdi');
-    form.action = '/prodi/' + prodiId;
-    openModal('modalHapusProdi');
-}
 </script>
 @endsection

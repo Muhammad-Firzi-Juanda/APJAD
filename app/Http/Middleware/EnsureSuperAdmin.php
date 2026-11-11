@@ -15,6 +15,10 @@ class EnsureSuperAdmin
             abort(403, 'Akses ditolak. Hanya Super Admin yang diizinkan.');
         }
 
+        if (! $request->user()->isActive()) {
+            abort(403, 'Akun Anda sedang dinonaktifkan. Silakan hubungi administrator sistem.');
+        }
+
         return $next($request);
     }
 }

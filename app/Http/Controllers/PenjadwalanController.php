@@ -30,7 +30,7 @@ class PenjadwalanController extends Controller
     {
         $user = auth()->user();
         $userRole = $user?->role;
-        $userProdi = $user?->prodi?->nama;
+        $userProdi = $user?->prodi?->nama ? trim(preg_replace('/^(S1|D3|D4|S2)\s+/i', '', $user->prodi->nama)) : null;
 
         $query = MataKuliahDetail::with(['dosenKetua', 'dosenAnggota', 'masterMk'])
             ->where('is_active', 1)
@@ -244,9 +244,6 @@ class PenjadwalanController extends Controller
             DB::table('rombels')->delete();
 
             $query = MataKuliahDetail::query();
-            if ($user?->role === 'Fakultas') {
-                $query->where('tipe', 'Fakultas');
-            }
             $count = $query->count();
             $query->delete();
         }

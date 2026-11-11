@@ -19,7 +19,7 @@ class PenjadwalanLogPersistenceTest extends TestCase
 
     private function superAdmin(): User
     {
-        return User::where('role', 'Super Admin')->firstOrFail();
+        return User::where('role', 'Fakultas')->firstOrFail();
     }
 
     public function test_log_generate_persists_across_page_refreshes(): void

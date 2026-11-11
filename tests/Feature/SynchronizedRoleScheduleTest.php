@@ -202,10 +202,9 @@ class SynchronizedRoleScheduleTest extends TestCase
             'password' => bcrypt('password'),
             'role' => UserRole::SUPER_ADMIN,
         ]);
+        // Sesuai Prompt1.md: Super Admin dilarang mengakses modul penjadwalan
         $responseAdmin = $this->actingAs($superAdmin)->get(route('penjadwalan.index'));
-        $responseAdmin->assertOk();
-        $responseAdmin->assertSee('UNV12101');
-        $responseAdmin->assertSee('SM'); // Lecturer initial for Suparman Manjan
+        $responseAdmin->assertForbidden();
 
         // 2. Fakultas Role
         $userFakultas = User::create([
@@ -213,6 +212,7 @@ class SynchronizedRoleScheduleTest extends TestCase
             'email' => 'fakultas@test.com',
             'password' => bcrypt('password'),
             'role' => UserRole::FAKULTAS,
+            'fakultas_id' => $fakultas->id,
         ]);
         $responseFakultas = $this->actingAs($userFakultas)->get(route('fakultas.dashboard'));
         $responseFakultas->assertOk();

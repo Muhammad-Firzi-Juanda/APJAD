@@ -1,78 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'APJAD - Dashboard')
+@section('title', 'APJAD - Dashboard Manajemen Akun')
 
 @section('content')
 <div class="admin-layout">
-    <aside class="admin-sidebar">
-        <div class="sidebar-top">
-            <div class="sidebar-brand">
-                <h2>APJAD</h2>
-                @if(Auth::user()->role === 'Fakultas')
-                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Fakultas</span>
-                @elseif(Auth::user()->role === 'Jurusan')
-                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Jurusan</span>
-                @elseif(Auth::user()->role === 'Prodi')
-                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Prodi</span>
-                @else
-                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Super Admin</span>
-                @endif
-            </div>
-            <nav class="sidebar-nav">
-                <a href="{{ route('dashboard') }}" class="sidebar-link active">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="14" width="7" height="7"></rect>
-                        <rect x="3" y="14" width="7" height="7"></rect>
-                    </svg>
-                    <span>Dashboard</span>
-                </a>
-                <a href="{{ route('manajemen-akun') }}" class="sidebar-link">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span>Manajemen Akun</span>
-                </a>
-                <a href="{{ route('jadwal-kuliah.index') }}" class="sidebar-link">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                        <path d="M3 9h18M9 3v18"></path>
-                    </svg>
-                    <span>Jadwal Kuliah</span>
-                </a>
-                <a href="{{ route('penjadwalan.index') }}" class="sidebar-link">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    <span>Penjadwalan</span>
-                </a>
-            </nav>
-        </div>
-
-        <div class="sidebar-bottom">
-            <button type="button" class="sidebar-link" onclick="openModal('modalEditProfile')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span>Edit Profile</span>
-            </button>
-            <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display: none;">
-                @csrf
-            </form>
-            <a href="{{ route('logout') }}" class="sidebar-link" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-                <span>Logout</span>
-            </a>
-        </div>
-    </aside>
+    @include('admin.sidebar', ['active' => 'dashboard'])
 
     <main class="admin-main">
         <header class="admin-header">
@@ -89,21 +21,108 @@
                 </div>
             @endif
 
-            <h1 class="page-title">Dashboard</h1>
+            @if (session('flash_error'))
+                <div class="flash-alert error">
+                    <span>{{ session('flash_error') }}</span>
+                    <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;">✕</button>
+                </div>
+            @endif
 
-            <!-- Stats Cards -->
-            <div class="stats-grid">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom: 24px;">
+                <div>
+                    <h1 class="page-title" style="margin-bottom: 4px;">Dashboard Manajemen Akun</h1>
+                    <p style="color: #64748b; font-size: 0.95rem; margin: 0;">
+                        {{ $isSuperAdmin ? 'Pusat pengelolaan akun operasional Fakultas, Jurusan, dan Program Studi (CRUD Manual & Generate Massal via Excel).' : 'Pusat tata kelola Master Data Organisasi, akun pengguna, otorisasi role, dan generate akun massal via Excel.' }}
+                    </p>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                    <a href="{{ route('manajemen-akun.template-excel') }}" style="display: inline-flex; align-items: center; gap: 7px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 9px 14px; border-radius: 8px; font-weight: 600; font-size: 0.86rem; text-decoration: none;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Download Template Excel</span>
+                    </a>
+                    <a href="{{ route('manajemen-akun.generate-excel') }}" style="display: inline-flex; align-items: center; gap: 7px; border: none; background: #16a34a; color: #ffffff; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; text-decoration: none; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="12" y1="18" x2="12" y2="12"></line>
+                            <line x1="9" y1="15" x2="15" y2="15"></line>
+                        </svg>
+                        <span>Generate Akun Excel</span>
+                    </a>
+                    <a href="{{ route('manajemen-akun.tambah-manual') }}" class="btn-primary btn-add" style="display: inline-flex; align-items: center; gap: 8px; border: none; background: #0860be; color: #ffffff; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; box-shadow: 0 2px 6px rgba(8, 96, 190, 0.3);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Tambah Akun Manual</span>
+                    </a>
+                </div>
+            </div>
+
+            @if(!$isSuperAdmin)
+            <!-- Ringkasan Master Data Organisasi (Khusus Admin Akun) -->
+            <div style="margin-bottom: 12px; font-size: 0.85rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">
+                Ringkasan Master Data Organisasi
+            </div>
+            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px;">
+                <a href="{{ route('master-data.fakultas.index') }}" class="stat-card" style="text-decoration: none; color: inherit;">
+                    <div class="stat-icon fakultas-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 21h18M3 7v14M21 7v14M6 11h2M6 15h2M11 11h2M11 15h2M16 11h2M16 15h2M3 7l9-4 9 4"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Total Fakultas</p>
+                        <p class="stat-value">{{ $stats['org_fakultas'] ?? 0 }}</p>
+                    </div>
+                </a>
+
+                <a href="{{ route('master-data.jurusan.index') }}" class="stat-card" style="text-decoration: none; color: inherit;">
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #d97706;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Total Jurusan</p>
+                        <p class="stat-value">{{ $stats['org_jurusan'] ?? 0 }}</p>
+                    </div>
+                </a>
+
+                <a href="{{ route('master-data.prodi.index') }}" class="stat-card" style="text-decoration: none; color: inherit;">
+                    <div class="stat-icon prodi-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Total Program Studi</p>
+                        <p class="stat-value">{{ $stats['org_prodi'] ?? 0 }}</p>
+                    </div>
+                </a>
+            </div>
+            @endif
+
+            <div style="margin-bottom: 12px; font-size: 0.85rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">
+                Ringkasan Akun Pengguna
+            </div>
+
+            <!-- KPI Cards Murni Akun -->
+            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px;">
                 <div class="stat-card">
                     <div class="stat-icon users-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                             <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
                     </div>
                     <div class="stat-content">
-                        <p class="stat-label">Total User</p>
+                        <p class="stat-label">Total Akun</p>
                         <p class="stat-value">{{ $stats['total_users'] }}</p>
                     </div>
                 </div>
@@ -111,72 +130,75 @@
                 <div class="stat-card">
                     <div class="stat-icon fakultas-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 10v6m0 0l-8.5 4.75a2 2 0 01-2 0L3 16m19-6l-8.5-4.75a2 2 0 00-2 0L3 10m0 0v6"></path>
-                            <path d="M12 14v8"></path>
+                            <path d="M3 21h18M3 7v14M21 7v14M6 11h2M6 15h2M11 11h2M11 15h2M16 11h2M16 15h2M3 7l9-4 9 4"></path>
                         </svg>
                     </div>
                     <div class="stat-content">
-                        <p class="stat-label">Fakultas</p>
+                        <p class="stat-label">Akun Fakultas</p>
                         <p class="stat-value">{{ $stats['total_fakultas'] }}</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #d97706;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Akun Jurusan</p>
+                        <p class="stat-value">{{ $stats['total_jurusan'] }}</p>
                     </div>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-icon prodi-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 19.5A2.5 2.5 0 016.5 17H9m0 0a2 2 0 104 0m-6 2.5A2.5 2.5 0 0117.5 17H21m0 0a2 2 0 11-4 0m4 0v-3m0 0a6 6 0 10-12 0"></path>
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                         </svg>
                     </div>
                     <div class="stat-content">
-                        <p class="stat-label">Program Studi</p>
+                        <p class="stat-label">Akun Prodi</p>
                         <p class="stat-value">{{ $stats['total_prodi'] }}</p>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon mata-kuliah-icon">
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #059669;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 19.5h16M6.5 15.5l5-3 5 3m-10 0l5-3 5 3M12 12l-9-5h18l-9 5"></path>
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
                         </svg>
                     </div>
                     <div class="stat-content">
-                        <p class="stat-label">Mata Kuliah</p>
-                        <p class="stat-value">{{ $stats['total_mata_kuliah'] }}</p>
+                        <p class="stat-label">Akun Aktif</p>
+                        <p class="stat-value" style="color: #059669;">{{ $stats['total_aktif'] }}</p>
                     </div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon kelas-icon">
+                    <div class="stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #dc2626;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                            <path d="M3 9h18M9 3v18"></path>
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
                         </svg>
                     </div>
                     <div class="stat-content">
-                        <p class="stat-label">Total Jadwal</p>
-                        <p class="stat-value">{{ $stats['total_jadwal'] }}</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon dosen-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Total Dosen</p>
-                        <p class="stat-value">{{ $stats['total_dosen'] }}</p>
+                        <p class="stat-label">Akun Nonaktif</p>
+                        <p class="stat-value" style="color: #dc2626;">{{ $stats['total_nonaktif'] }}</p>
                     </div>
                 </div>
             </div>
+
+
         </section>
     </main>
 </div>
 
-<!-- MODAL: EDIT PROFILE -->
-<div class="modal-backdrop" id="modalEditProfile">
+<!-- Modal Edit Profile -->
+<div id="modalEditProfile" class="modal-backdrop">
     <div class="modal-window">
         <div class="modal-header-blue">
             <h3>Edit Profile</h3>
@@ -202,12 +224,6 @@
                     <label for="profile_password_lama">Password lama</label>
                     <div class="modal-input-container">
                         <input type="password" id="profile_password_lama" name="password_lama" placeholder="Isi jika ingin ganti password">
-                        <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibilityModal('profile_password_lama', this)">
-                            <svg id="profile_password_lama_eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </button>
                     </div>
                 </div>
 
@@ -215,12 +231,6 @@
                     <label for="profile_password_baru">Password Baru</label>
                     <div class="modal-input-container">
                         <input type="password" id="profile_password_baru" name="password_baru" placeholder="Kosongkan jika tidak diubah">
-                        <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibilityModal('profile_password_baru', this)">
-                            <svg id="profile_password_baru_eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </button>
                     </div>
                 </div>
 
@@ -228,12 +238,6 @@
                     <label for="profile_password_baru_confirmation">Konfirmasi Password Baru</label>
                     <div class="modal-input-container">
                         <input type="password" id="profile_password_baru_confirmation" name="password_baru_confirmation" placeholder="Ulangi password baru">
-                        <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibilityModal('profile_password_baru_confirmation', this)">
-                            <svg id="profile_password_baru_confirmation_eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </button>
                     </div>
                 </div>
 

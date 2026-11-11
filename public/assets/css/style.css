@@ -336,7 +336,8 @@ body {
 /* ==========================================================================
    3. SUPER ADMIN DASHBOARD LAYOUT
    ========================================================================== */
-.admin-layout {
+.admin-layout,
+.admin-container {
   display: flex;
   min-height: 100vh;
   background-color: var(--bg-app);
@@ -674,6 +675,7 @@ body {
   letter-spacing: -0.01em;
 }
 
+.btn-primary,
 .btn-add {
   display: inline-flex;
   align-items: center;
@@ -690,12 +692,15 @@ body {
   transition: var(--transition);
 }
 
+.btn-primary:hover,
 .btn-add:hover {
   background: var(--primary-blue-dark);
+  color: #ffffff;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(8, 96, 190, 0.25);
 }
 
+.btn-primary svg,
 .btn-add svg {
   width: 17px;
   height: 17px;
@@ -1188,7 +1193,8 @@ body {
     height: auto;
     padding: 40px 20px;
   }
-  .admin-layout {
+  .admin-layout,
+  .admin-container {
     flex-direction: column;
   }
   .admin-sidebar {

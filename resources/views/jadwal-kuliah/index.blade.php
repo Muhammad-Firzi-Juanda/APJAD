@@ -11,7 +11,7 @@
                 @if(Auth::user()->role === 'Fakultas')
                     <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Fakultas</span>
                 @else
-                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Super Admin</span>
+                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Prodi</span>
                 @endif
             </div>
             <nav class="sidebar-nav">
@@ -54,7 +54,7 @@
                         <span>Penjadwalan</span>
                     </a>
                 @else
-                    <a href="{{ route('dashboard') }}" class="sidebar-link">
+                    <a href="{{ route('prodi.dashboard') }}" class="sidebar-link">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="3" width="7" height="7"></rect>
                             <rect x="14" y="3" width="7" height="7"></rect>
@@ -63,12 +63,25 @@
                         </svg>
                         <span>Dashboard</span>
                     </a>
-                    <a href="{{ route('manajemen-akun') }}" class="sidebar-link">
+                    <a href="{{ route('prodi.dashboard') }}#section-dosen" class="sidebar-link">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-                        <span>Manajemen Akun</span>
+                        <span>Data Dosen</span>
+                    </a>
+                    <a href="{{ route('prodi.dashboard') }}#section-mk" class="sidebar-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5h16M6.5 15.5l5-3 5 3m-10 0l5-3 5 3M12 12l-9-5h18l-9 5"></path>
+                        </svg>
+                        <span>Mata Kuliah</span>
+                    </a>
+                    <a href="{{ route('prodi.dashboard') }}#section-rombel" class="sidebar-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            <path d="M3 9h18M9 3v18"></path>
+                        </svg>
+                        <span>Rombel</span>
                     </a>
                     <a href="{{ route('jadwal-kuliah.index') }}" class="sidebar-link active">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

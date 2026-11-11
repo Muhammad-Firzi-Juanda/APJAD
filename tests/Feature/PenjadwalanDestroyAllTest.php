@@ -20,7 +20,7 @@ class PenjadwalanDestroyAllTest extends TestCase
 
     private function superAdmin(): User
     {
-        return User::where('role', 'Super Admin')->firstOrFail();
+        return User::where('role', 'Fakultas')->firstOrFail();
     }
 
     public function test_can_destroy_all_mata_kuliah_and_schedules(): void

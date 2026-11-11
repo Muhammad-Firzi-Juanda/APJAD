@@ -19,7 +19,13 @@ class RuanganManagementTest extends TestCase
 
     private function superAdmin(): User
     {
-        return User::where('role', 'Super Admin')->firstOrFail();
+        return User::where('role', 'Fakultas')->firstOrFail();
+    }
+
+    public function test_super_admin_cannot_access_ruangan(): void
+    {
+        $superAdmin = User::where('role', 'Super Admin')->firstOrFail();
+        $this->actingAs($superAdmin)->get('/ruangan')->assertForbidden();
     }
 
     public function test_super_admin_can_add_new_room(): void

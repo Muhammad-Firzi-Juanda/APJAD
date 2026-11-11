@@ -774,45 +774,12 @@
                 <h2>APJAD</h2>
                 @if(Auth::user()->role === 'Fakultas')
                     <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Fakultas</span>
-                @elseif(Auth::user()->role === 'Prodi')
-                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Prodi</span>
                 @else
-                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Super Admin</span>
+                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Prodi</span>
                 @endif
             </div>
             <nav class="sidebar-nav">
-                @if(Auth::user()->role === 'Super Admin')
-                    <a href="{{ route('dashboard') }}" class="sidebar-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="{{ route('manajemen-akun') }}" class="sidebar-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                        <span>Manajemen Akun</span>
-                    </a>
-                    <a href="{{ route('jadwal-kuliah.index') }}" class="sidebar-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                            <path d="M3 9h18M9 3v18"></path>
-                        </svg>
-                        <span>Jadwal Kuliah</span>
-                    </a>
-                    <a href="{{ route('penjadwalan.index') }}" class="sidebar-link active">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        <span>Penjadwalan</span>
-                    </a>
-                @elseif(Auth::user()->role === 'Fakultas')
+                @if(Auth::user()->role === 'Fakultas')
                     <a href="{{ route('fakultas.dashboard') }}" class="sidebar-link">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="3" width="7" height="7"></rect>

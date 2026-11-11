@@ -1,4 +1,4 @@
-// assets/js/app.js
+﻿// assets/js/app.js
 
 document.addEventListener('DOMContentLoaded', function() {
     // Escape key closes modals
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     toast.style.display = 'flex';
 
-                    // Redirect smoothly after user sees the "Login Berhasil ✓" popup
+                    // Redirect smoothly after user sees the "Login Berhasil âœ“" popup
                     setTimeout(() => {
                         window.location.href = result.data.redirect || '/dashboard';
                     }, 800);
@@ -104,49 +104,6 @@ function closeAllModals() {
     document.querySelectorAll('.modal-backdrop').forEach(function(modal) {
         modal.classList.remove('show');
     });
-}
-
-function openEditModal(userData) {
-    const form = document.getElementById('formEditUser');
-    if (form && userData.id) {
-        const baseUrl = form.getAttribute('data-base-url');
-        if (baseUrl) {
-            form.action = baseUrl.replace(/\/$/, '') + '/' + userData.id;
-        }
-    }
-    const idField = document.getElementById('edit_user_id');
-    if (idField) idField.value = userData.id || '';
-    
-    const namaField = document.getElementById('edit_nama');
-    if (namaField) namaField.value = userData.nama || '';
-
-    const emailField = document.getElementById('edit_email');
-    if (emailField) emailField.value = userData.email || '';
-
-    const roleField = document.getElementById('edit_role');
-    if (roleField) {
-        roleField.value = userData.role || 'Fakultas';
-    }
-
-    const pwField = document.getElementById('edit_password');
-    if (pwField) pwField.value = '';
-
-    openModal('modalEdit');
-}
-
-function openDeleteModal(userId) {
-    const form = document.getElementById('formDeleteUser');
-    if (form && userId) {
-        const baseUrl = form.getAttribute('data-base-url');
-        if (baseUrl) {
-            form.action = baseUrl.replace(/\/$/, '') + '/' + userId;
-        }
-    }
-    const input = document.getElementById('delete_user_id');
-    if (input) {
-        input.value = userId;
-    }
-    openModal('modalHapus');
 }
 
 function showErrorPopup(message) {
@@ -203,7 +160,7 @@ function togglePasswordVisibilityModal(fieldId, button) {
 
 
 /* ---------------------------------------------------------------
-   Flash Alert � auto-dismiss
+   Flash Alert — auto-dismiss
    Semua elemen .flash-alert akan otomatis menghilang setelah
    beberapa detik dengan animasi smooth dan progress-bar countdown.
 --------------------------------------------------------------- */
@@ -254,3 +211,4 @@ function togglePasswordVisibilityModal(fieldId, button) {
         });
     });
 })();
+

@@ -17,9 +17,22 @@ class MataKuliahImportTest extends TestCase
         $this->seed();
     }
 
-    private function superAdmin(): User
+    private function facultyUser(): User
     {
-        return User::where('role', 'Super Admin')->firstOrFail();
+        return User::where('role', 'Fakultas')->firstOrFail();
+    }
+
+    public function test_super_admin_is_forbidden_from_academic_import(): void
+    {
+        $superAdmin = User::where('role', 'Super Admin')->firstOrFail();
+        $file = UploadedFile::fake()->createWithContent('matkul.csv', "Kode MK,Nama MK,SKS,Semester\nTIF101,Test,3,1\n");
+
+        $response = $this->actingAs($superAdmin)
+            ->post('/penjadwalan/import', [
+                'file' => $file,
+            ]);
+
+        $response->assertForbidden();
     }
 
     public function test_can_automatically_import_spreadsheet_with_standard_headers(): void
@@ -30,7 +43,7 @@ class MataKuliahImportTest extends TestCase
 
         $file = UploadedFile::fake()->createWithContent('matkul.csv', $csvContent);
 
-        $response = $this->actingAs($this->superAdmin())
+        $response = $this->actingAs($this->facultyUser())
             ->post('/penjadwalan/import', [
                 'file' => $file,
             ]);
@@ -65,7 +78,7 @@ class MataKuliahImportTest extends TestCase
 
         $file = UploadedFile::fake()->createWithContent('daftar_mk_prodi.csv', $csvContent);
 
-        $response = $this->actingAs($this->superAdmin())
+        $response = $this->actingAs($this->facultyUser())
             ->post('/penjadwalan/import', [
                 'file' => $file,
             ]);
@@ -98,7 +111,7 @@ class MataKuliahImportTest extends TestCase
 
         $file = UploadedFile::fake()->createWithContent('minimal.csv', $csvContent);
 
-        $response = $this->actingAs($this->superAdmin())
+        $response = $this->actingAs($this->facultyUser())
             ->post('/penjadwalan/import', [
                 'file' => $file,
             ]);
@@ -123,7 +136,7 @@ class MataKuliahImportTest extends TestCase
 
         $file = UploadedFile::fake()->createWithContent('matkul_semicolon.csv', $csvContent);
 
-        $response = $this->actingAs($this->superAdmin())
+        $response = $this->actingAs($this->facultyUser())
             ->post('/penjadwalan/import', [
                 'file' => $file,
             ]);

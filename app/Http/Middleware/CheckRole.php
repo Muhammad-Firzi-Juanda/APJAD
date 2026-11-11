@@ -14,6 +14,10 @@ class CheckRole
             abort(403, 'Akses ditolak. Anda tidak memiliki izin untuk halaman ini.');
         }
 
+        if (! $request->user()->isActive()) {
+            abort(403, 'Akun Anda sedang dinonaktifkan. Silakan hubungi administrator sistem.');
+        }
+
         return $next($request);
     }
 }
