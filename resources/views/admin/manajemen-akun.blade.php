@@ -8,7 +8,7 @@
     $showFakultas = $isAllRoles || in_array($pageRole, ['Fakultas', 'Jurusan', 'Prodi'], true);
     $showJurusan = $isAllRoles || in_array($pageRole, ['Jurusan', 'Prodi'], true);
     $showProdi = $isAllRoles || $pageRole === 'Prodi';
-    $colCount = 6 + ($showFakultas ? 1 : 0) + ($showJurusan ? 1 : 0) + ($showProdi ? 1 : 0);
+    $colCount = 9;
     $defaultJabatan = match ($pageRole) {
         'Jurusan' => 'Ketua Jurusan',
         'Prodi' => 'Ketua Program Studi',
@@ -48,15 +48,14 @@
                 </div>
             @endif
 
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 18px;">
-                <div>
-                    <h1 class="page-title" style="margin-bottom: 4px;">{{ $pageTitle ?? 'Manajemen Akun Pengguna' }}</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 280px;">
+                    <h1 class="page-title" style="margin-bottom: 4px;">Manajemen Akun Pengguna</h1>
                     <p style="color: #64748b; font-size: 0.95rem; margin: 0;">
-                        {{ $pageDescription ?? '' }}
+                        Kelola seluruh akun pengguna operasional (Fakultas, Jurusan, dan Program Studi).
                     </p>
                 </div>
-                @if($canCreateAccount ?? in_array($pageRole, ['Fakultas', 'Jurusan', 'Prodi'], true))
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-shrink: 0;">
                     <a href="{{ route('manajemen-akun.template-excel') }}" style="display: inline-flex; align-items: center; gap: 7px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 9px 14px; border-radius: 8px; font-weight: 600; font-size: 0.86rem; text-decoration: none;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -82,96 +81,107 @@
                         <span>Tambah Akun Manual</span>
                     </button>
                 </div>
-                @endif
             </div>
 
             <!-- Role Category Navigation Filter Tabs -->
-            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
-                <a href="{{ route('manajemen-akun', array_merge(request()->except('role', 'page'), ['role' => 'Semua'])) }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; {{ $isAllRoles ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
-                    Semua Akun
-                </a>
-                <a href="{{ route('manajemen-akun', array_merge(request()->except('role', 'page'), ['role' => 'Fakultas'])) }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; {{ $pageRole === 'Fakultas' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
-                    Akun Fakultas
-                </a>
-                <a href="{{ route('manajemen-akun', array_merge(request()->except('role', 'page'), ['role' => 'Jurusan'])) }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; {{ $pageRole === 'Jurusan' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
-                    Akun Jurusan
-                </a>
-                <a href="{{ route('manajemen-akun', array_merge(request()->except('role', 'page'), ['role' => 'Prodi'])) }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; {{ $pageRole === 'Prodi' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
-                    Akun Program Studi
-                </a>
-                <a href="{{ route('manajemen-akun.riwayat-generate') }}" style="margin-left: auto; padding: 8px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; text-decoration: none; background: #f8fafc; color: #0860be; border: 1px solid #bae6fd;">
-                    Riwayat Generate Akun
-                </a>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: nowrap; overflow-x: auto;">
+                <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+                    <a href="{{ route('manajemen-akun', array_merge(request()->except('role', 'page'), ['role' => 'Semua'])) }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; white-space: nowrap; {{ $isAllRoles ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
+                        Semua Akun
+                    </a>
+                    <a href="{{ route('manajemen-akun', array_merge(request()->except('role', 'page'), ['role' => 'Fakultas'])) }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; white-space: nowrap; {{ $pageRole === 'Fakultas' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
+                        Akun Fakultas
+                    </a>
+                    <a href="{{ route('manajemen-akun', array_merge(request()->except('role', 'page'), ['role' => 'Jurusan'])) }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; white-space: nowrap; {{ $pageRole === 'Jurusan' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
+                        Akun Jurusan
+                    </a>
+                    <a href="{{ route('manajemen-akun', array_merge(request()->except('role', 'page'), ['role' => 'Prodi'])) }}" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 700; text-decoration: none; white-space: nowrap; {{ $pageRole === 'Prodi' ? 'background: #0860be; color: #ffffff;' : 'background: #ffffff; color: #475569; border: 1px solid #cbd5e1;' }}">
+                        Akun Program Studi
+                    </a>
+                </div>
+                <div style="flex-shrink: 0;">
+                    <a href="{{ route('manajemen-akun.riwayat-generate') }}" style="display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; text-decoration: none; background: #f8fafc; color: #0860be; border: 1px solid #bae6fd; white-space: nowrap;">
+                        Riwayat Generate Akun
+                    </a>
+                </div>
             </div>
 
-            <!-- Filter Toolbar -->
-            <div style="background: #ffffff; border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                <form action="{{ route('manajemen-akun') }}" method="GET" style="display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: flex-start;">
+            <!-- Filter Toolbar (Unified & Compact, Single-line, Never Wraps) -->
+            <div style="background: #ffffff; border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow-x: auto;">
+                <form action="{{ route('manajemen-akun') }}" method="GET" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 920px; flex-wrap: nowrap;">
                     <input type="hidden" name="role" value="{{ $isAllRoles ? 'Semua' : $pageRole }}">
                     
-                    @if($showFakultas)
+                    <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
                         <div style="display: inline-flex; align-items: center; gap: 5px;">
                             <label for="filter_fakultas_id" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Fakultas:</label>
-                            <select id="filter_fakultas_id" name="fakultas_id" onchange="this.form.submit()" style="padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; max-width: 150px;">
+                            <select id="filter_fakultas_id" name="fakultas_id" onchange="this.form.submit()" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; width: 135px;">
                                 <option value="">Semua Fakultas</option>
                                 @foreach($fakultas as $f)
                                     <option value="{{ $f->id }}" {{ (string) ($filterFakultasId ?? '') === (string) $f->id ? 'selected' : '' }}>{{ $f->nama }}</option>
                                 @endforeach
                             </select>
                         </div>
-                    @endif
 
-                    @if($showJurusan)
                         <div style="display: inline-flex; align-items: center; gap: 5px;">
-                            <label for="filter_jurusan_id" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Jurusan:</label>
-                            <select id="filter_jurusan_id" name="jurusan_id" onchange="this.form.submit()" style="padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; max-width: 150px;">
-                                <option value="">Semua Jurusan</option>
-                                @foreach($jurusan as $j)
-                                    @if(empty($filterFakultasId) || (int) $j->fakultas_id === (int) $filterFakultasId)
-                                         <option value="{{ $j->id }}" {{ (string) ($filterJurusanId ?? '') === (string) $j->id ? 'selected' : '' }}>{{ $j->nama }}</option>
-                                    @endif
-                                @endforeach
+                            <label for="filter_jurusan_id" style="font-size: 0.8rem; font-weight: 700; color: {{ $pageRole === 'Fakultas' ? '#94a3b8' : '#475569' }}; white-space: nowrap;">Jurusan:</label>
+                            @if($pageRole === 'Fakultas')
+                                <select disabled title="Filter Jurusan tidak berlaku untuk Akun Fakultas" style="padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.8rem; background: #f8fafc; color: #94a3b8; font-weight: 500; cursor: not-allowed; outline: none; width: 135px;">
+                                    <option>Tidak Berlaku</option>
+                                </select>
+                            @else
+                                <select id="filter_jurusan_id" name="jurusan_id" onchange="this.form.submit()" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; width: 135px;">
+                                    <option value="">Semua Jurusan</option>
+                                    @foreach($jurusan as $j)
+                                        @if(empty($filterFakultasId) || (int) $j->fakultas_id === (int) $filterFakultasId)
+                                             <option value="{{ $j->id }}" {{ (string) ($filterJurusanId ?? '') === (string) $j->id ? 'selected' : '' }}>{{ $j->nama }}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            @endif
+                        </div>
+
+                        <div style="display: inline-flex; align-items: center; gap: 5px;">
+                            <label for="filter_prodi_id" style="font-size: 0.8rem; font-weight: 700; color: {{ in_array($pageRole, ['Fakultas', 'Jurusan'], true) ? '#94a3b8' : '#475569' }}; white-space: nowrap;">Prodi:</label>
+                            @if(in_array($pageRole, ['Fakultas', 'Jurusan'], true))
+                                <select disabled title="Filter Prodi tidak berlaku untuk Akun {{ $pageRole }}" style="padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.8rem; background: #f8fafc; color: #94a3b8; font-weight: 500; cursor: not-allowed; outline: none; width: 135px;">
+                                    <option>Tidak Berlaku</option>
+                                </select>
+                            @else
+                                <select id="filter_prodi_id" name="prodi_id" onchange="this.form.submit()" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; width: 135px;">
+                                    <option value="">Semua Prodi</option>
+                                    @foreach($prodi as $p)
+                                        @if((empty($filterFakultasId) || (int) $p->fakultas_id === (int) $filterFakultasId) && (empty($filterJurusanId) || (int) $p->jurusan_id === (int) $filterJurusanId))
+                                            <option value="{{ $p->id }}" {{ (string) ($filterProdiId ?? '') === (string) $p->id ? 'selected' : '' }}>{{ $p->nama }}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            @endif
+                        </div>
+
+                        <div style="display: inline-flex; align-items: center; gap: 5px;">
+                            <label for="filter_status" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Status:</label>
+                            <select id="filter_status" name="status" onchange="this.form.submit()" style="padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; width: 115px;">
+                                <option value="">Semua Status</option>
+                                <option value="aktif" {{ $filterStatus === 'aktif' ? 'selected' : '' }}>Aktif</option>
+                                <option value="nonaktif" {{ $filterStatus === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
                             </select>
                         </div>
-                    @endif
-
-                    @if($showProdi)
-                        <div style="display: inline-flex; align-items: center; gap: 5px;">
-                            <label for="filter_prodi_id" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Prodi:</label>
-                            <select id="filter_prodi_id" name="prodi_id" onchange="this.form.submit()" style="padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; max-width: 150px;">
-                                <option value="">Semua Prodi</option>
-                                @foreach($prodi as $p)
-                                    @if((empty($filterFakultasId) || (int) $p->fakultas_id === (int) $filterFakultasId) && (empty($filterJurusanId) || (int) $p->jurusan_id === (int) $filterJurusanId))
-                                        <option value="{{ $p->id }}" {{ (string) ($filterProdiId ?? '') === (string) $p->id ? 'selected' : '' }}>{{ $p->nama }}</option>
-                                    @endif
-                                @endforeach
-                            </select>
-                        </div>
-                    @endif
-
-                    <div style="display: inline-flex; align-items: center; gap: 5px;">
-                        <label for="filter_status" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Status:</label>
-                        <select id="filter_status" name="status" onchange="this.form.submit()" style="padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none;">
-                            <option value="">Semua Status</option>
-                            <option value="aktif" {{ $filterStatus === 'aktif' ? 'selected' : '' }}>Aktif</option>
-                            <option value="nonaktif" {{ $filterStatus === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
-                        </select>
                     </div>
 
-                    {{-- Search Input, Cari & Reset inline on the same row --}}
-                    <div style="display: inline-flex; align-items: center; gap: 6px; margin-left: auto;">
+                    {{-- Search Input, Cari & Reset on the right side --}}
+                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                         <div style="position: relative; display: flex; align-items: center;">
-                            <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari nama / email / NUPTK..." style="padding: 5px 10px 5px 28px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; width: 190px; outline: none;">
+                            <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari nama / email / NUPTK..." style="padding: 6px 10px 6px 28px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; width: 185px; outline: none;">
                             <svg style="position: absolute; left: 8px; width: 13px; height: 13px; color: #94a3b8;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                         </div>
-                        <button type="submit" style="padding: 5px 12px; background: #0860be; color: #fff; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                        <button type="submit" style="padding: 6px 14px; background: #0860be; color: #fff; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
                             Cari
                         </button>
                         @if(!empty($filterStatus) || !empty($filterFakultasId) || !empty($filterJurusanId) || !empty($filterProdiId) || !empty($search))
-                            <a href="{{ route('manajemen-akun', ['role' => $isAllRoles ? 'Semua' : $pageRole]) }}" style="padding: 5px 10px; background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none;">
+                            <a href="{{ route('manajemen-akun', ['role' => $isAllRoles ? 'Semua' : $pageRole]) }}" style="padding: 6px 10px; background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none;">
                                 Reset
                             </a>
                         @endif
@@ -185,21 +195,15 @@
                     <table class="user-table" style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="border-bottom: 2px solid #e2e8f0; text-align: left;">
-                                <th style="padding: 12px 10px; color: #64748b; font-size: 0.82rem; text-transform: uppercase; width: 45px;">No.</th>
-                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase;">Pengguna & Jabatan</th>
-                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase;">Email</th>
-                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase;">Kontak (No. HP)</th>
-                                @if($showFakultas)
-                                    <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase;">Fakultas</th>
-                                @endif
-                                @if($showJurusan)
-                                    <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase;">Jurusan</th>
-                                @endif
-                                @if($showProdi)
-                                    <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase;">Program Studi</th>
-                                @endif
-                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase;">Status</th>
-                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase; text-align: right;">Aksi</th>
+                                <th style="padding: 12px 10px; color: #64748b; font-size: 0.82rem; text-transform: uppercase; width: 45px; text-align: center;">No.</th>
+                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase; min-width: 170px;">Pengguna & Jabatan</th>
+                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase; min-width: 160px;">Email</th>
+                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase; min-width: 130px;">Kontak (No. HP)</th>
+                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase; min-width: 120px;">Fakultas</th>
+                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase; min-width: 120px;">Jurusan</th>
+                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase; min-width: 140px;">Program Studi</th>
+                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase; width: 110px; text-align: center;">Status</th>
+                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase; width: 140px; text-align: right;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -242,38 +246,32 @@
                                         @endif
                                     </td>
 
-                                    @if($showFakultas)
-                                        <td style="padding: 12px; font-size: 0.85rem; color: #334155;">
-                                            @if($u->fakultas)
-                                                <span style="font-weight: 600;">{{ $u->fakultas->nama }}</span>
-                                                <div style="font-size: 0.75rem; color: #64748b;">Kode: {{ $u->fakultas->kode }}</div>
-                                            @else
-                                                <span style="color: #94a3b8;">-</span>
-                                            @endif
-                                        </td>
-                                    @endif
+                                    <td style="padding: 12px; font-size: 0.85rem; color: #334155;">
+                                        @if($u->fakultas)
+                                            <span style="font-weight: 600;">{{ $u->fakultas->nama }}</span>
+                                            <div style="font-size: 0.75rem; color: #64748b;">Kode: {{ $u->fakultas->kode }}</div>
+                                        @else
+                                            <span style="color: #94a3b8;">-</span>
+                                        @endif
+                                    </td>
 
-                                    @if($showJurusan)
-                                        <td style="padding: 12px; font-size: 0.85rem; color: #334155;">
-                                            @if($u->jurusan)
-                                                <span style="font-weight: 600;">{{ $u->jurusan->nama }}</span>
-                                                <div style="font-size: 0.75rem; color: #64748b;">Kode: {{ $u->jurusan->kode }}</div>
-                                            @else
-                                                <span style="color: #94a3b8;">-</span>
-                                            @endif
-                                        </td>
-                                    @endif
+                                    <td style="padding: 12px; font-size: 0.85rem; color: #334155;">
+                                        @if($u->jurusan)
+                                            <span style="font-weight: 600;">{{ $u->jurusan->nama }}</span>
+                                            <div style="font-size: 0.75rem; color: #64748b;">Kode: {{ $u->jurusan->kode }}</div>
+                                        @else
+                                            <span style="color: #94a3b8;">-</span>
+                                        @endif
+                                    </td>
 
-                                    @if($showProdi)
-                                        <td style="padding: 12px; font-size: 0.85rem; color: #334155;">
-                                            @if($u->prodi)
-                                                <span style="font-weight: 600;">{{ $u->prodi->nama }}</span>
-                                                <div style="font-size: 0.75rem; color: #64748b;">Kode: {{ $u->prodi->kode }}</div>
-                                            @else
-                                                <span style="color: #94a3b8;">-</span>
-                                            @endif
-                                        </td>
-                                    @endif
+                                    <td style="padding: 12px; font-size: 0.85rem; color: #334155;">
+                                        @if($u->prodi)
+                                            <span style="font-weight: 600;">{{ $u->prodi->nama }}</span>
+                                            <div style="font-size: 0.75rem; color: #64748b;">Kode: {{ $u->prodi->kode }}</div>
+                                        @else
+                                            <span style="color: #94a3b8;">-</span>
+                                        @endif
+                                    </td>
 
                                     <td style="padding: 12px;">
                                         @php
@@ -771,24 +769,18 @@
                     <span style="color: #64748b; font-weight: 600;">Status Akun</span>
                     <span id="detail_status" style="font-weight: 700;">-</span>
                 </div>
-                @if($showFakultas)
                 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
                     <span style="color: #64748b; font-weight: 600;">Fakultas</span>
                     <span id="detail_fakultas" style="color: #334155; text-align: right;">-</span>
                 </div>
-                @endif
-                @if($showJurusan)
                 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
                     <span style="color: #64748b; font-weight: 600;">Jurusan</span>
                     <span id="detail_jurusan" style="color: #334155; text-align: right;">-</span>
                 </div>
-                @endif
-                @if($showProdi)
                 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
                     <span style="color: #64748b; font-weight: 600;">Program Studi</span>
                     <span id="detail_prodi" style="color: #334155; text-align: right;">-</span>
                 </div>
-                @endif
                 <div style="display: flex; justify-content: space-between; padding-bottom: 4px;">
                     <span style="color: #64748b; font-weight: 600;">Terdaftar Pada</span>
                     <span id="detail_created" style="color: #64748b;">-</span>
