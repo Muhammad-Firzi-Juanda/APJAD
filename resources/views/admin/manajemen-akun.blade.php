@@ -105,76 +105,73 @@
             </div>
 
             <!-- Filter Toolbar -->
-            <div style="background: #ffffff; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                <form action="{{ route('manajemen-akun') }}" method="GET" style="display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between;">
+            <div style="background: #ffffff; border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <form action="{{ route('manajemen-akun') }}" method="GET" style="display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: flex-start;">
                     <input type="hidden" name="role" value="{{ $isAllRoles ? 'Semua' : $pageRole }}">
                     
-                    {{-- Dropdown Filters in 1 clean row --}}
-                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                        @if($showFakultas)
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <label for="filter_fakultas_id" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Fakultas:</label>
-                                <select id="filter_fakultas_id" name="fakultas_id" onchange="this.form.submit()" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; min-width: 140px;">
-                                    <option value="">Semua Fakultas</option>
-                                    @foreach($fakultas as $f)
-                                        <option value="{{ $f->id }}" {{ (string) ($filterFakultasId ?? '') === (string) $f->id ? 'selected' : '' }}>{{ $f->nama }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endif
-
-                        @if($showJurusan)
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <label for="filter_jurusan_id" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Jurusan:</label>
-                                <select id="filter_jurusan_id" name="jurusan_id" onchange="this.form.submit()" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; min-width: 140px;">
-                                    <option value="">Semua Jurusan</option>
-                                    @foreach($jurusan as $j)
-                                        @if(empty($filterFakultasId) || (int) $j->fakultas_id === (int) $filterFakultasId)
-                                             <option value="{{ $j->id }}" {{ (string) ($filterJurusanId ?? '') === (string) $j->id ? 'selected' : '' }}>{{ $j->nama }}</option>
-                                        @endif
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endif
-
-                        @if($showProdi)
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <label for="filter_prodi_id" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Prodi:</label>
-                                <select id="filter_prodi_id" name="prodi_id" onchange="this.form.submit()" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; min-width: 140px;">
-                                    <option value="">Semua Prodi</option>
-                                    @foreach($prodi as $p)
-                                        @if((empty($filterFakultasId) || (int) $p->fakultas_id === (int) $filterFakultasId) && (empty($filterJurusanId) || (int) $p->jurusan_id === (int) $filterJurusanId))
-                                            <option value="{{ $p->id }}" {{ (string) ($filterProdiId ?? '') === (string) $p->id ? 'selected' : '' }}>{{ $p->nama }}</option>
-                                        @endif
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endif
-
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            <label for="filter_status" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Status:</label>
-                            <select id="filter_status" name="status" onchange="this.form.submit()" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; min-width: 120px;">
-                                <option value="">Semua Status</option>
-                                <option value="aktif" {{ $filterStatus === 'aktif' ? 'selected' : '' }}>Aktif</option>
-                                <option value="nonaktif" {{ $filterStatus === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                    @if($showFakultas)
+                        <div style="display: inline-flex; align-items: center; gap: 5px;">
+                            <label for="filter_fakultas_id" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Fakultas:</label>
+                            <select id="filter_fakultas_id" name="fakultas_id" onchange="this.form.submit()" style="padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; max-width: 150px;">
+                                <option value="">Semua Fakultas</option>
+                                @foreach($fakultas as $f)
+                                    <option value="{{ $f->id }}" {{ (string) ($filterFakultasId ?? '') === (string) $f->id ? 'selected' : '' }}>{{ $f->nama }}</option>
+                                @endforeach
                             </select>
                         </div>
+                    @endif
+
+                    @if($showJurusan)
+                        <div style="display: inline-flex; align-items: center; gap: 5px;">
+                            <label for="filter_jurusan_id" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Jurusan:</label>
+                            <select id="filter_jurusan_id" name="jurusan_id" onchange="this.form.submit()" style="padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; max-width: 150px;">
+                                <option value="">Semua Jurusan</option>
+                                @foreach($jurusan as $j)
+                                    @if(empty($filterFakultasId) || (int) $j->fakultas_id === (int) $filterFakultasId)
+                                         <option value="{{ $j->id }}" {{ (string) ($filterJurusanId ?? '') === (string) $j->id ? 'selected' : '' }}>{{ $j->nama }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    @if($showProdi)
+                        <div style="display: inline-flex; align-items: center; gap: 5px;">
+                            <label for="filter_prodi_id" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Prodi:</label>
+                            <select id="filter_prodi_id" name="prodi_id" onchange="this.form.submit()" style="padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; max-width: 150px;">
+                                <option value="">Semua Prodi</option>
+                                @foreach($prodi as $p)
+                                    @if((empty($filterFakultasId) || (int) $p->fakultas_id === (int) $filterFakultasId) && (empty($filterJurusanId) || (int) $p->jurusan_id === (int) $filterJurusanId))
+                                        <option value="{{ $p->id }}" {{ (string) ($filterProdiId ?? '') === (string) $p->id ? 'selected' : '' }}>{{ $p->nama }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    <div style="display: inline-flex; align-items: center; gap: 5px;">
+                        <label for="filter_status" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Status:</label>
+                        <select id="filter_status" name="status" onchange="this.form.submit()" style="padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none;">
+                            <option value="">Semua Status</option>
+                            <option value="aktif" {{ $filterStatus === 'aktif' ? 'selected' : '' }}>Aktif</option>
+                            <option value="nonaktif" {{ $filterStatus === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                        </select>
                     </div>
 
-                    {{-- Search and Reset buttons in line --}}
-                    <div style="display: flex; gap: 8px; align-items: center;">
+                    {{-- Search Input, Cari & Reset inline on the same row --}}
+                    <div style="display: inline-flex; align-items: center; gap: 6px; margin-left: auto;">
                         <div style="position: relative; display: flex; align-items: center;">
-                            <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari nama / email / NUPTK..." style="padding: 6px 12px 6px 32px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.83rem; width: 220px; outline: none;">
-                            <svg style="position: absolute; left: 10px; width: 14px; height: 14px; color: #94a3b8;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari nama / email / NUPTK..." style="padding: 5px 10px 5px 28px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; width: 190px; outline: none;">
+                            <svg style="position: absolute; left: 8px; width: 13px; height: 13px; color: #94a3b8;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                         </div>
-                        <button type="submit" style="padding: 6px 14px; background: #0860be; color: #fff; border: none; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
+                        <button type="submit" style="padding: 5px 12px; background: #0860be; color: #fff; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
                             Cari
                         </button>
                         @if(!empty($filterStatus) || !empty($filterFakultasId) || !empty($filterJurusanId) || !empty($filterProdiId) || !empty($search))
-                            <a href="{{ route('manajemen-akun', ['role' => $isAllRoles ? 'Semua' : $pageRole]) }}" style="padding: 6px 12px; background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; font-weight: 600; text-decoration: none;">
+                            <a href="{{ route('manajemen-akun', ['role' => $isAllRoles ? 'Semua' : $pageRole]) }}" style="padding: 5px 10px; background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none;">
                                 Reset
                             </a>
                         @endif
