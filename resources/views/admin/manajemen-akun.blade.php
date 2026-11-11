@@ -8,7 +8,7 @@
     $showFakultas = $isAllRoles || in_array($pageRole, ['Fakultas', 'Jurusan', 'Prodi'], true);
     $showJurusan = $isAllRoles || in_array($pageRole, ['Jurusan', 'Prodi'], true);
     $showProdi = $isAllRoles || $pageRole === 'Prodi';
-    $colCount = 5 + ($showFakultas ? 1 : 0) + ($showJurusan ? 1 : 0) + ($showProdi ? 1 : 0);
+    $colCount = 6 + ($showFakultas ? 1 : 0) + ($showJurusan ? 1 : 0) + ($showProdi ? 1 : 0);
     $defaultJabatan = match ($pageRole) {
         'Jurusan' => 'Ketua Jurusan',
         'Prodi' => 'Ketua Program Studi',
@@ -105,14 +105,16 @@
             </div>
 
             <!-- Filter Toolbar -->
-            <div style="background: #ffffff; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                <form action="{{ route('manajemen-akun') }}" method="GET" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+            <div style="background: #ffffff; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <form action="{{ route('manajemen-akun') }}" method="GET" style="display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between;">
                     <input type="hidden" name="role" value="{{ $isAllRoles ? 'Semua' : $pageRole }}">
-                    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+                    
+                    {{-- Dropdown Filters in 1 clean row --}}
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                         @if($showFakultas)
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <label for="filter_fakultas_id" style="font-size: 0.82rem; font-weight: 700; color: #475569; white-space: nowrap;">Fakultas:</label>
-                                <select id="filter_fakultas_id" name="fakultas_id" onchange="this.form.submit()" style="padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.83rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none;">
+                                <label for="filter_fakultas_id" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Fakultas:</label>
+                                <select id="filter_fakultas_id" name="fakultas_id" onchange="this.form.submit()" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; min-width: 140px;">
                                     <option value="">Semua Fakultas</option>
                                     @foreach($fakultas as $f)
                                         <option value="{{ $f->id }}" {{ (string) ($filterFakultasId ?? '') === (string) $f->id ? 'selected' : '' }}>{{ $f->nama }}</option>
@@ -123,12 +125,12 @@
 
                         @if($showJurusan)
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <label for="filter_jurusan_id" style="font-size: 0.82rem; font-weight: 700; color: #475569; white-space: nowrap;">Jurusan:</label>
-                                <select id="filter_jurusan_id" name="jurusan_id" onchange="this.form.submit()" style="padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.83rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none;">
+                                <label for="filter_jurusan_id" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Jurusan:</label>
+                                <select id="filter_jurusan_id" name="jurusan_id" onchange="this.form.submit()" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; min-width: 140px;">
                                     <option value="">Semua Jurusan</option>
                                     @foreach($jurusan as $j)
                                         @if(empty($filterFakultasId) || (int) $j->fakultas_id === (int) $filterFakultasId)
-                                            <option value="{{ $j->id }}" {{ (string) ($filterJurusanId ?? '') === (string) $j->id ? 'selected' : '' }}>{{ $j->nama }}</option>
+                                             <option value="{{ $j->id }}" {{ (string) ($filterJurusanId ?? '') === (string) $j->id ? 'selected' : '' }}>{{ $j->nama }}</option>
                                         @endif
                                     @endforeach
                                 </select>
@@ -137,8 +139,8 @@
 
                         @if($showProdi)
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <label for="filter_prodi_id" style="font-size: 0.82rem; font-weight: 700; color: #475569; white-space: nowrap;">Prodi:</label>
-                                <select id="filter_prodi_id" name="prodi_id" onchange="this.form.submit()" style="padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.83rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none;">
+                                <label for="filter_prodi_id" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Prodi:</label>
+                                <select id="filter_prodi_id" name="prodi_id" onchange="this.form.submit()" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; min-width: 140px;">
                                     <option value="">Semua Prodi</option>
                                     @foreach($prodi as $p)
                                         @if((empty($filterFakultasId) || (int) $p->fakultas_id === (int) $filterFakultasId) && (empty($filterJurusanId) || (int) $p->jurusan_id === (int) $filterJurusanId))
@@ -150,8 +152,8 @@
                         @endif
 
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <label for="filter_status" style="font-size: 0.82rem; font-weight: 700; color: #475569; white-space: nowrap;">Status:</label>
-                            <select id="filter_status" name="status" onchange="this.form.submit()" style="padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.83rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none;">
+                            <label for="filter_status" style="font-size: 0.8rem; font-weight: 700; color: #475569; white-space: nowrap;">Status:</label>
+                            <select id="filter_status" name="status" onchange="this.form.submit()" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background: #ffffff; color: #1e293b; font-weight: 500; cursor: pointer; outline: none; min-width: 120px;">
                                 <option value="">Semua Status</option>
                                 <option value="aktif" {{ $filterStatus === 'aktif' ? 'selected' : '' }}>Aktif</option>
                                 <option value="nonaktif" {{ $filterStatus === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
@@ -159,15 +161,16 @@
                         </div>
                     </div>
 
+                    {{-- Search and Reset buttons in line --}}
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <div style="position: relative; display: flex; align-items: center;">
-                            <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari nama / email / NUPTK..." style="padding: 7px 12px 7px 32px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; width: 220px; outline: none;">
-                            <svg style="position: absolute; left: 10px; width: 15px; height: 15px; color: #94a3b8;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari nama / email / NUPTK..." style="padding: 6px 12px 6px 32px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.83rem; width: 220px; outline: none;">
+                            <svg style="position: absolute; left: 10px; width: 14px; height: 14px; color: #94a3b8;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                         </div>
-                        <button type="submit" style="padding: 7px 14px; background: #0860be; color: #fff; border: none; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
+                        <button type="submit" style="padding: 6px 14px; background: #0860be; color: #fff; border: none; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
                             Cari
                         </button>
                         @if(!empty($filterStatus) || !empty($filterFakultasId) || !empty($filterJurusanId) || !empty($filterProdiId) || !empty($search))
@@ -187,7 +190,8 @@
                             <tr style="border-bottom: 2px solid #e2e8f0; text-align: left;">
                                 <th style="padding: 12px 10px; color: #64748b; font-size: 0.82rem; text-transform: uppercase; width: 45px;">No.</th>
                                 <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase;">Pengguna & Jabatan</th>
-                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase;">Kontak & Identitas</th>
+                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase;">Email</th>
+                                <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase;">Kontak (No. HP)</th>
                                 @if($showFakultas)
                                     <th style="padding: 12px 12px; color: #64748b; font-size: 0.82rem; text-transform: uppercase;">Fakultas</th>
                                 @endif
@@ -222,14 +226,22 @@
                                             @endif
                                         </div>
                                     </td>
+                                    <td style="padding: 12px; font-size: 0.85rem; color: #334155;">
+                                        <div style="font-weight: 500;">{{ $u->email }}</div>
+                                        @if(!empty($u->nuptk))
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">NUPTK: {{ $u->nuptk }}</div>
+                                        @endif
+                                    </td>
                                     <td style="padding: 12px; font-size: 0.85rem; color: #475569;">
-                                        <div>{{ $u->email }}</div>
-                                        @if(!empty($u->nuptk) || !empty($u->no_hp))
-                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
-                                                @if(!empty($u->nuptk)) NUPTK: {{ $u->nuptk }} @endif
-                                                @if(!empty($u->nuptk) && !empty($u->no_hp)) • @endif
-                                                @if(!empty($u->no_hp)) HP: {{ $u->no_hp }} @endif
-                                            </div>
+                                        @if(!empty($u->no_hp))
+                                            <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748b; flex-shrink: 0;">
+                                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                                </svg>
+                                                {{ $u->no_hp }}
+                                            </span>
+                                        @else
+                                            <span style="color: #94a3b8; font-size: 0.8rem;">-</span>
                                         @endif
                                     </td>
 
