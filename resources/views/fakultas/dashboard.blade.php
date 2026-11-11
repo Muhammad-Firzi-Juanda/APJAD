@@ -28,7 +28,6 @@
                 </div>
             @endif
 
-<<<<<<< HEAD
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
                 <div>
                     <h1 class="page-title" style="margin-bottom:4px;">Dashboard Fakultas</h1>
@@ -42,15 +41,6 @@
                         <span>Penjadwalan Kuliah</span>
                     </a>
                 </div>
-=======
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-                <div>
-                    <h1 class="page-title" style="margin-bottom:4px;">Dashboard Fakultas</h1>
-                    <p style="color:#64748b; font-size:14px; margin:0;">
-                        {{ $faculty->nama ?? 'Fakultas Teknik dan Teknologi Kemaritiman' }} ({{ $faculty->kode ?? 'FTTK' }}) — Pengelolaan MKWU, MKWF, Ruangan, Laboratorium, dan Alokasi Resource ke Program Studi
-                    </p>
-                </div>
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
             </div>
 
             {{-- 6 KPI Cards sesuai Prompt4 Section 11 --}}
@@ -267,14 +257,10 @@
             {{-- Rekap Sinkronisasi Jadwal (Untuk menjaga kompatibilitas test SynchronizedRoleScheduleTest) --}}
             @if(isset($jadwals) && $jadwals->count() > 0)
                 <div class="card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:20px; margin-top:20px;">
-<<<<<<< HEAD
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                         <h3 style="margin:0; font-size:16px; font-weight:600;">Monitoring Rekap Jadwal Terjadwal</h3>
                         <a href="{{ route('fakultas.penjadwalan') }}" style="font-size:13px; color:#2563eb; text-decoration:none; font-weight:600;">Buka Penjadwalan Kuliah →</a>
                     </div>
-=======
-                    <h3 style="margin:0 0 16px; font-size:16px; font-weight:600;">Monitoring Rekap Jadwal Terjadwal</h3>
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                     <div class="table-responsive">
                         <table class="data-table" style="width:100%; font-size:13px;">
                             <thead>

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-<<<<<<< HEAD
 use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\CourseCategory;
@@ -23,25 +22,13 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-=======
-use App\Models\Course;
-use App\Models\CourseCategory;
-use App\Models\Fakultas;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 
 class FakultasCourseController extends Controller
 {
     private function getFacultyId(): int
     {
         $user = Auth::user();
-<<<<<<< HEAD
         if ($user && $user->role === UserRole::ADMIN) {
-=======
-        if ($user && $user->role === \App\Enums\UserRole::ADMIN) {
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
             $requestedFacultyId = request()->input('faculty_id') ?? request()->input('fakultas_id');
             if ($requestedFacultyId) {
                 return (int) $requestedFacultyId;
@@ -173,11 +160,7 @@ class FakultasCourseController extends Controller
 
         $category = CourseCategory::where('code', $validated['category_code'])->firstOrFail();
 
-<<<<<<< HEAD
         $course = Course::create([
-=======
-        Course::create([
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
             'code' => strtoupper(trim($validated['code'])),
             'name' => trim($validated['name']),
             'sks' => $validated['sks'],
@@ -188,7 +171,6 @@ class FakultasCourseController extends Controller
             'status' => $validated['status'] ?? 'ACTIVE',
         ]);
 
-<<<<<<< HEAD
         // Sinkronisasi otomatis ke master mata_kuliah & mata_kuliah_details untuk Penjadwalan
         $kategoriLabel = $validated['category_code'] === 'UNV' ? 'MK Universitas' : 'MK Fakultas';
         $pemilikLabel = $validated['category_code'] === 'UNV' ? 'Universitas' : 'Fakultas';
@@ -225,8 +207,6 @@ class FakultasCourseController extends Controller
             ]
         );
 
-=======
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
         $redirectRoute = $validated['category_code'] === 'UNV' ? 'fakultas.mkwu' : 'fakultas.mkwf';
         $label = $validated['category_code'] === 'UNV' ? 'MKWU' : 'MKWF';
 
@@ -270,16 +250,11 @@ class FakultasCourseController extends Controller
             'status.in' => 'Status hanya boleh ACTIVE atau INACTIVE.',
         ]);
 
-<<<<<<< HEAD
         $oldCode = $course->code;
         $newCode = strtoupper(trim($validated['code']));
 
         $course->update([
             'code' => $newCode,
-=======
-        $course->update([
-            'code' => strtoupper(trim($validated['code'])),
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
             'name' => trim($validated['name']),
             'sks' => $validated['sks'],
             'semester' => $validated['semester'],
@@ -287,7 +262,6 @@ class FakultasCourseController extends Controller
             'status' => $validated['status'] ?? $course->status,
         ]);
 
-<<<<<<< HEAD
         $detail = MataKuliahDetail::where('kode_mk', $oldCode)->first();
         if ($detail) {
             $detail->update([
@@ -300,8 +274,6 @@ class FakultasCourseController extends Controller
             ]);
         }
 
-=======
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
         $categoryCode = $course->category->code ?? 'UNV';
         $redirectRoute = $categoryCode === 'UNV' ? 'fakultas.mkwu' : 'fakultas.mkwf';
         $label = $categoryCode === 'UNV' ? 'MKWU' : 'MKWF';
@@ -323,14 +295,11 @@ class FakultasCourseController extends Controller
         $course->status = $course->status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
         $course->save();
 
-<<<<<<< HEAD
         $detail = MataKuliahDetail::where('kode_mk', $course->code)->first();
         if ($detail) {
             $detail->update(['is_active' => $course->status === 'ACTIVE']);
         }
 
-=======
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
         $categoryCode = $course->category->code ?? 'UNV';
         $redirectRoute = $categoryCode === 'UNV' ? 'fakultas.mkwu' : 'fakultas.mkwf';
 
@@ -352,11 +321,8 @@ class FakultasCourseController extends Controller
         $code = $course->code;
         $course->delete();
 
-<<<<<<< HEAD
         MataKuliahDetail::where('kode_mk', $code)->delete();
 
-=======
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
         $redirectRoute = $categoryCode === 'UNV' ? 'fakultas.mkwu' : 'fakultas.mkwf';
 
         return redirect()->route($redirectRoute)->with('flash_success', "Mata kuliah {$code} berhasil dihapus.");
@@ -375,31 +341,24 @@ class FakultasCourseController extends Controller
             'category_code' => 'nullable|in:UNV,FST',
         ]);
 
-<<<<<<< HEAD
         $codesToDelete = Course::where('faculty_id', $facultyId)
             ->whereIn('id', $validated['selected_ids'])
             ->pluck('code');
 
-=======
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
         $deletedCount = Course::where('faculty_id', $facultyId)
             ->whereIn('id', $validated['selected_ids'])
             ->delete();
 
-<<<<<<< HEAD
         if ($codesToDelete->isNotEmpty()) {
             MataKuliahDetail::whereIn('kode_mk', $codesToDelete)->delete();
         }
 
-=======
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
         $categoryCode = $validated['category_code'] ?? 'UNV';
         $redirectRoute = $categoryCode === 'UNV' ? 'fakultas.mkwu' : 'fakultas.mkwf';
         $label = $categoryCode === 'UNV' ? 'MKWU' : 'MKWF';
 
         return redirect()->route($redirectRoute)->with('flash_success', "{$deletedCount} data {$label} berhasil dihapus.");
     }
-<<<<<<< HEAD
 
     /**
      * Unduh Template Excel (.xlsx) khusus MKWU atau MKWF.
@@ -848,6 +807,4 @@ class FakultasCourseController extends Controller
 
         return redirect()->route('fakultas.penjadwalan')->with('flash_success', "Berhasil menghapus {$count} jadwal MK Fakultas & Universitas.");
     }
-=======
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 }

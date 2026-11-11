@@ -201,7 +201,3 @@ class JurusanController extends Controller
             ->with('flash_success', 'Jurusan berhasil dihapus!');
     }
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0

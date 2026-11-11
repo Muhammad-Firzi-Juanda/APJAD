@@ -409,17 +409,12 @@ class PenjadwalanController extends Controller
         $user = auth()->user();
 
         $request->validate([
-<<<<<<< HEAD
             'file' => ['nullable', 'file', 'max:10240'],
             'verified_items' => ['nullable', 'string'],
-=======
-            'file' => ['required', 'file', 'max:10240'],
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
             'mapping' => ['nullable', 'array'],
             'default_prodi' => ['nullable', 'string', 'max:100'],
             'default_tipe' => ['nullable', 'string', 'in:Wajib,Pilihan'],
         ], [
-<<<<<<< HEAD
             'file.max' => 'Ukuran file maksimal 10MB.',
         ]);
 
@@ -444,18 +439,6 @@ class PenjadwalanController extends Controller
             $path = $request->file('file')->getRealPath();
         }
 
-=======
-            'file.required' => 'Pilih file Excel atau Spreadsheet terlebih dahulu.',
-            'file.max' => 'Ukuran file maksimal 10MB.',
-        ]);
-
-        $extension = strtolower($request->file('file')->getClientOriginalExtension());
-        if (! in_array($extension, ['xlsx', 'xls', 'csv', 'ods', 'txt'], true)) {
-            return redirect()->back()->with('flash_error', 'Format file tidak didukung. Harap unggah file .xlsx, .xls, .csv, atau .ods.');
-        }
-
-        $path = $request->file('file')->getRealPath();
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
         $mapping = $request->input('mapping') ?: [];
         $defaultProdi = $request->input('default_prodi') ?: 'Informatika';
         if ($user?->role === 'Prodi' && $user->prodi?->nama) {
@@ -467,11 +450,7 @@ class PenjadwalanController extends Controller
             'tipe' => $request->input('default_tipe') ?: 'Wajib',
         ];
 
-<<<<<<< HEAD
         $hasil = $importer->import($path, $mapping, $defaults, $verifiedItems);
-=======
-        $hasil = $importer->import($path, $mapping, $defaults);
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 
         if ($hasil['total'] === 0) {
             return redirect()->back()->with('flash_error', 'File kosong atau tidak ada baris data valid.');

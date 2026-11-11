@@ -768,7 +768,6 @@
 
 @section('content')
 <div class="admin-layout">
-<<<<<<< HEAD
     @if(Auth::user()->role === 'Fakultas')
         @include('fakultas.sidebar', ['active' => 'penjadwalan'])
     @else
@@ -779,58 +778,6 @@
                     <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Prodi</span>
                 </div>
                 <nav class="sidebar-nav">
-=======
-    <aside class="admin-sidebar">
-        <div class="sidebar-top">
-            <div class="sidebar-brand">
-                <h2>APJAD</h2>
-                @if(Auth::user()->role === 'Fakultas')
-                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Fakultas</span>
-                @else
-                    <span class="sidebar-role-badge" style="font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-top:2px;">Admin Prodi</span>
-                @endif
-            </div>
-            <nav class="sidebar-nav">
-                @if(Auth::user()->role === 'Fakultas')
-                    <a href="{{ route('fakultas.dashboard') }}" class="sidebar-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="{{ route('fakultas.dashboard') }}#section-prodi" class="sidebar-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                            <path d="M2 17l10 5 10-5"></path>
-                            <path d="M2 12l10 5 10-5"></path>
-                        </svg>
-                        <span>Program Studi</span>
-                    </a>
-                    <a href="{{ route('fakultas.dashboard') }}#section-jadwal" class="sidebar-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path>
-                        </svg>
-                        <span>Rekap Jadwal</span>
-                    </a>
-                    <a href="{{ route('jadwal-kuliah.index') }}" class="sidebar-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                            <path d="M3 9h18M9 3v18"></path>
-                        </svg>
-                        <span>Data Mata Kuliah</span>
-                    </a>
-                    <a href="{{ route('penjadwalan.index') }}" class="sidebar-link active">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        <span>Penjadwalan</span>
-                    </a>
-                @elseif(Auth::user()->role === 'Prodi')
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                     <a href="{{ route('prodi.dashboard') }}" class="sidebar-link">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="3" width="7" height="7"></rect>
@@ -874,7 +821,6 @@
                         </svg>
                         <span>Penjadwalan</span>
                     </a>
-<<<<<<< HEAD
                 </nav>
             </div>
 
@@ -900,33 +846,6 @@
             </div>
         </aside>
     @endif
-=======
-                @endif
-            </nav>
-        </div>
-
-        <div class="sidebar-bottom">
-            <button type="button" class="sidebar-link" onclick="openModal('modalEditProfile')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span>Edit Profile</span>
-            </button>
-            <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display: none;">
-                @csrf
-            </form>
-            <a href="{{ route('logout') }}" class="sidebar-link" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-                <span>Logout</span>
-            </a>
-        </div>
-    </aside>
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 
     <main class="admin-main">
         <header class="admin-header">
@@ -989,7 +908,6 @@
                             @endif
                         </div>
                         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-<<<<<<< HEAD
                             <a href="{{ route('penjadwalan.template') }}" class="btn-add" style="background:#0284c7; text-decoration:none;" download title="Unduh format template Excel untuk pengisian mata kuliah">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -998,8 +916,6 @@
                                 </svg>
                                 Unduh Template Excel
                             </a>
-=======
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                             <button type="button" class="btn-add" onclick="openModal('modalImportMk')" style="background:#16a34a;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1269,17 +1185,11 @@
                                     <span style="font-size:12px; color:#64748b; margin-top:4px; display:block;">Terkunci khusus Program Studi Anda ({{ $userProdi ?? 'Teknik Informatika' }}).</span>
                                 @else
                                     <select id="genProdi" name="prodi" style="padding:9px 14px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.95rem; background:#ffffff; color:#1e293b; width:100%; cursor:pointer; font-weight:500;" required>
-<<<<<<< HEAD
                                         <option value="Universitas">Mata Kuliah Universitas (MKWU) &mdash; Khusus MK Univ</option>
                                         <option value="Fakultas">Mata Kuliah Fakultas (MKWF) &mdash; Khusus MK Fakultas</option>
                                         <option value="Teknik Informatika" selected>Teknik Informatika (TI) &mdash; Hanya mata kuliah TI</option>
                                         <option value="Teknik Elektro">Teknik Elektro (TE) &mdash; Hanya mata kuliah Elektro</option>
                                         <option value="Semua">Semua Program Studi (Lintas Prodi / Global)</option>
-=======
-                                        <option value="Teknik Informatika" selected>Teknik Informatika (TI) &mdash; Hanya mata kuliah TI</option>
-                                        <option value="Teknik Elektro">Teknik Elektro (TE) &mdash; Hanya mata kuliah Elektro</option>
-                                        <option value="Semua">Semua Program Studi (Lintas Prodi)</option>
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                                     </select>
                                     <span style="font-size:12px; color:#64748b; margin-top:4px; display:block;">Pilih prodi spesifik agar mata kuliah prodi lain tidak ikut di-generate.</span>
                                 @endif
@@ -1301,11 +1211,7 @@
                         <div class="generate-form-row">
                             <label class="generate-form-label">Jam tersedia</label>
                             <div class="generate-checkbox-grid">
-<<<<<<< HEAD
                                 @foreach (['07:30', '10:00', '13:00', '14:50', '15:30'] as $jam)
-=======
-                                @foreach (['07:30', '10:00', '13:00', '14:50'] as $jam)
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                                     <label class="generate-check-item">
                                         <input type="checkbox" name="jam_mulai[]" value="{{ $jam }}" checked>
                                         {{ $jam }}
@@ -1326,11 +1232,7 @@
                             <li>Dosen ketua tidak boleh bentrok di MK mana pun; kelas paralel dikRotate antar ketua/anggota.</li>
                             <li>Jadwal aktif yang sudah ada ikut dihitung: ruangan, dosen, dan cohort tidak ditimpa.</li>
                             <li>Hari/jam yang tidak dicentang tidak dipakai generate.</li>
-<<<<<<< HEAD
                             <li>Slot berurutan mulai 07:30, lalu 10:00, 13:00, 14:50, 15:30. Durasi = SKS x 50 menit.</li>
-=======
-                            <li>Slot berurutan mulai 07:30, lalu 10:00, 13:00, 14:50. Durasi = SKS x 50 menit.</li>
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                             <li>MK Pilihan dibagi ke {{ $maksPilihan }} kelompok slot. MK satu kelompok saling bentrok; mahasiswa ambil 1 per kelompok (maks {{ $maksPilihan }} MK).</li>
                             <li>Ruang aktif saat ini:
                                 @foreach ($ruanganAktif as $r)
@@ -1795,7 +1697,6 @@
 
                 <div class="modal-form-row" style="align-items: flex-start;">
                     <label for="importFile" style="padding-top:8px;">File Spreadsheet</label>
-<<<<<<< HEAD
                     <div class="modal-input-container" style="flex-direction:column; align-items:flex-start; gap:6px; width:100%;">
                         <input type="file" id="importFile" name="file" accept=".xlsx,.xls,.csv,.ods,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.oasis.opendocument.spreadsheet">
                         <div style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:8px;">
@@ -1805,11 +1706,6 @@
                                 Unduh Template Spreadsheet (.xlsx)
                             </a>
                         </div>
-=======
-                    <div class="modal-input-container" style="flex-direction:column; align-items:flex-start; gap:6px;">
-                        <input type="file" id="importFile" name="file" accept=".xlsx,.xls,.csv,.ods,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/vnd.oasis.opendocument.spreadsheet" required>
-                        <span style="font-size:12px; color:#64748b;">Mendukung: Excel (.xlsx, .xls), CSV (.csv), dan ODS (.ods).</span>
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                     </div>
                 </div>
 
@@ -1840,7 +1736,6 @@
                         </div>
                     </div>
 
-<<<<<<< HEAD
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
                         <span style="font-size:12.5px; color:#475569; font-weight:600;">
                             Pratinjau Data (Klik tombol Edit untuk mengoreksi data langsung sebelum disimpan):
@@ -1864,19 +1759,6 @@
                                     <th style="padding:8px; width:130px;">Dosen</th>
                                     <th style="padding:8px; width:75px; text-align:center;">Status</th>
                                     <th style="padding:8px; width:80px; text-align:center;">Aksi</th>
-=======
-                    <div style="max-height: 280px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px;">
-                        <table class="data-table" style="font-size: 12.5px; margin: 0;">
-                            <thead>
-                                <tr style="background:#f8fafc; position:sticky; top:0; z-index:1;">
-                                    <th style="padding:8px;">Kode MK</th>
-                                    <th style="padding:8px;">Nama Mata Kuliah</th>
-                                    <th style="padding:8px;">SKS</th>
-                                    <th style="padding:8px;">Sem</th>
-                                    <th style="padding:8px;">Kelas</th>
-                                    <th style="padding:8px;">Prodi</th>
-                                    <th style="padding:8px;">Status</th>
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                                 </tr>
                             </thead>
                             <tbody id="previewTableBody"></tbody>
@@ -2547,7 +2429,6 @@ function openModalHapusSemua(scope) {
     openModal('modalHapusSemua');
 }
 
-<<<<<<< HEAD
 // ==========================================================================
 // Smart Preview & Interactive CRUD Editing Sebelum Import
 // ==========================================================================
@@ -2735,8 +2616,6 @@ function tambahBarisManualPreview() {
     renderInteractivePreview();
 }
 
-=======
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 // Disabled state saat submit impor berjalan & Smart Preview
 document.addEventListener('DOMContentLoaded', function() {
     const formImportEl = document.getElementById('formImportSpreadsheet');
@@ -2744,12 +2623,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalWindow = document.getElementById('modalImportMkWindow');
     const previewContainer = document.getElementById('importPreviewContainer');
     const previewStatus = document.getElementById('importPreviewStatus');
-<<<<<<< HEAD
-=======
-    const previewTableBody = document.getElementById('previewTableBody');
-    const verifiedInput = document.getElementById('verifiedItemsInput');
-    const submitBtn = document.getElementById('btnSubmitImport');
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
     const infoDefault = document.getElementById('importInfoDefault');
 
     if (importFileInput) {
@@ -2778,72 +2651,14 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => {
                 if (response.success && response.data) {
                     const data = response.data;
-<<<<<<< HEAD
                     if (modalWindow) modalWindow.style.maxWidth = '980px';
-=======
-                    if (modalWindow) modalWindow.style.maxWidth = '920px';
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                     if (previewStatus) previewStatus.style.display = 'none';
                     if (infoDefault) infoDefault.style.display = 'none';
                     if (previewContainer) previewContainer.style.display = 'block';
 
-<<<<<<< HEAD
                     window.previewItemsList = (data.items || []).map(item => ({ ...item, _isEditing: false }));
                     updatePreviewSummary();
                     renderInteractivePreview();
-=======
-                    // Update badges
-                    if (document.getElementById('badgeTotal')) document.getElementById('badgeTotal').textContent = data.summary.total || 0;
-                    if (document.getElementById('badgeDikenali')) document.getElementById('badgeDikenali').textContent = data.summary.dikenali || 0;
-                    if (document.getElementById('badgeDuplikat')) document.getElementById('badgeDuplikat').textContent = data.summary.duplikat || 0;
-                    if (document.getElementById('badgePerluVerifikasi')) document.getElementById('badgePerluVerifikasi').textContent = data.summary.perlu_verifikasi || 0;
-                    if (document.getElementById('badgeDosenBaru')) document.getElementById('badgeDosenBaru').textContent = data.summary.dosen_baru || 0;
-
-                    // Fill table rows
-                    if (previewTableBody) {
-                        previewTableBody.innerHTML = '';
-                        const itemsToShow = (data.items || []).slice(0, 50);
-                        itemsToShow.forEach(item => {
-                            const tr = document.createElement('tr');
-                            const statusBadge = item.status_verifikasi === 'duplikat'
-                                ? '<span style="background:#fef08a; color:#854d0e; padding:2px 6px; border-radius:4px; font-size:11px;">Duplikat</span>'
-                                : (item.status_verifikasi === 'perlu_verifikasi'
-                                    ? '<span style="background:#fed7aa; color:#9a3412; padding:2px 6px; border-radius:4px; font-size:11px;">Verifikasi</span>'
-                                    : '<span style="background:#bbf7d0; color:#166534; padding:2px 6px; border-radius:4px; font-size:11px;">OK</span>');
-
-                            const rawKode = item.kode_mk || '-';
-                            const cleanKode = rawKode.replace(/-[A-Za-z0-9]+$/, '');
-                            const matchCls = rawKode.match(/-([A-Za-z0-9]+)$/);
-                            const itemKelas = item.kelas || (matchCls ? matchCls[1].toUpperCase() : 'A');
-
-                            tr.innerHTML = `
-                                <td style="padding:6px 8px; font-weight:600;">${cleanKode}</td>
-                                <td style="padding:6px 8px;">${item.nama_mk || '-'}</td>
-                                <td style="padding:6px 8px; text-align:center;">${item.sks || 0}</td>
-                                <td style="padding:6px 8px; text-align:center;">${item.semester || 1}</td>
-                                <td style="padding:6px 8px; text-align:center;"><span style="display:inline-block; padding:2px 6px; background:#dbeafe; color:#1e40af; border-radius:10px; font-weight:700; font-size:11px;">${itemKelas}</span></td>
-                                <td style="padding:6px 8px;">${item.prodi || '-'}</td>
-                                <td style="padding:6px 8px; text-align:center;">${statusBadge}</td>
-                            `;
-                            previewTableBody.appendChild(tr);
-                        });
-
-                        if ((data.items || []).length > 50) {
-                            const trMore = document.createElement('tr');
-                            trMore.innerHTML = `<td colspan="7" style="text-align:center; padding:8px; color:#64748b; font-style:italic;">... dan ${(data.items.length - 50)} data lainnya</td>`;
-                            previewTableBody.appendChild(trMore);
-                        }
-                    }
-
-                    // Save verified items JSON for submission
-                    if (verifiedInput) {
-                        verifiedInput.value = JSON.stringify(data.items);
-                    }
-
-                    if (submitBtn) {
-                        submitBtn.textContent = 'Konfirmasi & Simpan (' + (data.summary.total || 0) + ' MK)';
-                    }
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                 } else {
                     if (previewStatus) {
                         previewStatus.innerHTML = '<div style="color:#b91c1c;">Gagal membaca pratinjau: ' + (response.message || 'Format tidak sesuai') + '. Anda tetap bisa klik Import Sekarang.</div>';

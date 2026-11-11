@@ -24,7 +24,3 @@ return [
         'password' => env('ADMIN_PASSWORD', 'admin123'),
     ],
 ];
-<<<<<<< HEAD
-=======
-
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0

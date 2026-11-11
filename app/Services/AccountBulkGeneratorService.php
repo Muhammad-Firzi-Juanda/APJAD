@@ -610,10 +610,7 @@ class AccountBulkGeneratorService
 
             if ($row['excluded']) {
                 $excludedCount++;
-<<<<<<< HEAD
 
-=======
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                 continue;
             }
 
@@ -1076,7 +1073,3 @@ class AccountBulkGeneratorService
         return true;
     }
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0

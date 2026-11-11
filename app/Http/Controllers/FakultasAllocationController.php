@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-<<<<<<< HEAD
 use App\Enums\UserRole;
 use App\Models\Fakultas;
-=======
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
 use App\Models\Laboratory;
 use App\Models\Prodi;
 use App\Models\Room;
@@ -20,23 +17,14 @@ class FakultasAllocationController extends Controller
     private function getFacultyId(): int
     {
         $user = Auth::user();
-<<<<<<< HEAD
         if ($user && $user->role === UserRole::ADMIN) {
-=======
-        if ($user && $user->role === \App\Enums\UserRole::ADMIN) {
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
             $requestedFacultyId = request()->input('faculty_id') ?? request()->input('fakultas_id');
             if ($requestedFacultyId) {
                 return (int) $requestedFacultyId;
             }
 
-<<<<<<< HEAD
             return (int) (Fakultas::active()->orderBy('id')->value('id')
                 ?? Fakultas::orderBy('id')->value('id')
-=======
-            return (int) (\App\Models\Fakultas::active()->orderBy('id')->value('id')
-                ?? \App\Models\Fakultas::orderBy('id')->value('id')
->>>>>>> d1c29ef9954c3c6e9b48137a65ff2e4deacab6d0
                 ?? 1);
         }
 
