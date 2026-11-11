@@ -21,66 +21,68 @@
                 </div>
             @endif
 
-            <div style="margin-bottom: 24px;">
-                <h1 class="page-title" style="margin-bottom: 4px;">Dashboard Program Studi</h1>
-                <p style="color: #64748b; font-size: 0.95rem; margin: 0;">
-                    Program Studi {{ $prodiName }} — Pusat pengelolaan data dosen, mata kuliah, rombel, dan pemantauan jadwal kuliah.
-                </p>
-            </div>
-
             {{-- ============ SECTION: DASHBOARD ============ --}}
-            <div class="stats-grid content-section" id="section-dashboard">
-                <div class="stat-card">
-                    <div class="stat-icon dosen-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Total Dosen</p>
-                        <p class="stat-value">{{ $stats['total_dosen'] }}</p>
-                    </div>
+            <div id="section-dashboard" class="content-section">
+                <div style="margin-bottom: 24px;">
+                    <h1 class="page-title" style="margin-bottom: 4px;">Dashboard Program Studi</h1>
+                    <p style="color: #64748b; font-size: 0.95rem; margin: 0;">
+                        Program Studi {{ $prodiName }} — Pusat pengelolaan data dosen, mata kuliah, rombel, dan pemantauan jadwal kuliah.
+                    </p>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon mata-kuliah-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                        </svg>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon dosen-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total Dosen</p>
+                            <p class="stat-value">{{ $stats['total_dosen'] }}</p>
+                        </div>
                     </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Total Mata Kuliah</p>
-                        <p class="stat-value">{{ $stats['total_mata_kuliah'] }}</p>
-                    </div>
-                </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon rombel-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
+                    <div class="stat-card">
+                        <div class="stat-icon mata-kuliah-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total Mata Kuliah</p>
+                            <p class="stat-value">{{ $stats['total_mata_kuliah'] }}</p>
+                        </div>
                     </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Total Rombel</p>
-                        <p class="stat-value">{{ $stats['total_rombel'] }}</p>
-                    </div>
-                </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon aktif-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
+                    <div class="stat-card">
+                        <div class="stat-icon rombel-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total Rombel</p>
+                            <p class="stat-value">{{ $stats['total_rombel'] }}</p>
+                        </div>
                     </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Jadwal Aktif</p>
-                        <p class="stat-value">{{ $stats['total_jadwal'] }}</p>
+
+                    <div class="stat-card">
+                        <div class="stat-icon aktif-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Jadwal Aktif</p>
+                            <p class="stat-value">{{ $stats['total_jadwal'] }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -179,7 +181,13 @@
                                             </span>
                                         </td>
                                         <td style="text-align:center;">{{ $mk->kapasitas_per_kelas }}</td>
-                                        <td style="text-align:center;">{{ $mk->butuh_lab ? '<span class="badge-tipe pilihan">Ya</span>' : '<span class="badge-tipe wajib">Tidak</span>' }}</td>
+                                        <td style="text-align:center;">
+                                            @if($mk->butuh_lab)
+                                                <span class="badge-tipe pilihan">Ya</span>
+                                            @else
+                                                <span class="badge-tipe wajib">Tidak</span>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -511,12 +519,29 @@ function showSection(event, id, element) {
     if (event) event.preventDefault();
     document.querySelectorAll('.content-section').forEach(function(sec) { sec.style.display = 'none'; });
     let target = document.getElementById(id);
-    if(target) target.style.display = target.classList.contains('stats-grid') ? 'grid' : 'block';
+    if(target) target.style.display = 'block';
     if (element) {
         document.querySelectorAll('.sidebar-nav .sidebar-link').forEach(function(link) { link.classList.remove('active'); });
         element.classList.add('active');
     }
+    if (id) {
+        history.replaceState(null, null, '#' + id);
+    }
 }
+
+function applyHashSection() {
+    let hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById(hash)) {
+        let targetLink = document.querySelector(`.sidebar-nav a[href*="#${hash}"]`);
+        showSection(null, hash, targetLink);
+    } else {
+        let defaultLink = document.querySelector('.sidebar-nav a[href="{{ route('prodi.dashboard') }}"]');
+        showSection(null, 'section-dashboard', defaultLink);
+    }
+}
+
+window.addEventListener('DOMContentLoaded', applyHashSection);
+window.addEventListener('hashchange', applyHashSection);
 
 function filterSemester(sem, btn) {
     document.querySelectorAll('.semester-filter').forEach(b => {

@@ -26,11 +26,39 @@ class PenjadwalanController extends Controller
 
     public const SEMESTER_ALL = [1, 2, 3, 4, 5, 6, 7, 8];
 
+    /**
+     * Check if the logged-in prodi user owns or has access to the specified prodi.
+     */
+    protected function userOwnsProdi($user, ?string $prodi): bool
+    {
+        if (! $user || $user->role !== 'Prodi' || ! $user->prodi?->nama) {
+            return true;
+        }
+
+        $userProdiFull = strtolower($user->prodi->nama);
+        $userProdiClean = strtolower(trim(preg_replace('/^(S1|D3|D4|S2)\s+/i', '', $user->prodi->nama)));
+        $targetProdi = strtolower($prodi ?? '');
+
+        return str_contains($targetProdi, $userProdiClean) || str_contains($targetProdi, $userProdiFull);
+    }
+
+    /**
+     * Get clean standardized prodi name for current user.
+     */
+    protected function getUserProdiName($user): ?string
+    {
+        if (! $user?->prodi?->nama) {
+            return null;
+        }
+
+        return trim(preg_replace('/^(S1|D3|D4|S2)\s+/i', '', $user->prodi->nama));
+    }
+
     public function index()
     {
         $user = auth()->user();
         $userRole = $user?->role;
-        $userProdi = $user?->prodi?->nama ? trim(preg_replace('/^(S1|D3|D4|S2)\s+/i', '', $user->prodi->nama)) : null;
+        $userProdi = $this->getUserProdiName($user);
 
         $query = MataKuliahDetail::with(['dosenKetua', 'dosenAnggota', 'masterMk'])
             ->where('is_active', 1)
@@ -97,13 +125,31 @@ class PenjadwalanController extends Controller
             }
         }
 
+        $totalJadwalCount = 0;
+        $totalSksCount = 0;
+        foreach ($jadwal as $semJadwals) {
+            $totalJadwalCount += $semJadwals->count();
+            $totalSksCount += $semJadwals->sum('sks');
+        }
+
+        $totalMkCount = 0;
+        foreach ($mataKuliah as $semMks) {
+            $totalMkCount += $semMks->count();
+        }
+
+        $ruanganAktif = Ruangan::where('is_active', 1)->orderBy('kode')->get();
+
         return view('penjadwalan.index', [
             'mataKuliah' => $mataKuliah,
             'jadwal' => $jadwal,
             'dosens' => Dosen::orderBy('nama')->get(),
             'ruangans' => Ruangan::orderBy('kode')->get(),
             'ruangan' => Ruangan::orderBy('kode')->get(),
-            'ruanganAktif' => Ruangan::where('is_active', 1)->orderBy('kode')->get(),
+            'ruanganAktif' => $ruanganAktif,
+            'totalJadwalCount' => $totalJadwalCount,
+            'totalSksCount' => $totalSksCount,
+            'totalMkCount' => $totalMkCount,
+            'totalRuanganCount' => $ruanganAktif->count(),
             'daftarProdi' => Prodi::orderBy('nama')->get(),
             'semesterGanjil' => self::SEMESTER_GANJIL,
             'semesterGenap' => self::SEMESTER_GENAP,
@@ -123,7 +169,7 @@ class PenjadwalanController extends Controller
 
         // Jika user adalah Prodi, kunci prodi ke prodi milik user
         if ($user?->role === 'Prodi' && $user->prodi?->nama) {
-            $data['prodi'] = $user->prodi->nama;
+            $data['prodi'] = $this->getUserProdiName($user);
         }
 
         // Sinkronisasi ke master mata_kuliah jika ada
@@ -152,7 +198,7 @@ class PenjadwalanController extends Controller
         $user = auth()->user();
 
         if ($user?->role === 'Prodi' && $user->prodi?->nama) {
-            if (! str_contains($mataKuliah->prodi, $user->prodi->nama)) {
+            if (! $this->userOwnsProdi($user, $mataKuliah->prodi)) {
                 return back()->with('flash_error', 'Anda tidak memiliki hak akses mengubah mata kuliah prodi lain.');
             }
         }
@@ -160,7 +206,7 @@ class PenjadwalanController extends Controller
         $data = $this->validasi($request, $mataKuliah->id);
 
         if ($user?->role === 'Prodi' && $user->prodi?->nama) {
-            $data['prodi'] = $user->prodi->nama;
+            $data['prodi'] = $this->getUserProdiName($user);
         }
 
         $cleanKode = preg_replace('/-[A-Za-z0-9]+$/', '', $data['kode_mk']);
@@ -188,7 +234,7 @@ class PenjadwalanController extends Controller
         $user = auth()->user();
 
         if ($user?->role === 'Prodi' && $user->prodi?->nama) {
-            if (! str_contains($mataKuliah->prodi, $user->prodi->nama)) {
+            if (! $this->userOwnsProdi($user, $mataKuliah->prodi)) {
                 return back()->with('flash_error', 'Anda tidak memiliki hak akses menghapus mata kuliah prodi lain.');
             }
         }
@@ -208,7 +254,7 @@ class PenjadwalanController extends Controller
     {
         $user = auth()->user();
 
-        $userProdi = ($user?->role === 'Prodi') ? $user->prodi?->nama : null;
+        $userProdi = ($user?->role === 'Prodi') ? $this->getUserProdiName($user) : null;
         $scope = $request->input('scope', 'all');
 
         if ($scope === 'jadwal_only') {
@@ -261,6 +307,19 @@ class PenjadwalanController extends Controller
     {
         $user = auth()->user();
 
+        if ($request->has('semester_mode') && ! $request->has('semester')) {
+            $mode = $request->input('semester_mode');
+            if ($mode === 'ganjil') {
+                $request->merge(['semester' => [1, 3, 5, 7]]);
+            } elseif ($mode === 'genap') {
+                $request->merge(['semester' => [2, 4, 6, 8]]);
+            } elseif ($mode === 'all') {
+                $request->merge(['semester' => [1, 2, 3, 4, 5, 6, 7, 8]]);
+            } elseif (is_numeric($mode)) {
+                $request->merge(['semester' => [(int) $mode]]);
+            }
+        }
+
         $request->validate([
             'periode' => ['nullable', 'string', Rule::in(['ganjil', 'genap', 'keduanya', 'custom'])],
             'semester' => ['required', 'array', 'min:1'],
@@ -278,7 +337,7 @@ class PenjadwalanController extends Controller
         $prodi = $request->input('prodi') ?: 'Teknik Informatika';
 
         if ($user?->role === 'Prodi' && $user->prodi?->nama) {
-            $prodi = $user->prodi->nama;
+            $prodi = $this->getUserProdiName($user);
         }
 
         $prodiScheduler = in_array(strtolower(trim($prodi)), ['semua', 'all'], true) ? null : $prodi;
@@ -442,7 +501,7 @@ class PenjadwalanController extends Controller
         $mapping = $request->input('mapping') ?: [];
         $defaultProdi = $request->input('default_prodi') ?: 'Informatika';
         if ($user?->role === 'Prodi' && $user->prodi?->nama) {
-            $defaultProdi = $user->prodi->nama;
+            $defaultProdi = $this->getUserProdiName($user);
         }
 
         $defaults = [

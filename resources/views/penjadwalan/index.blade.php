@@ -814,20 +814,218 @@
                 </div>
             @endif
 
-            <div class="page-title">
-                <h1>Penjadwalan Otomatis</h1>
+            {{-- Header Toolbar --}}
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
+                <div>
+                    <h1 class="page-title" style="margin-bottom:4px;">Penjadwalan Kuliah Prodi {{ $userProdi ?? 'Teknik Informatika' }}</h1>
+                    <p style="color:#64748b; font-size:14px; margin:0;">
+                        Generate jadwal kuliah otomatis bebas bentrok untuk program studi {{ $userProdi ?? 'Teknik Informatika' }}.
+                    </p>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                    <a href="{{ route('penjadwalan.template') }}" style="display:inline-flex; align-items:center; gap:6px; background:#fff; color:#0369a1; border:1px solid #bae6fd; padding:9px 14px; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px; text-decoration:none;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span>Unduh Template Excel</span>
+                    </a>
+
+                    <button type="button" onclick="openModal('modalImportMk')" style="display:inline-flex; align-items:center; gap:6px; background:#16a34a; color:#fff; border:none; padding:9px 16px; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px; box-shadow:0 2px 6px rgba(22,163,74,0.25);">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <span>Import Spreadsheet</span>
+                    </button>
+
+                    @if($totalJadwalCount > 0)
+                        <form action="{{ route('penjadwalan.destroy-all') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus SEMUA jadwal kuliah prodi yang telah digenerate? Data mata kuliah tetap tersimpan.');" style="display:inline;">
+                            @csrf
+                            @method('DELETE')
+                            <input type="hidden" name="scope" value="jadwal_only">
+                            <button type="submit" style="display:inline-flex; align-items:center; gap:6px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; padding:9px 14px; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                <span>Reset Jadwal</span>
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+
+            {{-- 4 KPI Stat Cards --}}
+            <div class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:16px; margin-bottom:24px;">
+                <div class="stat-card">
+                    <div class="stat-icon users-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total Jadwal Terplot</div>
+                        <div class="stat-value">{{ $totalJadwalCount }}</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon aktif-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total SKS Terjadwal</div>
+                        <div class="stat-value">{{ $totalSksCount }}</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon mkwu-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Mata Kuliah Ditawarkan</div>
+                        <div class="stat-value">{{ $totalMkCount }} MK</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon mkwf-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Ruangan Siap Digunakan</div>
+                        <div class="stat-value">{{ $totalRuanganCount }} Ruang</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Generator Section Card --}}
+            <div class="card" style="background:#fff; border:1px solid #cbd5e1; border-radius:12px; padding:22px; margin-bottom:28px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1px solid #f1f5f9; padding-bottom:12px;">
+                    <div>
+                        <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:8px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                            Generator Jadwal Otomatis Bebas Bentrok
+                        </h3>
+                        <p style="margin:0; font-size:13px; color:#64748b;">
+                            Engine penjadwalan cerdas mengoptimalkan ruangan prodi, menghindari tabrakan jam mengajar dosen, dan mendistribusikan kelas secara merata.
+                        </p>
+                    </div>
+                    <span style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; font-size:12px; font-weight:600; padding:4px 10px; border-radius:20px;">
+                        Ruangan Siap: {{ $totalRuanganCount }}
+                    </span>
+                </div>
+
+                <form action="{{ route('penjadwalan.generate') }}" method="POST" id="formGenerate">
+                    @csrf
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:18px; margin-bottom:20px;">
+                        <div>
+                            <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:6px;">
+                                Periode Semester <span style="color:#ef4444;">*</span>
+                            </label>
+                            <select name="semester_mode" id="generatorSemesterMode" onchange="syncSemesterSelection(this.value)" required style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                                <option value="ganjil" selected>Semester Ganjil (1, 3, 5, 7)</option>
+                                <option value="genap">Semester Genap (2, 4, 6, 8)</option>
+                                <option value="all">Semua Semester (1 s/d 8)</option>
+                                @foreach ($semesterAll as $sem)
+                                    <option value="{{ $sem }}">Semester {{ $sem }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:6px;">
+                                Program Studi Target <span style="color:#ef4444;">*</span>
+                            </label>
+                            @if (($userRole ?? '') === 'Prodi')
+                                <input type="text" name="prodi" value="{{ $userProdi ?? 'Teknik Informatika' }}" readonly style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#f8fafc; color:#334155; font-weight:600; cursor:not-allowed;">
+                            @else
+                                <select name="prodi" style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                                    <option value="Teknik Informatika" selected>Teknik Informatika (TI)</option>
+                                    <option value="Teknik Elektro">Teknik Elektro (TE)</option>
+                                    <option value="Semua">Semua Program Studi</option>
+                                </select>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Hidden Semester Checkboxes to maintain backwards compatibility -->
+                    <div id="hiddenSemesterInputs" style="display:none;">
+                        @foreach ($semesterAll as $sem)
+                            <input type="checkbox" name="semester[]" value="{{ $sem }}" id="sem_input_{{ $sem }}" @checked($sem % 2 === 1)>
+                        @endforeach
+                    </div>
+
+                    <div style="margin-bottom:18px;">
+                        <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:8px;">
+                            Pilihan Hari Kuliah:
+                        </label>
+                        <div style="display:flex; flex-wrap:wrap; gap:16px;">
+                            @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hari)
+                                <label style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:#1e293b; cursor:pointer;">
+                                    <input type="checkbox" name="hari[]" value="{{ $hari }}" checked style="width:16px; height:16px; accent-color:#2563eb;">
+                                    {{ $hari }}
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:24px;">
+                        <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:8px;">
+                            Slot Waktu Kuliah (Jam Mulai):
+                        </label>
+                        <div style="display:flex; flex-wrap:wrap; gap:14px;">
+                            @foreach (['07:30', '10:00', '13:00', '14:50', '15:30'] as $jam)
+                                <label style="display:inline-flex; align-items:center; gap:8px; font-size:13px; background:#f8fafc; border:1px solid #e2e8f0; padding:8px 14px; border-radius:6px; cursor:pointer;">
+                                    <input type="checkbox" name="jam_mulai[]" value="{{ $jam }}" checked style="width:16px; height:16px; accent-color:#2563eb;">
+                                    <span><strong>{{ $jam }}</strong></span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <button type="submit" id="btnSubmitGenerate" style="background:#2563eb; color:#fff; border:none; padding:12px 24px; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(37,99,235,0.3);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                            <span>Mulai Generate Jadwal Sekarang</span>
+                        </button>
+
+                        <button type="button" onclick="toggleElement('rulesInfoBox')" style="background:none; border:none; color:#64748b; font-size:13px; cursor:pointer; text-decoration:underline;">
+                            Lihat Aturan Penjadwalan ▾
+                        </button>
+                    </div>
+
+                    <div id="rulesInfoBox" style="display:none; margin-top:16px; padding:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:12.5px; color:#475569;">
+                        <strong style="color:#1e293b;">Aturan Engine yang Dijalankan:</strong>
+                        <ul style="margin:6px 0 0 18px; line-height:1.6;">
+                            <li>Bentrok kelas tidak diperbolehkan &mdash; satu rombel prodi+semester tidak memiliki 2 MK pada waktu bersamaan.</li>
+                            <li>Dosen ketua tidak boleh bentrok mengajar di MK mana pun.</li>
+                            <li>Jadwal aktif yang sudah ada ikut dihitung &mdash; ruangan, dosen, dan rombel tidak ditimpa.</li>
+                            <li>Hari dan jam yang tidak dicentang tidak akan digunakan oleh generator.</li>
+                            <li>Slot berurutan dimulai dari 07:30, 10:00, 13:00, 14:50, 15:30. Durasi dihitung berdasarkan SKS x 50 menit.</li>
+                            <li>MK Pilihan dibagi ke dalam kelompok slot untuk mencegah bentrok mahasiswa.</li>
+                        </ul>
+                    </div>
+                </form>
             </div>
 
             <div class="tabs-container">
                 <div class="tabs-header">
-                    <button type="button" class="tab-btn active" data-tab="tab-input" onclick="showTab('tab-input', this)">Input Mata Kuliah</button>
+                    <button type="button" class="tab-btn active" data-tab="tab-jadwal" onclick="showTab('tab-jadwal', this)">Jadwal Semester</button>
+                    <button type="button" class="tab-btn" data-tab="tab-input" onclick="showTab('tab-input', this)">Data Mata Kuliah</button>
                     <button type="button" class="tab-btn" data-tab="tab-ruangan" onclick="showTab('tab-ruangan', this)">Manajemen Ruangan</button>
-                    <button type="button" class="tab-btn" data-tab="tab-generate" onclick="showTab('tab-generate', this)">Generate Jadwal</button>
-                    <button type="button" class="tab-btn" data-tab="tab-jadwal" onclick="showTab('tab-jadwal', this)">Jadwal Semester</button>
+                    @if (! empty($logGenerate))
+                        <button type="button" class="tab-btn" data-tab="tab-log" onclick="showTab('tab-log', this)">Log &amp; Diagnosa</button>
+                    @endif
                 </div>
 
                 {{-- ============ INPUT MATA KULIAH ============ --}}
-                <div class="tab-content active" id="tab-input">
+                <div class="tab-content" id="tab-input">
                     <div class="tab-header">
                         <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                             <h2>Data Mata Kuliah</h2>
@@ -1069,111 +1267,13 @@
                     </table>
                 </div>
 
-                {{-- ============ GENERATE ============ --}}
-                <div class="tab-content" id="tab-generate">
-                    <div class="tab-header">
-                        <h2>Generate Jadwal</h2>
-                    </div>
-
-                    <form action="{{ route('penjadwalan.generate') }}" method="POST" id="formGenerate" class="generate-form">
-                        @csrf
-                        <div class="generate-form-row">
-                            <label class="generate-form-label">Pilihan Periode</label>
-                            <div class="generate-radio-group">
-                                <label class="generate-radio-item">
-                                    <input type="radio" name="periode_radio" value="ganjil" checked onchange="updateSemesterCheckboxes('ganjil')">
-                                    Semester Ganjil (1, 3, 5, 7)
-                                </label>
-                                <label class="generate-radio-item">
-                                    <input type="radio" name="periode_radio" value="genap" onchange="updateSemesterCheckboxes('genap')">
-                                    Semester Genap (2, 4, 6, 8)
-                                </label>
-                                <label class="generate-radio-item">
-                                    <input type="radio" name="periode_radio" value="keduanya" onchange="updateSemesterCheckboxes('keduanya')">
-                                    Keduanya (1 s/d 8)
-                                </label>
-                            </div>
+                @if (! empty($logGenerate))
+                    {{-- ============ TAB LOG & DIAGNOSA ============ --}}
+                    <div class="tab-content" id="tab-log">
+                        <div class="tab-header" style="margin-bottom: 20px;">
+                            <h2 style="margin: 0 0 4px 0;">Log &amp; Diagnosa Hasil Penjadwalan</h2>
+                            <p style="margin: 0; font-size: 0.9rem; color: #64748b;">Rincian proses plotting jadwal cerdas, distribusi ruangan, dan deteksi peringatan alokasi.</p>
                         </div>
-
-                        <div class="generate-form-row">
-                            <label class="generate-form-label">Semester spesifik</label>
-                            <div class="generate-checkbox-grid">
-                                @foreach ($semesterAll as $sem)
-                                    <label class="generate-check-item sem-check-label sem-{{ $sem % 2 === 1 ? 'ganjil' : 'genap' }}">
-                                        <input type="checkbox" name="semester[]" value="{{ $sem }}" class="sem-check-input"
-                                            @checked($sem % 2 === 1)>
-                                        Semester {{ $sem }}
-                                    </label>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <div class="generate-form-row">
-                            <label class="generate-form-label label-input" for="genProdi">Program Studi</label>
-                            <div class="generate-input-wrap">
-                                @if (($userRole ?? '') === 'Prodi')
-                                    <input type="text" id="genProdi" name="prodi" value="{{ $userProdi ?? 'Teknik Informatika' }}" readonly style="background:#f1f5f9; cursor:not-allowed; font-weight:600; padding:9px 14px; border:1.5px solid #cbd5e1; border-radius:8px; width:100%;" required>
-                                    <span style="font-size:12px; color:#64748b; margin-top:4px; display:block;">Terkunci khusus Program Studi Anda ({{ $userProdi ?? 'Teknik Informatika' }}).</span>
-                                @else
-                                    <select id="genProdi" name="prodi" style="padding:9px 14px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.95rem; background:#ffffff; color:#1e293b; width:100%; cursor:pointer; font-weight:500;" required>
-                                        <option value="Universitas">Mata Kuliah Universitas (MKWU) &mdash; Khusus MK Univ</option>
-                                        <option value="Fakultas">Mata Kuliah Fakultas (MKWF) &mdash; Khusus MK Fakultas</option>
-                                        <option value="Teknik Informatika" selected>Teknik Informatika (TI) &mdash; Hanya mata kuliah TI</option>
-                                        <option value="Teknik Elektro">Teknik Elektro (TE) &mdash; Hanya mata kuliah Elektro</option>
-                                        <option value="Semua">Semua Program Studi (Lintas Prodi / Global)</option>
-                                    </select>
-                                    <span style="font-size:12px; color:#64748b; margin-top:4px; display:block;">Pilih prodi spesifik agar mata kuliah prodi lain tidak ikut di-generate.</span>
-                                @endif
-                            </div>
-                        </div>
-
-                        <div class="generate-form-row">
-                            <label class="generate-form-label">Hari tersedia</label>
-                            <div class="generate-checkbox-grid">
-                                @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hari)
-                                    <label class="generate-check-item">
-                                        <input type="checkbox" name="hari[]" value="{{ $hari }}" checked>
-                                        {{ $hari }}
-                                    </label>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <div class="generate-form-row">
-                            <label class="generate-form-label">Jam tersedia</label>
-                            <div class="generate-checkbox-grid">
-                                @foreach (['07:30', '10:00', '13:00', '14:50', '15:30'] as $jam)
-                                    <label class="generate-check-item">
-                                        <input type="checkbox" name="jam_mulai[]" value="{{ $jam }}" checked>
-                                        {{ $jam }}
-                                    </label>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <div class="generate-form-actions">
-                            <button type="submit" class="btn-generate-submit btn-modal-submit" id="btnSubmitGenerate">Generate Sekarang</button>
-                        </div>
-                    </form>
-
-                    <div class="generate-rules-box">
-                        <strong>Aturan yang dijalankan:</strong>
-                        <ul style="margin:8px 0 0 18px;">
-                            <li>Bentrok kelas tidak boleh &mdash; satu prodi+semester tidak punya 2 MK pada waktu sama.</li>
-                            <li>Dosen ketua tidak boleh bentrok di MK mana pun; kelas paralel dikRotate antar ketua/anggota.</li>
-                            <li>Jadwal aktif yang sudah ada ikut dihitung: ruangan, dosen, dan cohort tidak ditimpa.</li>
-                            <li>Hari/jam yang tidak dicentang tidak dipakai generate.</li>
-                            <li>Slot berurutan mulai 07:30, lalu 10:00, 13:00, 14:50, 15:30. Durasi = SKS x 50 menit.</li>
-                            <li>MK Pilihan dibagi ke {{ $maksPilihan }} kelompok slot. MK satu kelompok saling bentrok; mahasiswa ambil 1 per kelompok (maks {{ $maksPilihan }} MK).</li>
-                            <li>Ruang aktif saat ini:
-                                @foreach ($ruanganAktif as $r)
-                                    <strong>{{ $r->kode }}</strong>@if (! $loop->last), @endif
-                                @endforeach
-                            </li>
-                        </ul>
-                    </div>
-
-                    @if (! empty($logGenerate))
                         @php
                             $totalBerhasil = 0;
                             $allFailuresCount = 0;
@@ -1521,7 +1621,7 @@
                 </div>
 
                 {{-- ============ TAB JADWAL SEMESTER ============ --}}
-                <div class="tab-content" id="tab-jadwal">
+                <div class="tab-content active" id="tab-jadwal">
                     <div class="tab-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
                         <div>
                             <h2 style="margin:0 0 4px 0;">Jadwal Semester</h2>
@@ -1531,7 +1631,7 @@
                         <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
                             @if (! empty($logGenerate))
                                 <button type="button" 
-                                    onclick="showTab('tab-input'); if(document.getElementById('containerLogGenerate') && document.getElementById('containerLogGenerate').style.display === 'none'){ toggleLogGenerate(); } const el = document.getElementById('logGenerateBox'); if(el) el.scrollIntoView({behavior:'smooth'});"
+                                    onclick="showTab('tab-log'); const el = document.getElementById('logGenerateBox'); if(el) el.scrollIntoView({behavior:'smooth'});"
                                     style="background:#eff6ff; color:#0860be; border:1.5px solid #bfdbfe; border-radius:18px; padding:7px 16px; font-size:0.88rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;"
                                     title="Buka Log & Diagnosa Hasil Generate Terakhir">
                                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
@@ -2032,6 +2132,27 @@ const RUANGAN_FORM_ACTION_UPDATE = "{{ route('ruangan.update', ['ruangan' => '__
 
 let currentPeriode = 'ganjil';
 
+function syncSemesterSelection(mode) {
+    const inputs = document.querySelectorAll('#hiddenSemesterInputs input[type="checkbox"]');
+    inputs.forEach(input => {
+        const val = parseInt(input.value);
+        if (mode === 'all') {
+            input.checked = true;
+        } else if (mode === 'ganjil') {
+            input.checked = (val % 2 === 1);
+        } else if (mode === 'genap') {
+            input.checked = (val % 2 === 0);
+        } else {
+            input.checked = (val === parseInt(mode));
+        }
+    });
+}
+
+function toggleElement(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
 function showTab(id, btn) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -2238,10 +2359,10 @@ document.addEventListener('DOMContentLoaded', function() {
     switchPeriode(targetPeriode, true);
 
     // Tentukan tab awal
-    let targetTab = 'tab-input';
+    let targetTab = 'tab-jadwal';
     if (serverTab && document.getElementById(serverTab)) {
         targetTab = serverTab;
-    } else if (localTab && document.getElementById(localTab)) {
+    } else if (localTab && document.getElementById(localTab) && localTab !== 'tab-generate') {
         targetTab = localTab;
     }
     showTab(targetTab);

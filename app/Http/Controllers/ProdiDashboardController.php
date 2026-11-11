@@ -18,7 +18,14 @@ class ProdiDashboardController extends Controller
         $prodi = $user->prodi;
         $prodiName = $prodi?->nama ?? 'Teknik Informatika';
         $shortProdiName = trim(preg_replace('/^(S1|D3|D4|S2)\s+/i', '', $prodiName));
-        $prodiNames = array_values(array_unique(array_filter([$prodiName, $shortProdiName])));
+        $prodiNames = [$prodiName, $shortProdiName];
+        if (str_contains(strtolower($prodiName), 'informatik')) {
+            $prodiNames = array_merge($prodiNames, ['Teknik Informatika', 'S1 Teknik Informatika', 'Teknik Informatik']);
+        }
+        if (str_contains(strtolower($prodiName), 'elektro')) {
+            $prodiNames = array_merge($prodiNames, ['Teknik Elektro', 'S1 Teknik Elektro']);
+        }
+        $prodiNames = array_values(array_unique(array_filter($prodiNames)));
 
         $stats = [
             'total_dosen' => Dosen::whereIn('prodi', $prodiNames)->where('is_active', true)->count(),

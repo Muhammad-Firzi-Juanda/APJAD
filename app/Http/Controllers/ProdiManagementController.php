@@ -14,13 +14,34 @@ use Illuminate\View\View;
 
 class ProdiManagementController extends Controller
 {
+    /**
+     * Get list of normalized prodi names and aliases.
+     *
+     * @return list<string>
+     */
+    protected function getProdiNames(?string $prodiName): array
+    {
+        $prodiName = $prodiName ?? 'Teknik Informatika';
+        $cleanName = trim(preg_replace('/^(S1|D3|D4|S2)\s+/i', '', $prodiName));
+        $names = [$prodiName, $cleanName];
+        if (str_contains(strtolower($prodiName), 'informatik')) {
+            $names = array_merge($names, ['Teknik Informatika', 'S1 Teknik Informatika', 'Teknik Informatik']);
+        }
+        if (str_contains(strtolower($prodiName), 'elektro')) {
+            $names = array_merge($names, ['Teknik Elektro', 'S1 Teknik Elektro']);
+        }
+
+        return array_values(array_unique(array_filter($names)));
+    }
+
     public function dosen(): View
     {
         $user = Auth::user();
         $prodi = $user->prodi;
         $prodiName = $prodi?->nama ?? 'Teknik Informatika';
+        $prodiNames = $this->getProdiNames($prodiName);
 
-        $dosens = Dosen::where('prodi', $prodiName)
+        $dosens = Dosen::whereIn('prodi', $prodiNames)
             ->where('is_active', true)
             ->orderBy('nama')
             ->get();
@@ -33,16 +54,17 @@ class ProdiManagementController extends Controller
         $user = Auth::user();
         $prodi = $user->prodi;
         $prodiName = $prodi?->nama ?? 'Teknik Informatika';
+        $prodiNames = $this->getProdiNames($prodiName);
 
         $mataKuliahs = MataKuliahDetail::with(['dosenKetua', 'dosenAnggota'])
-            ->where('prodi', $prodiName)
+            ->whereIn('prodi', $prodiNames)
             ->where('is_active', true)
             ->orderBy('semester')
             ->orderBy('kode_mk')
             ->get()
             ->groupBy('semester');
 
-        $semesterList = MataKuliahDetail::where('prodi', $prodiName)
+        $semesterList = MataKuliahDetail::whereIn('prodi', $prodiNames)
             ->where('is_active', true)
             ->distinct()
             ->pluck('semester')
@@ -57,10 +79,11 @@ class ProdiManagementController extends Controller
         $user = Auth::user();
         $prodi = $user->prodi;
         $prodiName = $prodi?->nama ?? 'Teknik Informatika';
+        $prodiNames = $this->getProdiNames($prodiName);
 
         $rombels = Rombel::with(['mataKuliah', 'dosenPengampu'])
-            ->whereHas('mataKuliah', function ($q) use ($prodiName) {
-                $q->where('prodi', $prodiName);
+            ->whereHas('mataKuliah', function ($q) use ($prodiNames) {
+                $q->whereIn('prodi', $prodiNames);
             })
             ->orderBy('kode_rombel')
             ->get();
@@ -73,10 +96,11 @@ class ProdiManagementController extends Controller
         $user = Auth::user();
         $prodi = $user->prodi;
         $prodiName = $prodi?->nama ?? 'Teknik Informatika';
+        $prodiNames = $this->getProdiNames($prodiName);
 
         $jadwals = Jadwal::with(['rombel.mataKuliah', 'dosen', 'ruangan'])
-            ->whereHas('rombel.mataKuliah', function ($q) use ($prodiName) {
-                $q->where('prodi', $prodiName);
+            ->whereHas('rombel.mataKuliah', function ($q) use ($prodiNames) {
+                $q->whereIn('prodi', $prodiNames);
             })
             ->where('is_active', true)
             ->orderBy('hari')
@@ -85,7 +109,7 @@ class ProdiManagementController extends Controller
 
         $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
         $perHari = $jadwals->groupBy('hari');
-        $semesterList = MataKuliahDetail::where('prodi', $prodiName)
+        $semesterList = MataKuliahDetail::whereIn('prodi', $prodiNames)
             ->where('is_active', true)
             ->distinct()
             ->pluck('semester')
@@ -100,6 +124,7 @@ class ProdiManagementController extends Controller
         $user = Auth::user();
         $prodi = $user->prodi;
         $prodiName = $prodi?->nama ?? 'Teknik Informatika';
+        $prodiNames = $this->getProdiNames($prodiName);
 
         $validated = $request->validate([
             'rombel_id' => 'required|exists:rombels,id',
@@ -123,13 +148,13 @@ class ProdiManagementController extends Controller
 
         // Verify rombel belongs to this prodi
         $rombel = Rombel::with('mataKuliah')->findOrFail($validated['rombel_id']);
-        if ($rombel->mataKuliah->prodi !== $prodiName) {
+        if (! in_array($rombel->mataKuliah->prodi, $prodiNames, true)) {
             return back()->with('flash_error', 'Rombel bukan milik prodi Anda!');
         }
 
         // Verify dosen belongs to this prodi
         $dosen = Dosen::findOrFail($validated['dosen_id']);
-        if ($dosen->prodi !== $prodiName) {
+        if (! in_array($dosen->prodi, $prodiNames, true)) {
             return back()->with('flash_error', 'Dosen bukan milik prodi Anda!');
         }
 
