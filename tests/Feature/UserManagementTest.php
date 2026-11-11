@@ -110,14 +110,13 @@ class UserManagementTest extends TestCase
         $response = $this->actingAs($this->superAdmin())->get('/dashboard');
 
         $response->assertStatus(200);
-        $response->assertSee('Dashboard Manajemen Akun');
+        $response->assertSee('Dashboard Super Admin');
         $response->assertDontSee('Ringkasan Master Data Organisasi');
         $response->assertDontSee(route('master-data.fakultas.index'));
         $response->assertSee('Total Akun');
         $response->assertSee('Akun Fakultas');
         $response->assertSee('Akun Jurusan');
         $response->assertSee('Akun Prodi');
-        $response->assertSee('Generate Akun Excel');
     }
 
     public function test_admin_dashboard_renders_master_data_and_account_summary(): void
@@ -125,7 +124,7 @@ class UserManagementTest extends TestCase
         $response = $this->actingAs($this->adminAkun())->get('/dashboard');
 
         $response->assertStatus(200);
-        $response->assertSee('Dashboard Manajemen Akun');
+        $response->assertSee('Dashboard Admin');
         $response->assertSee('Ringkasan Master Data Organisasi');
         $response->assertSee('Total Fakultas');
         $response->assertSee('Total Jurusan');

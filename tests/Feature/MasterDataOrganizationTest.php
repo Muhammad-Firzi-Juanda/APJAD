@@ -94,7 +94,6 @@ class MasterDataOrganizationTest extends TestCase
         $dashboard->assertDontSee('Ringkasan Master Data Organisasi');
         $dashboard->assertDontSee(route('master-data.fakultas.index'));
         $dashboard->assertSee('Manajemen Akun');
-        $dashboard->assertSee('Generate Akun Excel');
     }
 
     public function test_admin_can_render_fakultas_jurusan_and_prodi_index_pages(): void

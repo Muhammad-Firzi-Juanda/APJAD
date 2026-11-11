@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'APJAD - Dashboard Manajemen Akun')
+@section('title', 'APJAD - Dashboard ' . ($isSuperAdmin ? 'Super Admin' : 'Admin'))
 
 @section('content')
 <div class="admin-layout">
@@ -28,39 +28,11 @@
                 </div>
             @endif
 
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom: 24px;">
-                <div>
-                    <h1 class="page-title" style="margin-bottom: 4px;">Dashboard Manajemen Akun</h1>
-                    <p style="color: #64748b; font-size: 0.95rem; margin: 0;">
-                        {{ $isSuperAdmin ? 'Pusat pengelolaan akun operasional Fakultas, Jurusan, dan Program Studi (CRUD Manual & Generate Massal via Excel).' : 'Pusat tata kelola Master Data Organisasi, akun pengguna, otorisasi role, dan generate akun massal via Excel.' }}
-                    </p>
-                </div>
-                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-                    <a href="{{ route('manajemen-akun.template-excel') }}" style="display: inline-flex; align-items: center; gap: 7px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 9px 14px; border-radius: 8px; font-weight: 600; font-size: 0.86rem; text-decoration: none;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        <span>Download Template Excel</span>
-                    </a>
-                    <a href="{{ route('manajemen-akun.generate-excel') }}" style="display: inline-flex; align-items: center; gap: 7px; border: none; background: #16a34a; color: #ffffff; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; text-decoration: none; box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <line x1="12" y1="18" x2="12" y2="12"></line>
-                            <line x1="9" y1="15" x2="15" y2="15"></line>
-                        </svg>
-                        <span>Generate Akun Excel</span>
-                    </a>
-                    <a href="{{ route('manajemen-akun.tambah-manual') }}" class="btn-primary btn-add" style="display: inline-flex; align-items: center; gap: 8px; border: none; background: #0860be; color: #ffffff; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; box-shadow: 0 2px 6px rgba(8, 96, 190, 0.3);">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        <span>Tambah Akun Manual</span>
-                    </a>
-                </div>
+            <div style="margin-bottom: 24px;">
+                <h1 class="page-title" style="margin-bottom: 4px;">Dashboard {{ $isSuperAdmin ? 'Super Admin' : 'Admin' }}</h1>
+                <p style="color: #64748b; font-size: 0.95rem; margin: 0;">
+                    {{ $isSuperAdmin ? 'Ringkasan operasional akun pengguna dan statistik sistem APJAD.' : 'Pusat tata kelola Master Data Organisasi dan statistik akun pengguna sistem APJAD.' }}
+                </p>
             </div>
 
             @if(!$isSuperAdmin)
