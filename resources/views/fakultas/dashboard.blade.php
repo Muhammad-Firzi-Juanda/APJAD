@@ -28,19 +28,11 @@
                 </div>
             @endif
 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
-                <div>
-                    <h1 class="page-title" style="margin-bottom:4px;">Dashboard Fakultas</h1>
-                    <p style="color:#64748b; font-size:14px; margin:0;">
-                        {{ $faculty->nama ?? 'Fakultas Teknik dan Teknologi Kemaritiman' }} ({{ $faculty->kode ?? 'FTTK' }}) — Pengelolaan MKWU, MKWF, Ruangan, Laboratorium, dan Penjadwalan Kuliah Bebas Bentrok
-                    </p>
-                </div>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <a href="{{ route('fakultas.penjadwalan') }}" style="display:inline-flex; align-items:center; gap:8px; background:#0860be; color:#fff; padding:10px 18px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px; box-shadow:0 2px 6px rgba(8,96,190,0.25);">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        <span>Penjadwalan Kuliah</span>
-                    </a>
-                </div>
+            <div style="margin-bottom:24px;">
+                <h1 class="page-title" style="margin-bottom:4px;">Dashboard Fakultas</h1>
+                <p style="color:#64748b; font-size:14px; margin:0;">
+                    {{ $faculty->nama ?? 'Fakultas Teknik dan Teknologi Kemaritiman' }} ({{ $faculty->kode ?? 'FTTK' }}) — Pengelolaan MKWU, MKWF, Ruangan, Laboratorium, dan Penjadwalan Kuliah Bebas Bentrok
+                </p>
             </div>
 
             {{-- 6 KPI Cards dengan Ikon Siluet Minimalis --}}
