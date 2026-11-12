@@ -139,10 +139,21 @@ class PenjadwalanController extends Controller
 
         $ruanganAktif = Ruangan::where('is_active', 1)->orderBy('kode')->get();
 
+        $dosensQuery = Dosen::query();
+        if ($userRole === 'Prodi' && $userProdi) {
+            $dosensQuery->where(function ($q) use ($userProdi, $user) {
+                $q->where('prodi', 'like', "%{$userProdi}%");
+                if ($user?->prodi?->nama) {
+                    $q->orWhere('prodi', 'like', "%{$user->prodi->nama}%");
+                }
+            });
+        }
+        $dosens = $dosensQuery->orderBy('prodi')->orderBy('nama')->get();
+
         return view('penjadwalan.index', [
             'mataKuliah' => $mataKuliah,
             'jadwal' => $jadwal,
-            'dosens' => Dosen::orderBy('nama')->get(),
+            'dosens' => $dosens,
             'ruangans' => Ruangan::orderBy('kode')->get(),
             'ruangan' => Ruangan::orderBy('kode')->get(),
             'ruanganAktif' => $ruanganAktif,

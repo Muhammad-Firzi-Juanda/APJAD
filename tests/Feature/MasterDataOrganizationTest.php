@@ -78,7 +78,7 @@ class MasterDataOrganizationTest extends TestCase
         $response->assertSee('Total Fakultas');
         $response->assertSee('Total Jurusan');
         $response->assertSee('Total Program Studi');
-        $response->assertSee('Total Akun');
+        $response->assertSee('Total Mata Kuliah');
         $response->assertSee('Master Data');
         $response->assertSee(route('master-data.fakultas.index'));
         $response->assertSee(route('master-data.jurusan.index'));

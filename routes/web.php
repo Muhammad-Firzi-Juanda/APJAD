@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Http\Controllers\AdminCourseController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FakultasAllocationController;
 use App\Http\Controllers\FakultasController;
@@ -98,6 +99,15 @@ Route::middleware('auth')->group(function () {
         Route::put('/prodi/{prodi}', [ProdiController::class, 'update'])->name('prodi.update');
         Route::post('/prodi/{prodi}/toggle-status', [ProdiController::class, 'toggleStatus'])->name('prodi.toggle-status');
         Route::delete('/prodi/{prodi}', [ProdiController::class, 'destroy'])->name('prodi.destroy');
+
+        // Manajemen Mata Kuliah Prodi (Khusus Admin)
+        Route::get('/admin/mata-kuliah/prodi/{prodi}', [AdminCourseController::class, 'prodiIndex'])->name('admin.mata-kuliah.prodi');
+        Route::post('/admin/mata-kuliah/prodi/{prodi}', [AdminCourseController::class, 'prodiStore'])->name('admin.mata-kuliah.prodi.store');
+        Route::put('/admin/mata-kuliah/prodi/{prodi}/{mataKuliah}', [AdminCourseController::class, 'prodiUpdate'])->name('admin.mata-kuliah.prodi.update');
+        Route::delete('/admin/mata-kuliah/prodi/{prodi}/{mataKuliah}', [AdminCourseController::class, 'prodiDestroy'])->name('admin.mata-kuliah.prodi.destroy');
+
+        // Monitoring Jadwal Prodi (Khusus Admin)
+        Route::get('/admin/jadwal/prodi/{prodi}', [AdminCourseController::class, 'jadwalProdi'])->name('admin.jadwal.prodi');
     });
 
     // =========================================================================

@@ -2,6 +2,9 @@
     $currentActive = $active ?? '';
     $isMasterOpen = str_starts_with($currentActive, 'master-');
     $isAkunOpen = str_starts_with($currentActive, 'manajemen-akun');
+    $isMkOpen = str_starts_with($currentActive, 'mk-');
+    $isJadwalOpen = str_starts_with($currentActive, 'jadwal-') || str_starts_with($currentActive, 'penjadwalan-');
+    $navProdis = \App\Models\Prodi::where('status', 'ACTIVE')->orderBy('nama')->get();
 @endphp
 
 <style>
@@ -185,18 +188,92 @@
                         <span>Program Studi</span>
                     </a>
                 </div>
+                <!-- Dropdown Group: Mata Kuliah (Eksklusif Admin) -->
+                <button type="button" class="sidebar-link sidebar-dropdown-toggle {{ $isMkOpen ? 'open active' : '' }}" onclick="toggleSidebarSubmenu('submenuMataKuliah', this)">
+                    <span class="toggle-left">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        <span>Mata Kuliah</span>
+                    </span>
+                    <svg class="sidebar-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+
+                <div id="submenuMataKuliah" class="sidebar-submenu {{ $isMkOpen ? 'open' : '' }}">
+                    <a href="{{ route('fakultas.mkwu') }}" class="sidebar-link {{ $currentActive === 'mk-fakultas' ? 'active' : '' }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 21h18M3 7v14M21 7v14M6 11h2M6 15h2M11 11h2M11 15h2M16 11h2M16 15h2M3 7l9-4 9 4"></path>
+                        </svg>
+                        <span>MK Fakultas &amp; Univ</span>
+                    </a>
+
+                    @foreach($navProdis as $np)
+                        <a href="{{ route('admin.mata-kuliah.prodi', ['prodi' => $np->id]) }}" class="sidebar-link {{ $currentActive === 'mk-prodi-' . $np->id ? 'active' : '' }}" title="Mata Kuliah {{ $np->nama }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <span>{{ $np->nama }}</span>
+                        </a>
+                    @endforeach
+                </div>
+
+                <!-- Dropdown Group: Jadwal & Penjadwalan (Eksklusif Admin) -->
+                <button type="button" class="sidebar-link sidebar-dropdown-toggle {{ $isJadwalOpen ? 'open active' : '' }}" onclick="toggleSidebarSubmenu('submenuJadwal', this)">
+                    <span class="toggle-left">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span>Jadwal &amp; Penjadwalan</span>
+                    </span>
+                    <svg class="sidebar-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+
+                <div id="submenuJadwal" class="sidebar-submenu {{ $isJadwalOpen ? 'open' : '' }}">
+                    <a href="{{ route('fakultas.penjadwalan') }}" class="sidebar-link {{ $currentActive === 'jadwal-fakultas' ? 'active' : '' }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 21h18M3 7v14M21 7v14M6 11h2M6 15h2M11 11h2M11 15h2M16 11h2M16 15h2M3 7l9-4 9 4"></path>
+                        </svg>
+                        <span>Penjadwalan Fakultas</span>
+                    </a>
+
+                    <a href="{{ route('penjadwalan.index') }}" class="sidebar-link {{ $currentActive === 'penjadwalan-prodi' ? 'active' : '' }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                        <span>Penjadwalan Prodi</span>
+                    </a>
+
+                    @foreach($navProdis as $np)
+                        <a href="{{ route('admin.jadwal.prodi', ['prodi' => $np->id]) }}" class="sidebar-link {{ $currentActive === 'jadwal-prodi-' . $np->id ? 'active' : '' }}" title="Jadwal Kuliah {{ $np->nama }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            </svg>
+                            <span>Jadwal {{ $np->nama }}</span>
+                        </a>
+                    @endforeach
+                </div>
             @endif
 
-            <!-- Menu Tunggal: Manajemen Akun (mencakup seluruh tab dan fitur di dalam halaman) -->
-            <a href="{{ route('manajemen-akun') }}" class="sidebar-link {{ $isAkunOpen ? 'active' : '' }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <span>Manajemen Akun</span>
-            </a>
+            @if(Auth::user()->role === \App\Enums\UserRole::SUPER_ADMIN)
+                <!-- Menu Tunggal: Manajemen Akun (Eksklusif Super Admin) -->
+                <a href="{{ route('manajemen-akun') }}" class="sidebar-link {{ $isAkunOpen ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>Manajemen Akun</span>
+                </a>
+            @endif
         </nav>
     </div>
 

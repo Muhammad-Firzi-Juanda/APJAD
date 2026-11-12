@@ -120,7 +120,7 @@ class UserManagementTest extends TestCase
         $response->assertSee('Akun Prodi');
     }
 
-    public function test_admin_dashboard_renders_master_data_and_account_summary(): void
+    public function test_admin_dashboard_renders_master_data_and_academic_summary(): void
     {
         $response = $this->actingAs($this->adminAkun())->get('/dashboard');
 
@@ -130,9 +130,10 @@ class UserManagementTest extends TestCase
         $response->assertSee('Total Fakultas');
         $response->assertSee('Total Jurusan');
         $response->assertSee('Total Program Studi');
-        $response->assertSee('Akun Fakultas');
-        $response->assertSee('Akun Jurusan');
-        $response->assertSee('Akun Prodi');
+        $response->assertSee('Total Mata Kuliah');
+        $response->assertDontSee('Akun Fakultas');
+        $response->assertDontSee('Akun Jurusan');
+        $response->assertDontSee('Akun Prodi');
     }
 
     public function test_manajemen_akun_redirects_and_renders_role_separated_pages(): void

@@ -1917,8 +1917,15 @@
                     <div class="modal-input-container">
                         <select id="mkKetua" name="dosen_ketua_id">
                             <option value="">- Tidak ada -</option>
-                            @foreach ($dosens as $d)
-                                <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->jabatan }})</option>
+                            @php
+                                $groupedDosens = $dosens->groupBy(fn($d) => $d->prodi ?: 'Umum / Lainnya');
+                            @endphp
+                            @foreach ($groupedDosens as $namaProdiGroup => $listDosenGroup)
+                                <optgroup label="Prodi: {{ $namaProdiGroup }}">
+                                    @foreach ($listDosenGroup as $d)
+                                        <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->jabatan ?? 'Dosen' }})</option>
+                                    @endforeach
+                                </optgroup>
                             @endforeach
                         </select>
                     </div>
@@ -1929,8 +1936,12 @@
                     <div class="modal-input-container">
                         <select id="mkAnggota" name="dosen_anggota_id">
                             <option value="">- Tidak ada -</option>
-                            @foreach ($dosens as $d)
-                                <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->jabatan }})</option>
+                            @foreach ($groupedDosens as $namaProdiGroup => $listDosenGroup)
+                                <optgroup label="Prodi: {{ $namaProdiGroup }}">
+                                    @foreach ($listDosenGroup as $d)
+                                        <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->jabatan ?? 'Dosen' }})</option>
+                                    @endforeach
+                                </optgroup>
                             @endforeach
                         </select>
                     </div>

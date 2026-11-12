@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
 use App\Models\AccountGenerationHistory;
+use App\Models\Dosen;
 use App\Models\Fakultas;
+use App\Models\Jadwal;
 use App\Models\Jurusan;
+use App\Models\MataKuliahDetail;
 use App\Models\Prodi;
+use App\Models\Ruangan;
 use App\Models\User;
 use App\Services\AccountAuthorizationService;
 use App\Services\AccountBulkGeneratorService;
@@ -46,6 +50,10 @@ class UserController extends Controller
                 'org_fakultas' => Fakultas::count(),
                 'org_jurusan' => Jurusan::count(),
                 'org_prodi' => Prodi::count(),
+                'total_mata_kuliah' => MataKuliahDetail::where('is_active', true)->count(),
+                'total_dosen' => Dosen::where('is_active', true)->count(),
+                'total_ruangan' => Ruangan::where('is_active', true)->count(),
+                'total_jadwal' => Jadwal::where('is_active', true)->count(),
                 'total_users' => User::count(),
                 'total_super_admin' => User::where('role', UserRole::SUPER_ADMIN)->count(),
                 'total_admin' => User::where('role', UserRole::ADMIN)->count(),
