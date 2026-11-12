@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CatatanEvaluasiJadwal;
 use App\Models\Dosen;
 use App\Models\Jadwal;
 use App\Models\MataKuliahDetail;
@@ -10,6 +11,7 @@ use App\Models\Ruangan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProdiManagementController extends Controller
@@ -218,5 +220,38 @@ class ProdiManagementController extends Controller
 
         return redirect()->route('prodi.dashboard', ['#section-jadwal'])
             ->with('flash_success', 'Jadwal berhasil ditambahkan!');
+    }
+
+    /**
+     * Tindak lanjut / Tanggapan Admin Prodi terhadap Catatan Evaluasi dari Admin Jurusan.
+     */
+    public function tanggapiCatatan(Request $request, CatatanEvaluasiJadwal $catatan): RedirectResponse
+    {
+        $user = Auth::user();
+
+        // Validasi kepemilikan prodi
+        if ($user->role === 'Prodi') {
+            if (! $user->prodi_id || $user->prodi_id !== $catatan->prodi_id) {
+                abort(403, 'Akses ditolak: Anda hanya dapat menanggapi catatan evaluasi milik Program Studi Anda.');
+            }
+        }
+
+        $validated = $request->validate([
+            'status' => ['required', 'string', Rule::in([
+                CatatanEvaluasiJadwal::STATUS_DITINJAU,
+                CatatanEvaluasiJadwal::STATUS_DITANGGAPI,
+                CatatanEvaluasiJadwal::STATUS_SELESAI,
+            ])],
+            'tanggapan_prodi' => ['required', 'string', 'max:3000'],
+        ]);
+
+        $catatan->update([
+            'status' => $validated['status'],
+            'tanggapan_prodi' => $validated['tanggapan_prodi'],
+            'user_id_penanggap' => $user->id,
+            'ditanggapi_pada' => now(),
+        ]);
+
+        return redirect()->back()->with('flash_success', 'Tanggapan catatan evaluasi berhasil dikirim ke Admin Jurusan.');
     }
 }

@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Jadwal extends Model
 {
@@ -49,6 +50,11 @@ class Jadwal extends Model
     public function dosen(): BelongsTo
     {
         return $this->belongsTo(Dosen::class);
+    }
+
+    public function catatanEvaluasi(): HasMany
+    {
+        return $this->hasMany(CatatanEvaluasiJadwal::class, 'jadwal_id');
     }
 
     public function scopeHari($query, $hari)

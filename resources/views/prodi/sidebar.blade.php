@@ -134,6 +134,17 @@
                 <span>Jadwal Kuliah</span>
             </a>
 
+            <a href="{{ route('prodi.dashboard') }}#section-catatan" class="sidebar-link {{ $currentActive === 'catatan' ? 'active' : '' }}" onclick="if(typeof showSection === 'function') { showSection(event, 'section-catatan', this); }">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    <line x1="9" y1="10" x2="15" y2="10"></line>
+                </svg>
+                <span>Catatan Jurusan</span>
+                @if(!empty($catatanPendingCount) && $catatanPendingCount > 0)
+                    <span style="margin-left:auto; background:#f59e0b; color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px;">{{ $catatanPendingCount }}</span>
+                @endif
+            </a>
+
             <a href="{{ route('penjadwalan.index') }}" class="sidebar-link {{ $currentActive === 'penjadwalan' ? 'active' : '' }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>

@@ -156,7 +156,8 @@ class SchedulerService
         $query = MataKuliahDetail::with(['dosenKetua', 'dosenAnggota'])
             ->where('semester', $semester)
             ->where('is_active', 1)
-            ->where('status_tawar', 1);
+            ->where('status_tawar', 1)
+            ->bukanUlang();
 
         $this->applyProdiFilter($query, $prodi);
 
@@ -930,7 +931,7 @@ class SchedulerService
             $this->slotMulaiTersedia = self::SLOT_MULAI;
         }
 
-        $mkQuery = MataKuliahDetail::where('semester', $semester);
+        $mkQuery = MataKuliahDetail::where('semester', $semester)->bukanUlang();
         $this->applyProdiFilter($mkQuery, $prodi);
         $idsMk = $mkQuery->pluck('id');
 
@@ -938,6 +939,22 @@ class SchedulerService
             $idsRombelLama = Rombel::whereIn('mata_kuliah_detail_id', $idsMk)->pluck('id');
             Jadwal::whereIn('rombel_id', $idsRombelLama)->delete();
             Rombel::whereIn('mata_kuliah_detail_id', $idsMk)->delete();
+        }
+
+        // Bersihkan juga jika ada jadwal MK Ulang yang terplot pada hari kerja reguler (Senin - Jumat)
+        $mkUlangQuery = MataKuliahDetail::where('semester', $semester)
+            ->where(function ($q) {
+                $q->whereRaw('UPPER(TRIM(kelas)) = ?', ['ULANG'])
+                    ->orWhere('kode_mk', 'like', '%-ULANG%');
+            });
+        $this->applyProdiFilter($mkUlangQuery, $prodi);
+        $idsMkUlang = $mkUlangQuery->pluck('id');
+
+        if ($idsMkUlang->isNotEmpty()) {
+            $idsRombelUlang = Rombel::whereIn('mata_kuliah_detail_id', $idsMkUlang)->pluck('id');
+            Jadwal::whereIn('rombel_id', $idsRombelUlang)
+                ->whereIn('hari', self::HARI)
+                ->delete();
         }
 
         $existing = Jadwal::with('rombel.mataKuliah')->where('is_active', 1)->get();

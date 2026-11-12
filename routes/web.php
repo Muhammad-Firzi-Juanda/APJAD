@@ -197,6 +197,10 @@ Route::middleware('auth')->group(function () {
     // =========================================================================
     Route::middleware('check_role:Admin,Jurusan')->group(function () {
         Route::get('/jurusan/dashboard', [JurusanDashboardController::class, 'index'])->name('jurusan.dashboard');
+        Route::get('/jurusan/jadwal', [JurusanDashboardController::class, 'jadwal'])->name('jurusan.jadwal');
+        Route::get('/jurusan/evaluasi', [JurusanDashboardController::class, 'evaluasi'])->name('jurusan.evaluasi');
+        Route::post('/jurusan/evaluasi', [JurusanDashboardController::class, 'storeCatatan'])->name('jurusan.evaluasi.store');
+        Route::get('/jurusan/laporan', [JurusanDashboardController::class, 'laporan'])->name('jurusan.laporan');
     });
 
     // =========================================================================
@@ -205,6 +209,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('check_role:Admin,Prodi')->group(function () {
         Route::get('/prodi/dashboard', [ProdiDashboardController::class, 'index'])->name('prodi.dashboard');
         Route::post('/prodi/jadwal', [ProdiManagementController::class, 'storeJadwal'])->name('prodi.jadwal.store');
+        Route::post('/prodi/catatan-evaluasi/{catatan}/tanggapi', [ProdiManagementController::class, 'tanggapiCatatan'])->name('prodi.evaluasi.tanggapi');
     });
 
     // =========================================================================

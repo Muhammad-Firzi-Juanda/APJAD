@@ -219,14 +219,14 @@ class SynchronizedRoleScheduleTest extends TestCase
         $responseFakultas->assertSee('UNV12101');
         $responseFakultas->assertSee('SM');
 
-        // 3. Jurusan Role
+        // 3. Jurusan Role (Monitoring Jadwal)
         $userJurusan = User::create([
             'nama' => 'Admin Jurusan Test',
             'email' => 'jurusan@test.com',
             'password' => bcrypt('password'),
             'role' => UserRole::JURUSAN,
         ]);
-        $responseJurusan = $this->actingAs($userJurusan)->get(route('jurusan.dashboard'));
+        $responseJurusan = $this->actingAs($userJurusan)->get(route('jurusan.jadwal'));
         $responseJurusan->assertOk();
         $responseJurusan->assertSee('UNV12101');
         $responseJurusan->assertSee('SM');

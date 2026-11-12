@@ -77,6 +77,14 @@
         background: #f1f5f9;
         margin: 3px 0;
     }
+    .sidebar-section-title {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #94a3b8;
+        padding: 12px 14px 4px;
+        font-weight: 700;
+    }
 </style>
 
 <aside class="admin-sidebar">
@@ -98,40 +106,43 @@
                 <span>Dashboard</span>
             </a>
 
-            <a href="{{ route('jurusan.dashboard') }}#section-dosen" class="sidebar-link {{ $currentActive === 'dosen' ? 'active' : '' }}" onclick="if(typeof showSection === 'function') { showSection(event, 'section-dosen', this); }">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span>Data Dosen</span>
-            </a>
-
-            <a href="{{ route('jurusan.dashboard') }}#section-mk" class="sidebar-link {{ $currentActive === 'mk' ? 'active' : '' }}" onclick="if(typeof showSection === 'function') { showSection(event, 'section-mk', this); }">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                </svg>
-                <span>Mata Kuliah</span>
-            </a>
-
-            <a href="{{ route('jurusan.dashboard') }}#section-rombel" class="sidebar-link {{ $currentActive === 'rombel' ? 'active' : '' }}" onclick="if(typeof showSection === 'function') { showSection(event, 'section-rombel', this); }">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <span>Data Rombel</span>
-            </a>
-
-            <a href="{{ route('jurusan.dashboard') }}#section-jadwal" class="sidebar-link {{ $currentActive === 'jadwal' ? 'active' : '' }}" onclick="if(typeof showSection === 'function') { showSection(event, 'section-jadwal', this); }">
+            <a href="{{ route('jurusan.jadwal') }}" class="sidebar-link {{ $currentActive === 'jadwal' ? 'active' : '' }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
                     <line x1="8" y1="2" x2="8" y2="6"></line>
                     <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
-                <span>Jadwal Kuliah</span>
+                <span>Monitoring Jadwal</span>
+            </a>
+
+            <a href="{{ route('jurusan.evaluasi') }}" class="sidebar-link {{ $currentActive === 'evaluasi' ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    <line x1="9" y1="10" x2="15" y2="10"></line>
+                </svg>
+                <span>Evaluasi & Catatan</span>
+            </a>
+
+            <a href="{{ route('jurusan.laporan') }}" class="sidebar-link {{ $currentActive === 'laporan' ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span>Laporan Jurusan</span>
+            </a>
+
+            <div class="sidebar-section-title">Data Akademik</div>
+
+            <a href="{{ route('jurusan.dashboard') }}#section-dosen" class="sidebar-link {{ $currentActive === 'dosen' ? 'active' : '' }}" onclick="if(typeof showSection === 'function') { showSection(event, 'section-dosen', this); }">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>Data Dosen</span>
             </a>
         </nav>
     </div>
@@ -209,4 +220,3 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-

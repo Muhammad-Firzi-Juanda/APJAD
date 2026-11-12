@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Models\CatatanEvaluasiJadwal;
 use App\Models\Course;
 use App\Models\Fakultas;
 use App\Models\Jadwal;
@@ -51,6 +52,8 @@ class FakultasDashboardController extends Controller
             'total_laboratories' => Laboratory::where('faculty_id', $facultyId)->count(),
             'total_room_allocations' => StudyProgramRoom::whereHas('room', fn ($q) => $q->where('faculty_id', $facultyId))->count(),
             'total_lab_allocations' => StudyProgramLaboratory::whereHas('laboratory', fn ($q) => $q->where('faculty_id', $facultyId))->count(),
+            'total_catatan_evaluasi' => CatatanEvaluasiJadwal::whereHas('jurusan', fn ($q) => $q->where('fakultas_id', $facultyId))->count(),
+            'catatan_evaluasi_selesai' => CatatanEvaluasiJadwal::whereHas('jurusan', fn ($q) => $q->where('fakultas_id', $facultyId))->where('status', CatatanEvaluasiJadwal::STATUS_SELESAI)->count(),
         ];
 
         // Daftar ringkas untuk preview di Dashboard

@@ -113,6 +113,11 @@ class Prodi extends Model
         return $this->hasMany(User::class, 'prodi_id');
     }
 
+    public function catatanEvaluasi(): HasMany
+    {
+        return $this->hasMany(CatatanEvaluasiJadwal::class, 'prodi_id');
+    }
+
     public function rooms(): BelongsToMany
     {
         return $this->belongsToMany(Room::class, 'study_program_rooms', 'study_program_id', 'room_id')

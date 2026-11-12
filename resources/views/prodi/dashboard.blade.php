@@ -84,6 +84,20 @@
                             <p class="stat-value">{{ $stats['total_jadwal'] }}</p>
                         </div>
                     </div>
+
+                    <div class="stat-card" style="cursor:pointer;" onclick="showSection(event, 'section-catatan', document.querySelector('a[href*=\'section-catatan\']'))">
+                        <div class="stat-icon" style="background:#fef3c7; color:#d97706;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">Catatan Jurusan</p>
+                            <p class="stat-value" style="color:{{ ($stats['total_catatan_pending'] ?? 0) > 0 ? '#d97706' : '#10b981' }};">
+                                {{ $stats['total_catatan_pending'] ?? 0 }} <span style="font-size:0.75rem; color:#64748b; font-weight:normal;">/ {{ $stats['total_catatan'] ?? 0 }}</span>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -334,6 +348,113 @@
                         <p style="font-size:15px; color:#64748b;">Belum ada jadwal aktif.</p>
                     </div>
                 @endif
+            </div>
+
+            {{-- ============ SECTION: CATATAN JURUSAN ============ --}}
+            <div id="section-catatan" class="content-section" style="margin-top: 32px; display: none;">
+                <div class="tab-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <div>
+                        <h2>Catatan & Rekomendasi dari Admin Jurusan</h2>
+                        <p style="margin:2px 0 0; font-size:0.88rem; color:#64748b;">
+                            Daftar catatan evaluasi dan rekomendasi perbaikan jadwal dari Admin Jurusan yang perlu ditindaklanjuti.
+                        </p>
+                    </div>
+                    @if(!empty($catatanPendingCount) && $catatanPendingCount > 0)
+                        <span style="display:inline-block; padding:4px 12px; background:#fef3c7; color:#b45309; border-radius:20px; font-weight:700; font-size:0.82rem; border:1px solid #fde68a;">
+                            {{ $catatanPendingCount }} Catatan Menunggu Tindak Lanjut
+                        </span>
+                    @endif
+                </div>
+
+                @forelse($catatanList as $c)
+                    <div class="table-card" style="margin-bottom:20px; padding:20px; border-radius:10px; border:1px solid #e2e8f0; background:#ffffff;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px; margin-bottom:12px; border-bottom:1px solid #f1f5f9; padding-bottom:10px;">
+                            <div>
+                                <span style="display:inline-block; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:4px; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; margin-bottom:6px;">
+                                    {{ $c->kategori }}
+                                </span>
+                                <h3 style="margin:0; font-size:1.05rem; color:#0f172a; font-weight:700;">{{ $c->judul }}</h3>
+                                <p style="margin:2px 0 0; font-size:0.8rem; color:#64748b;">
+                                    Dikirim oleh: <strong>{{ $c->pengirim->nama ?? 'Admin Jurusan' }}</strong> pada {{ $c->created_at->format('d/m/Y H:i') }} WIB
+                                </p>
+                            </div>
+                            <div>
+                                @php
+                                    $stColor = match($c->status) {
+                                        'Menunggu tanggapan' => 'background:#fef3c7; color:#b45309; border:1px solid #fde68a;',
+                                        'Sedang ditinjau' => 'background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;',
+                                        'Ditanggapi' => 'background:#f3e8ff; color:#7e22ce; border:1px solid #e9d5ff;',
+                                        'Selesai' => 'background:#dcfce7; color:#15803d; border:1px solid #bbf7d0;',
+                                        default => '',
+                                    };
+                                @endphp
+                                <span style="display:inline-block; font-size:0.8rem; padding:4px 10px; border-radius:12px; font-weight:700; {{ $stColor }}">
+                                    {{ $c->status }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Isi Rekomendasi Jurusan --}}
+                        <div style="background:#f8fafc; border-left:4px solid #0860be; padding:12px 14px; border-radius:0 6px 6px 0; margin-bottom:14px;">
+                            <strong style="display:block; font-size:0.82rem; color:#0860be; margin-bottom:4px; text-transform:uppercase;">Catatan & Rekomendasi Jurusan:</strong>
+                            <p style="margin:0; font-size:0.9rem; color:#1e293b; line-height:1.5;">{{ $c->catatan_rekomendasi }}</p>
+                            @if($c->jadwal)
+                                <div style="margin-top:8px; font-size:0.8rem; color:#475569;">
+                                    <strong>Jadwal Terkait:</strong> {{ $c->jadwal->rombel->mataKuliah->nama_mk ?? '-' }} ({{ $c->jadwal->kelas_label }}) &middot; {{ $c->jadwal->hari }}, {{ substr($c->jadwal->jam_mulai,0,5) }}-{{ substr($c->jadwal->jam_selesai,0,5) }} &middot; Dosen: {{ $c->jadwal->dosen->nama ?? '-' }}
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Tanggapan yang Sudah Ada --}}
+                        @if($c->tanggapan_prodi)
+                            <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:12px 14px; border-radius:6px; margin-bottom:14px;">
+                                <strong style="display:block; font-size:0.82rem; color:#15803d; margin-bottom:4px; text-transform:uppercase;">Tanggapan Admin Prodi:</strong>
+                                <p style="margin:0; font-size:0.9rem; color:#14532d; line-height:1.5;">{{ $c->tanggapan_prodi }}</p>
+                                <span style="font-size:0.75rem; color:#166534; display:block; margin-top:4px;">
+                                    Oleh: {{ $c->penanggap->nama ?? 'Admin Prodi' }} ({{ $c->ditanggapi_pada ? $c->ditanggapi_pada->format('d/m/Y H:i') : '-' }})
+                                </span>
+                            </div>
+                        @endif
+
+                        {{-- Form Tanggapan Admin Prodi --}}
+                        <div style="margin-top:14px; background:#ffffff; border:1px dashed #cbd5e1; border-radius:6px; padding:14px;">
+                            <h4 style="margin:0 0 10px; font-size:0.88rem; color:#1e293b;">
+                                {{ $c->tanggapan_prodi ? 'Perbarui Tanggapan / Status Catatan:' : 'Beri Tanggapan / Tindak Lanjut:' }}
+                            </h4>
+                            <form action="{{ route('prodi.evaluasi.tanggapi', ['catatan' => $c->id]) }}" method="POST">
+                                @csrf
+                                <div style="display:grid; grid-template-columns: 1fr 200px; gap:12px; margin-bottom:10px;">
+                                    <div>
+                                        <textarea name="tanggapan_prodi" rows="2" placeholder="Tuliskan tindak lanjut perbaikan atau penjelasan klarifikasi..." required style="width:100%; border-radius:6px; border:1px solid #cbd5e1; padding:8px 10px; font-family:inherit; font-size:0.88rem;">{{ $c->tanggapan_prodi }}</textarea>
+                                    </div>
+                                    <div style="display:flex; flex-direction:column; justify-content:space-between;">
+                                        <div>
+                                            <label style="display:block; font-size:0.75rem; font-weight:700; color:#475569; margin-bottom:4px;">Ubah Status:</label>
+                                            <select name="status" style="width:100%; height:34px; border-radius:6px; border:1px solid #cbd5e1; padding:0 8px; font-size:0.82rem;">
+                                                <option value="Sedang ditinjau" {{ $c->status === 'Sedang ditinjau' ? 'selected' : '' }}>Sedang ditinjau</option>
+                                                <option value="Ditanggapi" {{ $c->status === 'Ditanggapi' ? 'selected' : '' }}>Ditanggapi</option>
+                                                <option value="Selesai" {{ $c->status === 'Selesai' ? 'selected' : '' }}>Selesai</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn-primary" style="height:34px; font-size:0.82rem; font-weight:600; padding:0 12px; border-radius:6px;">
+                                            Kirim Tanggapan
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @empty
+                    <div class="table-card" style="text-align:center; padding:40px 20px; border-style:dashed; border-color:#cbd5e1; background:#f8fafc; border-radius:10px;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" style="margin:0 auto 10px;">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <h4 style="margin:0 0 4px; color:#475569;">Belum Ada Catatan Evaluasi dari Jurusan</h4>
+                        <p style="margin:0; font-size:0.88rem; color:#64748b;">
+                            Jadwal Anda saat ini tidak memiliki catatan atau rekomendasi evaluasi dari Admin Jurusan.
+                        </p>
+                    </div>
+                @endforelse
             </div>
         </section>
     </main>

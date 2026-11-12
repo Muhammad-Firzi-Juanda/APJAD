@@ -79,6 +79,11 @@ class Jurusan extends Model
         return $this->hasMany(User::class, 'jurusan_id');
     }
 
+    public function catatanEvaluasi(): HasMany
+    {
+        return $this->hasMany(CatatanEvaluasiJadwal::class, 'jurusan_id');
+    }
+
     public function isActive(): bool
     {
         return strtoupper($this->status ?? self::STATUS_ACTIVE) === self::STATUS_ACTIVE;

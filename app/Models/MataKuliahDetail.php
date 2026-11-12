@@ -73,6 +73,37 @@ class MataKuliahDetail extends Model
     }
 
     /**
+     * Scope untuk menyaring mata kuliah reguler (mengecualikan MK Ulang).
+     */
+    public function scopeBukanUlang($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('kelas')
+                ->orWhereRaw('UPPER(TRIM(kelas)) != ?', ['ULANG']);
+        })
+            ->where('kode_mk', 'not like', '%-ULANG%')
+            ->where('kode_mk', 'not like', '%ULANG%')
+            ->where('nama_mk', 'not like', '%(ULANG)%')
+            ->where('nama_mk', 'not like', '%[ULANG]%');
+    }
+
+    /**
+     * Memeriksa apakah mata kuliah ini merupakan kelas mengulang / MK Ulang.
+     */
+    public function isUlang(): bool
+    {
+        $kelas = strtoupper(trim((string) ($this->kelas ?? '')));
+        $kode = strtoupper(trim((string) ($this->kode_mk ?? '')));
+        $nama = strtoupper(trim((string) ($this->nama_mk ?? '')));
+
+        return $kelas === 'ULANG'
+            || str_contains($kode, '-ULANG')
+            || str_contains($kode, 'ULANG')
+            || str_contains($nama, '(ULANG)')
+            || str_contains($nama, '[ULANG]');
+    }
+
+    /**
      * Kode mata kuliah murni tanpa imbuhan kelas (-A, -B, dll).
      */
     public function getCleanKodeMkAttribute(): string

@@ -580,6 +580,31 @@ class SchedulerServiceTest extends TestCase
         $this->assertSame(0, $ada, 'MK non-aktif seharusnya dilewati.');
     }
 
+    public function test_mk_ulang_tidak_dijadwalkan_saat_generate(): void
+    {
+        $mkUlang = MataKuliahDetail::create([
+            'kode_mk' => 'INF11004-ULANG',
+            'nama_mk' => 'Sistem Basis Data (Ulang)',
+            'sks' => 3,
+            'semester' => self::SEMESTER,
+            'tipe' => 'Wajib',
+            'kelas' => 'ULANG',
+            'prodi' => self::PRODI,
+            'jumlah_kelas' => 1,
+            'kapasitas_per_kelas' => 30,
+            'is_active' => true,
+            'status_tawar' => true,
+        ]);
+
+        $this->generate();
+
+        $ada = Jadwal::with('rombel.mataKuliah')
+            ->whereHas('rombel.mataKuliah', fn ($q) => $q->where('id', $mkUlang->id)->orWhere('kelas', 'ULANG'))
+            ->count();
+
+        $this->assertSame(0, $ada, 'Mata kuliah ulang seharusnya tidak dijadwalkan saat generate.');
+    }
+
     public function test_hasil_generate_mengembalikan_log_dan_jumlah(): void
     {
         $hasil = $this->generate();

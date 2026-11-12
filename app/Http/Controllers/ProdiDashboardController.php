@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CatatanEvaluasiJadwal;
 use App\Models\Dosen;
 use App\Models\Jadwal;
 use App\Models\MataKuliahDetail;
@@ -27,6 +28,16 @@ class ProdiDashboardController extends Controller
         }
         $prodiNames = array_values(array_unique(array_filter($prodiNames)));
 
+        $catatanList = $prodi ? CatatanEvaluasiJadwal::with(['pengirim', 'jadwal.rombel.mataKuliah'])
+            ->where('prodi_id', $prodi->id)
+            ->latest()
+            ->get() : collect();
+
+        $catatanPendingCount = $catatanList->whereIn('status', [
+            CatatanEvaluasiJadwal::STATUS_MENUNGGU,
+            CatatanEvaluasiJadwal::STATUS_DITINJAU,
+        ])->count();
+
         $stats = [
             'total_dosen' => Dosen::whereIn('prodi', $prodiNames)->where('is_active', true)->count(),
             'total_mata_kuliah' => MataKuliahDetail::whereIn('prodi', $prodiNames)->where('is_active', true)->count(),
@@ -36,6 +47,8 @@ class ProdiDashboardController extends Controller
             'total_jadwal' => Jadwal::whereHas('rombel.mataKuliah', function ($q) use ($prodiNames) {
                 $q->whereIn('prodi', $prodiNames);
             })->where('is_active', true)->count(),
+            'total_catatan' => $catatanList->count(),
+            'total_catatan_pending' => $catatanPendingCount,
         ];
 
         $dosens = Dosen::whereIn('prodi', $prodiNames)->where('is_active', true)->orderBy('nama')->get();
@@ -86,7 +99,8 @@ class ProdiDashboardController extends Controller
         return view('prodi.dashboard', compact(
             'stats', 'dosens', 'rombels', 'mataKuliahs',
             'jadwals', 'perHari', 'hariList', 'semesterList',
-            'prodiName', 'ruangans', 'dosenProdi', 'rombelProdi'
+            'prodiName', 'ruangans', 'dosenProdi', 'rombelProdi',
+            'catatanList', 'catatanPendingCount'
         ));
     }
 }
