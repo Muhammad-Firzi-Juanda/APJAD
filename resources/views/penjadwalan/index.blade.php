@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'APJAD - Penjadwalan Otomatis')
 
@@ -768,21 +768,11 @@
 
 @section('content')
 <div class="admin-layout">
-    @if(Auth::user()->role === 'Fakultas')
-        @include('fakultas.sidebar', ['active' => 'penjadwalan'])
-    @elseif(Auth::user()->role === 'Jurusan')
-        @include('jurusan.sidebar', ['active' => 'penjadwalan'])
-    @elseif(Auth::user()->role === 'Prodi')
-        @include('prodi.sidebar', ['active' => 'penjadwalan'])
-    @else
-        @include('admin.sidebar', ['active' => 'dashboard'])
-    @endif
+    @include('partials.smart-sidebar', ['active' => 'penjadwalan-prodi', 'activeFakultas' => 'penjadwalan'])
 
     <main class="admin-main">
         <header class="admin-header">
-            <div class="user-badge">
-                <span>{{ Auth::user()->role }}, <span class="user-name">{{ Auth::user()->nama }}</span></span>
-            </div>
+            @include('partials.smart-user-badge')
         </header>
 
         <section class="admin-content">
@@ -946,8 +936,9 @@
                                 <input type="text" name="prodi" value="{{ $userProdi ?? 'Teknik Informatika' }}" readonly style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#f8fafc; color:#334155; font-weight:600; cursor:not-allowed;">
                             @else
                                 <select name="prodi" style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
-                                    <option value="Teknik Informatika" selected>Teknik Informatika (TI)</option>
-                                    <option value="Teknik Elektro">Teknik Elektro (TE)</option>
+                                    @foreach ($daftarProdi as $dp)
+                                        <option value="{{ $dp->nama }}" @selected($loop->first)>{{ $dp->nama }} ({{ $dp->kode }})</option>
+                                    @endforeach
                                     <option value="Semua">Semua Program Studi</option>
                                 </select>
                             @endif
@@ -996,7 +987,7 @@
                         </button>
 
                         <button type="button" onclick="toggleElement('rulesInfoBox')" style="background:none; border:none; color:#64748b; font-size:13px; cursor:pointer; text-decoration:underline;">
-                            Lihat Aturan Penjadwalan ▾
+                            Lihat Aturan Penjadwalan â–¾
                         </button>
                     </div>
 
@@ -1665,8 +1656,9 @@
                                     <select id="filterProdiSelect" onchange="filterProdi(this.value)" 
                                         style="padding:7px 14px; border:1.5px solid #cbd5e1; border-radius:18px; font-size:0.9rem; outline:none; background:#ffffff; color:#1e293b; cursor:pointer; font-weight:600;">
                                         <option value="all">Semua Prodi</option>
-                                        <option value="Teknik Informatika">Teknik Informatika</option>
-                                        <option value="Teknik Elektro">Teknik Elektro</option>
+                                        @foreach ($daftarProdi as $dp)
+                                            <option value="{{ $dp->nama }}">{{ $dp->nama }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             @endif
@@ -1908,7 +1900,15 @@
                 <div class="modal-form-row">
                     <label for="mkProdi">Prodi</label>
                     <div class="modal-input-container">
-                        <input type="text" id="mkProdi" name="prodi" value="Teknik Informatika" required>
+@if (($userRole ?? "") === "Prodi")
+                        <input type="text" id="mkProdi" name="prodi" value="{{ $userProdi ?? "" }}" readonly style="background:#f8fafc; color:#334155; cursor:not-allowed;" required>
+                    @else
+                        <select id="mkProdi" name="prodi" required style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                            @foreach ($daftarProdi as $dp)
+                                <option value="{{ $dp->nama }}" @selected($loop->first)>{{ $dp->nama }}</option>
+                            @endforeach
+                        </select>
+                    @endif
                     </div>
                 </div>
 
@@ -2403,7 +2403,7 @@ function openTambahMk() {
     document.getElementById('mkSks').value = '3';
     document.getElementById('mkKelas').value = '1';
     document.getElementById('mkKapasitas').value = '30';
-    document.getElementById('mkProdi').value = 'Teknik Informatika';
+    const mkProdiEl = document.getElementById('mkProdi'); if (mkProdiEl && mkProdiEl.tagName === 'INPUT') mkProdiEl.value = mkProdiEl.value || '';
     openModal('modalMk');
 }
 
@@ -2567,8 +2567,8 @@ function renderInteractivePreview() {
                 <td style="padding:4px;"><input type="text" id="edit_dosen_${index}" value="${item.dosen_ketua || ''}" placeholder="Dosen Pengampu" style="width:100%; padding:3px 6px; font-size:11.5px; border:1px solid #cbd5e1; border-radius:4px;"></td>
                 <td style="padding:4px; text-align:center;"><span style="background:#fef08a; color:#854d0e; padding:2px 6px; border-radius:4px; font-size:11px;">Edit</span></td>
                 <td style="padding:4px; text-align:center; white-space:nowrap;">
-                    <button type="button" onclick="savePreviewItem(${index})" style="background:#16a34a; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;" title="Simpan Perubahan">✓</button>
-                    <button type="button" onclick="cancelPreviewItem(${index})" style="background:#e2e8f0; color:#475569; border:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer; margin-left:3px;" title="Batal">✕</button>
+                    <button type="button" onclick="savePreviewItem(${index})" style="background:#16a34a; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;" title="Simpan Perubahan">âœ“</button>
+                    <button type="button" onclick="cancelPreviewItem(${index})" style="background:#e2e8f0; color:#475569; border:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer; margin-left:3px;" title="Batal">âœ•</button>
                 </td>
             `;
         } else {
@@ -2835,3 +2835,5 @@ function filterLogBySemester(semester) {
 }
 </script>
 @endpush
+
+

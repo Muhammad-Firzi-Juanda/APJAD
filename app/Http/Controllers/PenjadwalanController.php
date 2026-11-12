@@ -161,7 +161,7 @@ class PenjadwalanController extends Controller
             'totalSksCount' => $totalSksCount,
             'totalMkCount' => $totalMkCount,
             'totalRuanganCount' => $ruanganAktif->count(),
-            'daftarProdi' => Prodi::orderBy('nama')->get(),
+            'daftarProdi' => Prodi::where('status', 'ACTIVE')->orderBy('nama')->get(),
             'semesterGanjil' => self::SEMESTER_GANJIL,
             'semesterGenap' => self::SEMESTER_GENAP,
             'semesterAll' => self::SEMESTER_ALL,

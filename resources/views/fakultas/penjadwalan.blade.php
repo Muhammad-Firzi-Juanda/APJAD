@@ -4,13 +4,11 @@
 
 @section('content')
 <div class="admin-layout">
-    @include('fakultas.sidebar', ['active' => 'penjadwalan'])
+    @include('partials.smart-sidebar', ['active' => 'penjadwalan', 'activeFakultas' => 'penjadwalan'])
 
     <main class="admin-main">
         <header class="admin-header">
-            <div class="user-badge">
-                <span>{{ Auth::user()->role }}, <span class="user-name">{{ Auth::user()->nama }}</span> ({{ $faculty->kode ?? 'FTTK' }})</span>
-            </div>
+            @include('partials.smart-user-badge')
         </header>
 
         <section class="admin-content">
@@ -725,4 +723,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+
+
 

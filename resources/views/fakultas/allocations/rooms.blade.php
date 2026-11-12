@@ -4,13 +4,11 @@
 
 @section('content')
 <div class="admin-layout">
-    @include('fakultas.sidebar', ['active' => 'allocations_rooms'])
+    @include('partials.smart-sidebar', ['active' => 'allocations_rooms', 'activeFakultas' => 'allocations_rooms'])
 
     <main class="admin-main">
         <header class="admin-header">
-            <div class="user-badge">
-                <span>{{ Auth::user()->role }}, <span class="user-name">{{ Auth::user()->nama }}</span> ({{ Auth::user()->fakultas->kode ?? 'FTTK' }})</span>
-            </div>
+            @include('partials.smart-user-badge')
         </header>
 
         <section class="admin-content">
@@ -256,3 +254,5 @@ document.addEventListener('click', function(e) {
 });
 </script>
 @endsection
+
+
