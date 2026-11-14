@@ -188,6 +188,20 @@
                         <span>Program Studi</span>
                     </a>
                 </div>
+            @endif
+
+            <!-- Menu Tunggal: Manajemen Akun (Super Admin & Admin) -->
+            <a href="{{ route('manajemen-akun') }}" class="sidebar-link {{ $isAkunOpen ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Manajemen Akun</span>
+            </a>
+
+            @if(Auth::user()->role === \App\Enums\UserRole::ADMIN)
                 <!-- Dropdown Group: Mata Kuliah (Eksklusif Admin) -->
                 <button type="button" class="sidebar-link sidebar-dropdown-toggle {{ $isMkOpen ? 'open active' : '' }}" onclick="toggleSidebarSubmenu('submenuMataKuliah', this)">
                     <span class="toggle-left">
@@ -260,19 +274,6 @@
                         </a>
                     @endforeach
                 </div>
-            @endif
-
-            @if(Auth::user()->role === \App\Enums\UserRole::SUPER_ADMIN)
-                <!-- Menu Tunggal: Manajemen Akun (Eksklusif Super Admin) -->
-                <a href="{{ route('manajemen-akun') }}" class="sidebar-link {{ $isAkunOpen ? 'active' : '' }}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    <span>Manajemen Akun</span>
-                </a>
             @endif
         </nav>
     </div>
