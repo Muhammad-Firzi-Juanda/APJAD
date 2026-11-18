@@ -216,6 +216,7 @@ class ProdiManagementController extends Controller
             'ruangan_id' => $validated['ruangan_id'],
             'dosen_id' => $validated['dosen_id'],
             'is_active' => true,
+            'is_manual' => true,
         ]);
 
         return redirect()->route('prodi.dashboard', ['#section-jadwal'])

@@ -15,7 +15,7 @@ class MataKuliahDetail extends Model
 
     protected $fillable = [
         'master_mk_id', 'kode_mk', 'nama_mk', 'sks', 'semester', 'kelas', 'tipe', 'kategori', 'prodi',
-        'dosen_ketua_id', 'dosen_anggota_id', 'jumlah_kelas',
+        'dosen_ketua_id', 'dosen_anggota_id', 'dosen_anggota_2_id', 'dosen_anggota_3_id', 'jumlah_kelas',
         'kapasitas_per_kelas', 'butuh_lab', 'tanpa_ruangan', 'catatan', 'is_active',
         'status_verifikasi', 'status_tawar',
     ];
@@ -40,6 +40,38 @@ class MataKuliahDetail extends Model
     public function dosenAnggota(): BelongsTo
     {
         return $this->belongsTo(Dosen::class, 'dosen_anggota_id');
+    }
+
+    public function dosenAnggota2(): BelongsTo
+    {
+        return $this->belongsTo(Dosen::class, 'dosen_anggota_2_id');
+    }
+
+    public function dosenAnggota3(): BelongsTo
+    {
+        return $this->belongsTo(Dosen::class, 'dosen_anggota_3_id');
+    }
+
+    /**
+     * @return array<int, array{role: string, dosen: Dosen}>
+     */
+    public function getTimDosenAttribute(): array
+    {
+        $team = [];
+        if ($this->dosenKetua) {
+            $team[] = ['role' => 'Ketua', 'dosen' => $this->dosenKetua];
+        }
+        if ($this->dosenAnggota) {
+            $team[] = ['role' => 'Anggota 1', 'dosen' => $this->dosenAnggota];
+        }
+        if ($this->dosenAnggota2) {
+            $team[] = ['role' => 'Anggota 2', 'dosen' => $this->dosenAnggota2];
+        }
+        if ($this->dosenAnggota3) {
+            $team[] = ['role' => 'Anggota 3', 'dosen' => $this->dosenAnggota3];
+        }
+
+        return $team;
     }
 
     public function rombels(): HasMany

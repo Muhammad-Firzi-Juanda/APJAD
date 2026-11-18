@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Dosen;
 use App\Models\Fakultas;
 use App\Models\Jurusan;
 use App\Models\Prodi;
@@ -228,5 +229,18 @@ class DatabaseSeeder extends Seeder
 
         // Seed data modul Fakultas (MKWU, MKWF, Rooms, Labs, Allocations)
         $this->call(FakultasModuleSeeder::class);
+
+        // Seed master Dosen resmi kampus dari mapping inisial
+        foreach (Dosen::MAPPING_INISIAL as $inisial => $nama) {
+            Dosen::updateOrCreate(
+                ['nama' => $nama],
+                [
+                    'inisial' => $inisial,
+                    'jabatan' => 'Ketua & Anggota',
+                    'prodi' => 'Fakultas',
+                    'is_active' => true,
+                ]
+            );
+        }
     }
 }

@@ -64,6 +64,12 @@
                         </div>
                     </div>
 
+                    {{-- Tombol Input Jadwal Manual --}}
+                    <button type="button" onclick="openModal('modalInputManualJadwal')" style="display:inline-flex; align-items:center; gap:6px; background:#0284c7; color:#fff; border:none; padding:9px 16px; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px; box-shadow:0 2px 6px rgba(2,132,199,0.25);">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Input Jadwal Manual</span>
+                    </button>
+
                     {{-- Tombol Import Excel --}}
                     <button type="button" onclick="openImportModal('UNV')" style="display:inline-flex; align-items:center; gap:6px; background:#16a34a; color:#fff; border:none; padding:9px 16px; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px; box-shadow:0 2px 6px rgba(22,163,74,0.25);">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
@@ -71,12 +77,12 @@
                     </button>
 
                     @if($totalJadwal > 0)
-                        <form action="{{ route('fakultas.penjadwalan.destroy-all') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus SEMUA jadwal MKWU & MKWF Fakultas yang telah digenerate?');" style="display:inline;">
+                        <form action="{{ route('fakultas.penjadwalan.destroy-all') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mereset jadwal otomatis? Catatan: Jadwal yang diinput manual tetap aman dan tidak akan terhapus.');" style="display:inline;">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" style="display:inline-flex; align-items:center; gap:6px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; padding:9px 14px; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px;">
+                            <button type="submit" style="display:inline-flex; align-items:center; gap:6px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; padding:9px 14px; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px;" title="Reset hanya jadwal otomatis (jadwal manual aman)">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                <span>Reset Jadwal</span>
+                                <span>Reset Jadwal Otomatis</span>
                             </button>
                         </form>
                     @endif
@@ -97,6 +103,9 @@
                     <div class="stat-content">
                         <div class="stat-label">Total Jadwal Terplot</div>
                         <div class="stat-value">{{ $totalJadwal }}</div>
+                        <div style="font-size:11.5px; color:#64748b; margin-top:3px; font-weight:500;">
+                            <span style="color:#0284c7; font-weight:700;">{{ $totalManual }}</span> Manual • <span style="color:#16a34a; font-weight:700;">{{ $totalOtomatis }}</span> Otomatis
+                        </div>
                     </div>
                 </div>
 
@@ -233,6 +242,12 @@
             {{-- Filter Bar Tabel Jadwal --}}
             <div class="card" style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin-bottom:20px;">
                 <form action="{{ route('fakultas.penjadwalan') }}" method="GET" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+                    <select name="tipe_jadwal" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+                        <option value="">Semua Tipe (Manual & Otomatis)</option>
+                        <option value="manual" {{ request('tipe_jadwal') === 'manual' ? 'selected' : '' }}>Khusus Jadwal Manual</option>
+                        <option value="otomatis" {{ request('tipe_jadwal') === 'otomatis' ? 'selected' : '' }}>Khusus Jadwal Otomatis</option>
+                    </select>
+
                     <select name="hari" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
                         <option value="">Semua Hari</option>
                         @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $h)
@@ -265,7 +280,7 @@
                         Tabel Plotting Jadwal Kuliah Fakultas & Universitas
                     </h3>
                     <span style="font-size:12px; color:#64748b;">
-                        Menampilkan <strong>{{ $jadwals->count() }}</strong> plot jadwal terverifikasi
+                        Menampilkan <strong>{{ $jadwals->count() }}</strong> plot jadwal (<strong>{{ $totalManual }}</strong> manual, <strong>{{ $totalOtomatis }}</strong> otomatis)
                     </span>
                 </div>
 
@@ -273,8 +288,9 @@
                     <table class="data-table" style="width:100%; border-collapse:collapse; font-size:13px;">
                         <thead>
                             <tr style="background:#f8fafc; text-align:left; border-bottom:1px solid #e2e8f0;">
-                                <th style="padding:12px 14px; width:45px; text-align:center;">No</th>
-                                <th style="padding:12px 14px; width:130px;">Hari</th>
+                                <th style="padding:12px 14px; width:40px; text-align:center;">No</th>
+                                <th style="padding:12px 12px; width:95px; text-align:center;">Tipe</th>
+                                <th style="padding:12px 14px; width:110px;">Hari</th>
                                 <th style="padding:12px 14px; width:120px;">Waktu</th>
                                 <th style="padding:12px 14px; width:100px;">Kode MK</th>
                                 <th style="padding:12px 16px;">Nama Mata Kuliah</th>
@@ -282,7 +298,8 @@
                                 <th style="padding:12px 10px; width:55px; text-align:center;">Kelas</th>
                                 <th style="padding:12px 16px;">Dosen Pengampu</th>
                                 <th style="padding:12px 16px;">Ruangan</th>
-                                <th style="padding:12px 14px; width:130px;">Kategori</th>
+                                <th style="padding:12px 14px; width:120px;">Kategori</th>
+                                <th style="padding:12px 12px; width:90px; text-align:center;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -298,6 +315,19 @@
                                 @endphp
                                 <tr style="border-bottom:1px solid #f1f5f9;">
                                     <td style="padding:12px 14px; text-align:center; color:#64748b;">{{ $idx + 1 }}</td>
+                                    <td style="padding:12px 10px; text-align:center;">
+                                        @if($j->is_manual)
+                                            <span style="display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;" title="Diinput manual - Aman & tidak terhapus saat generate otomatis">
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                                Manual
+                                            </span>
+                                        @else
+                                            <span style="display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:600; background:#f1f5f9; color:#475569;" title="Hasil generate otomatis">
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                                                Otomatis
+                                            </span>
+                                        @endif
+                                    </td>
                                     <td style="padding:12px 14px; font-weight:700; color:#1e293b;">
                                         <span style="display:inline-block; padding:3px 8px; border-radius:4px; font-size:12px; background:#f1f5f9; color:#334155;">
                                             {{ $j->hari }}
@@ -321,7 +351,25 @@
                                         </span>
                                     </td>
                                     <td style="padding:12px 16px; color:#334155;">
-                                        {{ $dosen }}
+                                        <div style="font-weight:600; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                                            <span>{{ $dosen }}</span>
+                                            <span style="font-size:10px; padding:1px 5px; background:#e2e8f0; color:#334155; border-radius:3px; font-weight:600;">Ketua</span>
+                                        </div>
+                                        @if($j->dosenAnggota1 || $j->rombel?->dosenAnggota1)
+                                            <div style="font-size:12px; color:#475569; margin-top:2px;">
+                                                <span style="color:#94a3b8;">•</span> {{ $j->dosenAnggota1->nama ?? $j->rombel->dosenAnggota1->nama }} <span style="font-size:10px; color:#64748b;">(Anggota 1)</span>
+                                            </div>
+                                        @endif
+                                        @if($j->dosenAnggota2 || $j->rombel?->dosenAnggota2)
+                                            <div style="font-size:12px; color:#475569; margin-top:1px;">
+                                                <span style="color:#94a3b8;">•</span> {{ $j->dosenAnggota2->nama ?? $j->rombel->dosenAnggota2->nama }} <span style="font-size:10px; color:#64748b;">(Anggota 2)</span>
+                                            </div>
+                                        @endif
+                                        @if($j->dosenAnggota3 || $j->rombel?->dosenAnggota3)
+                                            <div style="font-size:12px; color:#475569; margin-top:1px;">
+                                                <span style="color:#94a3b8;">•</span> {{ $j->dosenAnggota3->nama ?? $j->rombel->dosenAnggota3->nama }} <span style="font-size:10px; color:#64748b;">(Anggota 3)</span>
+                                            </div>
+                                        @endif
                                     </td>
                                     <td style="padding:12px 16px; font-weight:600; color:#0f172a;">
                                         {{ $ruangan }}
@@ -331,16 +379,44 @@
                                             {{ $isUniv ? 'MKWU (Univ)' : 'MKWF (Fakultas)' }}
                                         </span>
                                     </td>
+                                    <td style="padding:12px 10px; text-align:center; white-space:nowrap;">
+                                        <button type="button" onclick="openEditModal({{ json_encode([
+                                            'id' => $j->id,
+                                            'update_url' => route('fakultas.penjadwalan.update', $j->id),
+                                            'kode_mk' => $kodeMk,
+                                            'nama_mk' => $namaMk,
+                                            'kelas' => $kelas,
+                                            'hari' => $j->hari,
+                                            'jam_mulai' => substr($j->jam_mulai, 0, 5),
+                                            'jam_selesai' => substr($j->jam_selesai, 0, 5),
+                                            'ruangan_id' => $j->ruangan_id,
+                                            'kapasitas' => $j->rombel?->kapasitas ?? 40,
+                                            'dosen_id' => $j->dosen_id ?: ($j->rombel?->dosen_pengampu_id),
+                                            'dosen_anggota_1_id' => $j->dosen_anggota_1_id ?: ($j->rombel?->dosen_anggota_1_id),
+                                            'dosen_anggota_2_id' => $j->dosen_anggota_2_id ?: ($j->rombel?->dosen_anggota_2_id),
+                                            'dosen_anggota_3_id' => $j->dosen_anggota_3_id ?: ($j->rombel?->dosen_anggota_3_id),
+                                            'is_manual' => (bool)$j->is_manual,
+                                        ]) }})" title="Edit jadwal ini (Ubah waktu, ruangan, atau tim dosen)" style="background:#e0f2fe; border:1px solid #bae6fd; color:#0369a1; border-radius:5px; padding:5px 8px; cursor:pointer; font-size:12px; display:inline-flex; align-items:center; justify-content:center; margin-right:4px;">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                        </button>
+                                        <form action="{{ route('fakultas.penjadwalan.destroy-single', $j->id) }}" method="POST" onsubmit="return confirm('Hapus jadwal {{ $kodeMk }} (Kelas {{ $kelas }})?');" style="display:inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" title="Hapus jadwal ini" style="background:#fee2e2; border:1px solid #fecaca; color:#dc2626; border-radius:5px; padding:5px 8px; cursor:pointer; font-size:12px; display:inline-flex; align-items:center; justify-content:center;">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" style="padding:36px 20px; text-align:center;">
+                                    <td colspan="12" style="padding:36px 20px; text-align:center;">
                                         <div style="width:48px; height:48px; border-radius:50%; background:#f1f5f9; display:inline-flex; align-items:center; justify-content:center; color:#94a3b8; margin-bottom:12px;">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                                         </div>
-                                        <h4 style="margin:0 0 6px; font-size:15px; color:#1e293b;">Belum ada jadwal Fakultas yang digenerate</h4>
+                                        <h4 style="margin:0 0 6px; font-size:15px; color:#1e293b;">Belum ada jadwal Fakultas yang terdaftar</h4>
                                         <p style="margin:0; font-size:13px; color:#64748b;">
-                                            Silakan tentukan pengaturan di atas lalu klik tombol <strong>Mulai Generate Jadwal Sekarang</strong>.
+                                            Anda dapat mengklik <strong>Input Jadwal Manual</strong> untuk memasukkan jadwal secara manual, atau <strong>Mulai Generate Jadwal Sekarang</strong> untuk generate otomatis.
                                         </p>
                                     </td>
                                 </tr>
@@ -449,6 +525,325 @@
     </div>
 </div>
 
+{{-- MODAL INPUT JADWAL MANUAL FAKULTAS --}}
+<div class="modal-backdrop" id="modalInputManualJadwal">
+    <div class="modal-window" style="max-width: 650px;">
+        <div class="modal-header-blue">
+            <h3>Input Jadwal Kuliah Manual (MKWU / MKWF)</h3>
+        </div>
+        <div class="modal-body">
+            <div style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; padding:10px 14px; border-radius:8px; font-size:12.5px; margin-bottom:18px; display:flex; align-items:flex-start; gap:8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:1px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <div>
+                    <strong>Perlindungan Jadwal Manual:</strong> Jadwal yang Anda input di sini <u>tidak akan terhapus ataupun tertimpa</u> saat menjalankan generate jadwal otomatis di kemudian waktu.
+                </div>
+            </div>
+
+            <form action="{{ route('fakultas.penjadwalan.manual.store') }}" method="POST" class="modal-form" id="formInputManualJadwal">
+                @csrf
+                <div class="modal-form-row">
+                    <label for="manual_mk_id">Mata Kuliah <span style="color:#ef4444;">*</span></label>
+                    <div class="modal-input-container">
+                        <select name="mata_kuliah_detail_id" id="manual_mk_id" required onchange="onManualCourseChange(this)" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                            <option value="">-- Pilih Mata Kuliah (MKWU / MKWF) --</option>
+                            @foreach($availableCourses as $mk)
+                                <option value="{{ $mk->id }}" 
+                                    data-sks="{{ $mk->sks }}" 
+                                    data-sem="{{ $mk->semester }}"
+                                    data-ketua="{{ $mk->dosen_ketua_id }}"
+                                    data-anggota1="{{ $mk->dosen_anggota_id }}"
+                                    data-anggota2="{{ $mk->dosen_anggota_2_id }}"
+                                    data-anggota3="{{ $mk->dosen_anggota_3_id }}">
+                                    [{{ $mk->kode_mk }}] {{ $mk->nama_mk }} ({{ $mk->sks }} SKS - Sem {{ $mk->semester }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;">
+                    <div>
+                        <label for="manual_kelas" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">Kelas Paralel <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="kelas" id="manual_kelas" value="A" required placeholder="Contoh: A, B, atau C" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; text-transform:uppercase;">
+                    </div>
+                    <div>
+                        <label for="manual_kapasitas" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">Kapasitas Kursi</label>
+                        <input type="number" name="kapasitas" id="manual_kapasitas" value="40" min="1" max="250" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1.2fr 1fr 1fr; gap:12px; margin-bottom:14px;">
+                    <div>
+                        <label for="manual_hari" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">Hari Kuliah <span style="color:#ef4444;">*</span></label>
+                        <select name="hari" id="manual_hari" required style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                            <option value="Senin">Senin</option>
+                            <option value="Selasa">Selasa</option>
+                            <option value="Rabu">Rabu</option>
+                            <option value="Kamis">Kamis</option>
+                            <option value="Jumat">Jumat</option>
+                            <option value="Sabtu">Sabtu</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="manual_jam_mulai" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">Jam Mulai <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="jam_mulai" id="manual_jam_mulai" value="07:30" required placeholder="07:30" onchange="autoCalculateEndTime('manual')" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+                    </div>
+                    <div>
+                        <label for="manual_jam_selesai" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">Jam Selesai <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="jam_selesai" id="manual_jam_selesai" value="09:10" required placeholder="09:10" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+                    </div>
+                </div>
+
+                <div class="modal-form-row">
+                    <label for="manual_ruangan_id">Ruangan Kuliah</label>
+                    <div class="modal-input-container">
+                        <select name="ruangan_id" id="manual_ruangan_id" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                            <option value="">-- Tanpa Ruangan (Skripsi/KKN/Magang) --</option>
+                            @foreach($allRooms as $r)
+                                <option value="{{ $r->id }}">
+                                    {{ $r->nama ?? $r->kode }} ({{ $r->tipe }}, Kapasitas: {{ $r->kapasitas }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Tim Dosen (1 Ketua + sampai 3 Anggota = Maks 4 Dosen) --}}
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-top:14px;">
+                    <div style="font-size:13px; font-weight:700; color:#1e293b; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
+                        <span>Tim Dosen Pengampu (Umumnya 2 Dosen, Maks 4 Dosen)</span>
+                        <span style="font-size:11px; font-weight:600; color:#0369a1; background:#e0f2fe; padding:2px 8px; border-radius:4px;">1 Ketua + Anggota</span>
+                    </div>
+
+                    {{-- 1. Dosen Ketua --}}
+                    <div class="modal-form-row" style="align-items:flex-start; margin-bottom:12px;">
+                        <label for="manual_dosen_id" style="padding-top:8px;">Dosen Ketua <span style="color:#ef4444;">*</span></label>
+                        <div class="modal-input-container" style="flex-direction:column; align-items:flex-start; width:100%; gap:6px;">
+                            <select name="dosen_id" id="manual_dosen_id" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                                <option value="">-- Pilih Dosen Ketua --</option>
+                                @foreach($dosens as $d)
+                                    <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->inisial ? $d->inisial.' • ' : '' }}{{ $d->prodi ?? 'Dosen' }})</option>
+                                @endforeach
+                            </select>
+                            <input type="text" name="nama_dosen_baru" id="manual_nama_dosen_baru" placeholder="Atau ketik nama dosen ketua baru jika belum ada di daftar..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                        </div>
+                    </div>
+
+                    {{-- 2. Dosen Anggota 1 --}}
+                    <div class="modal-form-row" style="align-items:flex-start; margin-bottom:10px;">
+                        <label for="manual_dosen_anggota_1_id" style="padding-top:8px;">Dosen Anggota 1</label>
+                        <div class="modal-input-container" style="flex-direction:column; align-items:flex-start; width:100%; gap:6px;">
+                            <select name="dosen_anggota_1_id" id="manual_dosen_anggota_1_id" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                                <option value="">-- Pilih Dosen Anggota 1 (Opsional) --</option>
+                                @foreach($dosens as $d)
+                                    <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->inisial ? $d->inisial.' • ' : '' }}{{ $d->prodi ?? 'Dosen' }})</option>
+                                @endforeach
+                            </select>
+                            <input type="text" name="nama_dosen_anggota_1_baru" id="manual_nama_dosen_anggota_1_baru" placeholder="Atau ketik nama dosen anggota 1 baru..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                        </div>
+                    </div>
+
+                    {{-- Container Tambahan untuk Anggota 2 & 3 --}}
+                    <div id="manual_extra_dosen" style="display:none; padding-top:8px; border-top:1px dashed #cbd5e1; margin-top:8px;">
+                        {{-- 3. Dosen Anggota 2 --}}
+                        <div class="modal-form-row" style="align-items:flex-start; margin-bottom:12px;">
+                            <label for="manual_dosen_anggota_2_id" style="padding-top:8px;">Dosen Anggota 2</label>
+                            <div class="modal-input-container" style="flex-direction:column; align-items:flex-start; width:100%; gap:6px;">
+                                <select name="dosen_anggota_2_id" id="manual_dosen_anggota_2_id" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                                    <option value="">-- Pilih Dosen Anggota 2 (Opsional) --</option>
+                                    @foreach($dosens as $d)
+                                        <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->inisial ? $d->inisial.' • ' : '' }}{{ $d->prodi ?? 'Dosen' }})</option>
+                                    @endforeach
+                                </select>
+                                <input type="text" name="nama_dosen_anggota_2_baru" id="manual_nama_dosen_anggota_2_baru" placeholder="Atau ketik nama dosen anggota 2 baru..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                            </div>
+                        </div>
+
+                        {{-- 4. Dosen Anggota 3 --}}
+                        <div class="modal-form-row" style="align-items:flex-start; margin-bottom:6px;">
+                            <label for="manual_dosen_anggota_3_id" style="padding-top:8px;">Dosen Anggota 3</label>
+                            <div class="modal-input-container" style="flex-direction:column; align-items:flex-start; width:100%; gap:6px;">
+                                <select name="dosen_anggota_3_id" id="manual_dosen_anggota_3_id" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                                    <option value="">-- Pilih Dosen Anggota 3 (Opsional) --</option>
+                                    @foreach($dosens as $d)
+                                        <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->inisial ? $d->inisial.' • ' : '' }}{{ $d->prodi ?? 'Dosen' }})</option>
+                                    @endforeach
+                                </select>
+                                <input type="text" name="nama_dosen_anggota_3_baru" id="manual_nama_dosen_anggota_3_baru" placeholder="Atau ketik nama dosen anggota 3 baru..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align:right; margin-top:8px;">
+                        <button type="button" id="btnToggleManualExtraDosen" onclick="toggleExtraDosen('manual')" style="background:none; border:none; color:#0284c7; font-size:12px; font-weight:600; cursor:pointer; padding:4px 0; display:inline-flex; align-items:center; gap:4px;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            <span id="btnToggleManualExtraDosenText">+ Tambah Anggota Tim (Hingga 4 Dosen)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="modal-footer-buttons" style="margin-top:24px;">
+                    <button type="button" class="btn-modal-cancel" onclick="closeModal('modalInputManualJadwal')">Batal</button>
+                    <button type="submit" class="btn-modal-submit" style="background:#0284c7;">Simpan Jadwal Manual</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL EDIT JADWAL (MENGUBAH JADWAL OTOMATIS/MANUAL MENJADI MANUAL TERSIMPAN) --}}
+<div class="modal-backdrop" id="modalEditJadwal">
+    <div class="modal-window" style="max-width: 650px;">
+        <div class="modal-header-blue">
+            <h3>Edit Jadwal Kuliah (MKWU / MKWF)</h3>
+        </div>
+        <div class="modal-body">
+            <div style="background:#fef3c7; border:1px solid #fde68a; color:#92400e; padding:10px 14px; border-radius:8px; font-size:12.5px; margin-bottom:16px; display:flex; align-items:flex-start; gap:8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <div>
+                    <strong>Perubahan Jadwal:</strong> Jadwal yang Anda edit akan otomatis <u>ditandai sebagai Jadwal Manual</u>. Jadwal ini tidak akan pernah terhapus atau tertimpa saat Anda menjalankan generate otomatis di kemudian hari.
+                </div>
+            </div>
+
+            <form id="formEditJadwal" method="POST" class="modal-form">
+                @csrf
+                @method('PUT')
+
+                <div style="background:#f1f5f9; border-radius:8px; padding:10px 14px; margin-bottom:16px;">
+                    <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:#64748b; letter-spacing:0.5px;">Mata Kuliah Terpilih</span>
+                    <div id="edit_mk_info" style="font-size:14px; font-weight:700; color:#0f172a; margin-top:2px;">-</div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;">
+                    <div>
+                        <label for="edit_kelas" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">Kelas Paralel <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="kelas" id="edit_kelas" required placeholder="Contoh: A, B, atau C" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; text-transform:uppercase;">
+                    </div>
+                    <div>
+                        <label for="edit_kapasitas" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">Kapasitas Kursi</label>
+                        <input type="number" name="kapasitas" id="edit_kapasitas" min="1" max="250" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1.2fr 1fr 1fr; gap:12px; margin-bottom:14px;">
+                    <div>
+                        <label for="edit_hari" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">Hari Kuliah <span style="color:#ef4444;">*</span></label>
+                        <select name="hari" id="edit_hari" required style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                            <option value="Senin">Senin</option>
+                            <option value="Selasa">Selasa</option>
+                            <option value="Rabu">Rabu</option>
+                            <option value="Kamis">Kamis</option>
+                            <option value="Jumat">Jumat</option>
+                            <option value="Sabtu">Sabtu</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="edit_jam_mulai" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">Jam Mulai <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="jam_mulai" id="edit_jam_mulai" required placeholder="07:30" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+                    </div>
+                    <div>
+                        <label for="edit_jam_selesai" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">Jam Selesai <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="jam_selesai" id="edit_jam_selesai" required placeholder="09:10" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+                    </div>
+                </div>
+
+                <div class="modal-form-row">
+                    <label for="edit_ruangan_id">Ruangan Kuliah</label>
+                    <div class="modal-input-container">
+                        <select name="ruangan_id" id="edit_ruangan_id" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                            <option value="">-- Tanpa Ruangan (Skripsi/KKN/Magang) --</option>
+                            @foreach($allRooms as $r)
+                                <option value="{{ $r->id }}">
+                                    {{ $r->nama ?? $r->kode }} ({{ $r->tipe }}, Kapasitas: {{ $r->kapasitas }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Tim Dosen (1 Ketua + sampai 3 Anggota = Maks 4 Dosen) --}}
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-top:14px;">
+                    <div style="font-size:13px; font-weight:700; color:#1e293b; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
+                        <span>Tim Dosen Pengampu (Umumnya 2 Dosen, Maks 4 Dosen)</span>
+                        <span style="font-size:11px; font-weight:600; color:#0369a1; background:#e0f2fe; padding:2px 8px; border-radius:4px;">1 Ketua + Anggota</span>
+                    </div>
+
+                    {{-- 1. Dosen Ketua --}}
+                    <div class="modal-form-row" style="align-items:flex-start; margin-bottom:12px;">
+                        <label for="edit_dosen_id" style="padding-top:8px;">Dosen Ketua <span style="color:#ef4444;">*</span></label>
+                        <div class="modal-input-container" style="flex-direction:column; align-items:flex-start; width:100%; gap:6px;">
+                            <select name="dosen_id" id="edit_dosen_id" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                                <option value="">-- Pilih Dosen Ketua --</option>
+                                @foreach($dosens as $d)
+                                    <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->inisial ? $d->inisial.' • ' : '' }}{{ $d->prodi ?? 'Dosen' }})</option>
+                                @endforeach
+                            </select>
+                            <input type="text" name="nama_dosen_baru" id="edit_nama_dosen_baru" placeholder="Atau ketik nama dosen ketua baru jika belum ada di daftar..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                        </div>
+                    </div>
+
+                    {{-- 2. Dosen Anggota 1 --}}
+                    <div class="modal-form-row" style="align-items:flex-start; margin-bottom:10px;">
+                        <label for="edit_dosen_anggota_1_id" style="padding-top:8px;">Dosen Anggota 1</label>
+                        <div class="modal-input-container" style="flex-direction:column; align-items:flex-start; width:100%; gap:6px;">
+                            <select name="dosen_anggota_1_id" id="edit_dosen_anggota_1_id" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                                <option value="">-- Pilih Dosen Anggota 1 (Opsional) --</option>
+                                @foreach($dosens as $d)
+                                    <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->inisial ? $d->inisial.' • ' : '' }}{{ $d->prodi ?? 'Dosen' }})</option>
+                                @endforeach
+                            </select>
+                            <input type="text" name="nama_dosen_anggota_1_baru" id="edit_nama_dosen_anggota_1_baru" placeholder="Atau ketik nama dosen anggota 1 baru..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                        </div>
+                    </div>
+
+                    {{-- Container Tambahan untuk Anggota 2 & 3 --}}
+                    <div id="edit_extra_dosen" style="display:none; padding-top:8px; border-top:1px dashed #cbd5e1; margin-top:8px;">
+                        {{-- 3. Dosen Anggota 2 --}}
+                        <div class="modal-form-row" style="align-items:flex-start; margin-bottom:12px;">
+                            <label for="edit_dosen_anggota_2_id" style="padding-top:8px;">Dosen Anggota 2</label>
+                            <div class="modal-input-container" style="flex-direction:column; align-items:flex-start; width:100%; gap:6px;">
+                                <select name="dosen_anggota_2_id" id="edit_dosen_anggota_2_id" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                                    <option value="">-- Pilih Dosen Anggota 2 (Opsional) --</option>
+                                    @foreach($dosens as $d)
+                                        <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->inisial ? $d->inisial.' • ' : '' }}{{ $d->prodi ?? 'Dosen' }})</option>
+                                    @endforeach
+                                </select>
+                                <input type="text" name="nama_dosen_anggota_2_baru" id="edit_nama_dosen_anggota_2_baru" placeholder="Atau ketik nama dosen anggota 2 baru..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                            </div>
+                        </div>
+
+                        {{-- 4. Dosen Anggota 3 --}}
+                        <div class="modal-form-row" style="align-items:flex-start; margin-bottom:6px;">
+                            <label for="edit_dosen_anggota_3_id" style="padding-top:8px;">Dosen Anggota 3</label>
+                            <div class="modal-input-container" style="flex-direction:column; align-items:flex-start; width:100%; gap:6px;">
+                                <select name="dosen_anggota_3_id" id="edit_dosen_anggota_3_id" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                                    <option value="">-- Pilih Dosen Anggota 3 (Opsional) --</option>
+                                    @foreach($dosens as $d)
+                                        <option value="{{ $d->id }}">{{ $d->nama }} ({{ $d->inisial ? $d->inisial.' • ' : '' }}{{ $d->prodi ?? 'Dosen' }})</option>
+                                    @endforeach
+                                </select>
+                                <input type="text" name="nama_dosen_anggota_3_baru" id="edit_nama_dosen_anggota_3_baru" placeholder="Atau ketik nama dosen anggota 3 baru..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align:right; margin-top:8px;">
+                        <button type="button" id="btnToggleEditExtraDosen" onclick="toggleExtraDosen('edit')" style="background:none; border:none; color:#0284c7; font-size:12px; font-weight:600; cursor:pointer; padding:4px 0; display:inline-flex; align-items:center; gap:4px;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            <span id="btnToggleEditExtraDosenText">+ Tambah Anggota Tim (Hingga 4 Dosen)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="modal-footer-buttons" style="margin-top:24px;">
+                    <button type="button" class="btn-modal-cancel" onclick="closeModal('modalEditJadwal')">Batal</button>
+                    <button type="submit" class="btn-modal-submit" style="background:#0284c7;">Simpan Perubahan Jadwal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function toggleDropdown(id) {
     const el = document.getElementById(id);
@@ -474,6 +869,122 @@ function closeModal(id) {
         el.classList.remove('show');
         el.style.display = '';
     }
+}
+
+function toggleExtraDosen(prefix) {
+    const el = document.getElementById(prefix + '_extra_dosen');
+    const textEl = document.getElementById('btnToggle' + (prefix.charAt(0).toUpperCase() + prefix.slice(1)) + 'ExtraDosenText');
+    if (!el) return;
+
+    if (el.style.display === 'none' || el.style.display === '') {
+        el.style.display = 'block';
+        if (textEl) textEl.textContent = '- Sembunyikan Anggota 2 & 3';
+    } else {
+        el.style.display = 'none';
+        if (textEl) textEl.textContent = '+ Tambah Anggota Tim (Hingga 4 Dosen)';
+    }
+}
+
+function onManualCourseChange(select) {
+    const opt = select.options[select.selectedIndex];
+    if (opt) {
+        const ketuaId = opt.getAttribute('data-ketua');
+        const anggota1Id = opt.getAttribute('data-anggota1');
+        const anggota2Id = opt.getAttribute('data-anggota2');
+        const anggota3Id = opt.getAttribute('data-anggota3');
+
+        if (ketuaId) {
+            document.getElementById('manual_dosen_id').value = ketuaId;
+        }
+        if (anggota1Id) {
+            document.getElementById('manual_dosen_anggota_1_id').value = anggota1Id;
+        }
+        if (anggota2Id) {
+            document.getElementById('manual_dosen_anggota_2_id').value = anggota2Id;
+        }
+        if (anggota3Id) {
+            document.getElementById('manual_dosen_anggota_3_id').value = anggota3Id;
+        }
+
+        if (anggota2Id || anggota3Id) {
+            const extra = document.getElementById('manual_extra_dosen');
+            if (extra) {
+                extra.style.display = 'block';
+                const textEl = document.getElementById('btnToggleManualExtraDosenText');
+                if (textEl) textEl.textContent = '- Sembunyikan Anggota 2 & 3';
+            }
+        }
+    }
+    autoCalculateEndTime('manual');
+}
+
+function openEditModal(data) {
+    const form = document.getElementById('formEditJadwal');
+    if (form) form.action = data.update_url;
+
+    document.getElementById('edit_mk_info').textContent = `[${data.kode_mk}] ${data.nama_mk}`;
+    document.getElementById('edit_kelas').value = data.kelas || 'A';
+    document.getElementById('edit_kapasitas').value = data.kapasitas || 40;
+    document.getElementById('edit_hari').value = data.hari || 'Senin';
+    document.getElementById('edit_jam_mulai').value = data.jam_mulai || '07:30';
+    document.getElementById('edit_jam_selesai').value = data.jam_selesai || '09:10';
+    document.getElementById('edit_ruangan_id').value = data.ruangan_id || '';
+
+    document.getElementById('edit_dosen_id').value = data.dosen_id || '';
+    document.getElementById('edit_dosen_anggota_1_id').value = data.dosen_anggota_1_id || '';
+    document.getElementById('edit_dosen_anggota_2_id').value = data.dosen_anggota_2_id || '';
+    document.getElementById('edit_dosen_anggota_3_id').value = data.dosen_anggota_3_id || '';
+
+    // Bersihkan input ketik nama baru
+    document.getElementById('edit_nama_dosen_baru').value = '';
+    document.getElementById('edit_nama_dosen_anggota_1_baru').value = '';
+    document.getElementById('edit_nama_dosen_anggota_2_baru').value = '';
+    document.getElementById('edit_nama_dosen_anggota_3_baru').value = '';
+
+    const extra = document.getElementById('edit_extra_dosen');
+    const textEl = document.getElementById('btnToggleEditExtraDosenText');
+    if (data.dosen_anggota_2_id || data.dosen_anggota_3_id) {
+        if (extra) extra.style.display = 'block';
+        if (textEl) textEl.textContent = '- Sembunyikan Anggota 2 & 3';
+    } else {
+        if (extra) extra.style.display = 'none';
+        if (textEl) textEl.textContent = '+ Tambah Anggota Tim (Hingga 4 Dosen)';
+    }
+
+    openModal('modalEditJadwal');
+}
+
+function autoCalculateEndTime(prefix = 'manual') {
+    const courseSelect = document.getElementById(prefix + '_mk_id');
+    const jamMulaiInput = document.getElementById(prefix + '_jam_mulai');
+    const jamSelesaiInput = document.getElementById(prefix + '_jam_selesai');
+
+    if (!jamMulaiInput || !jamSelesaiInput) return;
+
+    let sks = 2;
+    if (courseSelect) {
+        const selectedOption = courseSelect.options[courseSelect.selectedIndex];
+        sks = parseInt(selectedOption?.getAttribute('data-sks') || '2', 10);
+    }
+    const mulaiVal = jamMulaiInput.value.trim();
+
+    if (!mulaiVal || !mulaiVal.includes(':')) return;
+
+    const parts = mulaiVal.split(':');
+    const jam = parseInt(parts[0], 10);
+    const menit = parseInt(parts[1], 10);
+
+    if (isNaN(jam) || isNaN(menit)) return;
+
+    const totalMenitMulai = jam * 60 + menit;
+    const durasiMenit = sks * 50;
+    const totalMenitSelesai = totalMenitMulai + durasiMenit;
+
+    const jamSelesai = Math.floor(totalMenitSelesai / 60);
+    const menitSelesai = totalMenitSelesai % 60;
+
+    const formatDuaDigit = (num) => String(num).padStart(2, '0');
+    jamSelesaiInput.value = `${formatDuaDigit(jamSelesai)}:${formatDuaDigit(menitSelesai)}`;
 }
 
 function openImportModal(category) {

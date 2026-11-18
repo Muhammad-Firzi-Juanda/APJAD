@@ -17,12 +17,24 @@ class Rombel extends Model
     protected $fillable = [
         'mata_kuliah_detail_id', 'kode_rombel', 'nomor_rombel', 'kelas',
         'kapasitas', 'ruangan_id', 'laboratory_id', 'hari', 'jam_mulai', 'jam_selesai',
-        'dosen_pengampu_id', 'peran_dosen', 'is_active',
+        'dosen_pengampu_id', 'dosen_anggota_1_id', 'dosen_anggota_2_id', 'dosen_anggota_3_id',
+        'peran_dosen', 'is_active', 'is_manual',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_manual' => 'boolean',
     ];
+
+    public function scopeManual($query)
+    {
+        return $query->where('is_manual', true);
+    }
+
+    public function scopeAutomatic($query)
+    {
+        return $query->where('is_manual', false);
+    }
 
     public function mataKuliah(): BelongsTo
     {
@@ -42,6 +54,21 @@ class Rombel extends Model
     public function dosenPengampu(): BelongsTo
     {
         return $this->belongsTo(Dosen::class, 'dosen_pengampu_id');
+    }
+
+    public function dosenAnggota1(): BelongsTo
+    {
+        return $this->belongsTo(Dosen::class, 'dosen_anggota_1_id');
+    }
+
+    public function dosenAnggota2(): BelongsTo
+    {
+        return $this->belongsTo(Dosen::class, 'dosen_anggota_2_id');
+    }
+
+    public function dosenAnggota3(): BelongsTo
+    {
+        return $this->belongsTo(Dosen::class, 'dosen_anggota_3_id');
     }
 
     public function jadwals(): HasMany

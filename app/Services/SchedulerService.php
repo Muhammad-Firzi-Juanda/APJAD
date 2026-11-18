@@ -231,6 +231,57 @@ class SchedulerService
 
     protected function tempatkan(MataKuliahDetail $mk, string $cohort): void
     {
+        $manualJadwals = Jadwal::with(['rombel', 'ruangan', 'dosen'])
+            ->whereHas('rombel', fn ($q) => $q->where('mata_kuliah_detail_id', $mk->id))
+            ->where('is_manual', true)
+            ->where('is_active', true)
+            ->get();
+
+        $manualCount = $manualJadwals->count();
+
+        // Jika semua kelas paralel MK ini sudah dijadwalkan secara manual, pertahankan dan lewati generate otomatis
+        if ($manualCount >= $mk->jumlah_kelas) {
+            $this->log[] = sprintf(
+                'MANUAL %s - %s | %d/%d kelas dipertahankan (input manual)',
+                $mk->kode_mk,
+                $mk->nama_mk,
+                $manualCount,
+                $mk->jumlah_kelas
+            );
+            foreach ($manualJadwals as $mj) {
+                $this->tersimpan[] = [
+                    'mk' => $mk,
+                    'no' => $mj->rombel?->nomor_rombel ?? 1,
+                    'slot' => [
+                        'hari' => $mj->hari,
+                        'mulai' => $this->menit($mj->jam_mulai),
+                        'selesai' => $this->menit($mj->jam_selesai),
+                    ],
+                    'ruangan' => $mj->ruangan,
+                    'dosenId' => $mj->dosen_id,
+                    'peran' => $mj->rombel?->peran_dosen,
+                ];
+            }
+
+            return;
+        }
+
+        // Jika ada sebagian kelas sudah manual, masukkan ke daftar tersimpan
+        foreach ($manualJadwals as $mj) {
+            $this->tersimpan[] = [
+                'mk' => $mk,
+                'no' => $mj->rombel?->nomor_rombel ?? 1,
+                'slot' => [
+                    'hari' => $mj->hari,
+                    'mulai' => $this->menit($mj->jam_mulai),
+                    'selesai' => $this->menit($mj->jam_selesai),
+                ],
+                'ruangan' => $mj->ruangan,
+                'dosenId' => $mj->dosen_id,
+                'peran' => $mj->rombel?->peran_dosen,
+            ];
+        }
+
         $slot = $this->cariSlot($mk, $cohort);
         if (! $slot) {
             $this->log[] = "GAGAL  {$mk->kode_mk} - {$mk->nama_mk}: tidak ada slot yang memenuhi syarat (ruangan/dosen).";
@@ -248,7 +299,7 @@ class SchedulerService
             return;
         }
 
-        $total = $mk->jumlah_kelas;
+        $total = $mk->jumlah_kelas - $manualCount;
         $terpasang = 0;
         $dosenList = $this->dosenList($mk);
 
@@ -258,7 +309,17 @@ class SchedulerService
             $total = min($total, count($dosenList));
         }
 
+        $manualNomors = Rombel::where('mata_kuliah_detail_id', $mk->id)
+            ->where('is_manual', true)
+            ->pluck('nomor_rombel')
+            ->toArray();
+
+        $currNo = 1;
         while ($terpasang < $total) {
+            while (in_array($currNo, $manualNomors, true)) {
+                $currNo++;
+            }
+
             // MK tanpa ruangan (Skripsi, KKN, dll) tidak perlu alokasi ruangan.
             if ($mk->tanpa_ruangan) {
                 $ruangan = null;
@@ -279,7 +340,9 @@ class SchedulerService
                 ? 'Ketua'
                 : ($dosen !== null ? 'Anggota' : null);
 
-            $this->simpan($mk, $terpasang + 1, $slot, $ruangan, $dosen, $peran);
+            $this->simpan($mk, $currNo, $slot, $ruangan, $dosen, $peran);
+            $currNo++;
+
             if ($ruangan) {
                 $this->pakaiRuangan[] = [
                     'hari' => $slot['hari'],
@@ -300,7 +363,7 @@ class SchedulerService
 
         $this->kunciCohortSlot($cohort, $slot);
 
-        $sisa = $mk->jumlah_kelas - $terpasang;
+        $sisa = $mk->jumlah_kelas - ($manualCount + $terpasang);
         $catatan = $sisa > 0
             ? " | PERINGATAN: {$sisa} kelas tidak dijadwalkan (kurang dosen/ruangan)"
             : '';
@@ -313,7 +376,7 @@ class SchedulerService
                 'semester' => $mk->semester,
                 'prodi' => $mk->prodi ?: 'Umum',
                 'tipe' => $mk->tipe,
-                'alasan' => "Hanya {$terpasang} dari {$mk->jumlah_kelas} kelas yang terjadwal. Sebanyak {$sisa} kelas tidak tertampung karena keterbatasan dosen pengampu bebas atau ruangan pada slot waktu ini.",
+                'alasan' => "Hanya {$terpasang} dari {$total} kelas tersisa yang terjadwal. Sebanyak {$sisa} kelas tidak tertampung karena keterbatasan dosen pengampu bebas atau ruangan pada slot waktu ini.",
                 'rekomendasi' => 'Tugaskan dosen pengampu tambahan untuk kelas paralel ini atau sediakan slot/ruangan kuliah alternatif.',
             ];
         }
@@ -322,7 +385,7 @@ class SchedulerService
             'OK     %s - %s | %d/%d kelas | %s %s-%s%s',
             $mk->kode_mk,
             $mk->nama_mk,
-            $terpasang,
+            $manualCount + $terpasang,
             $mk->jumlah_kelas,
             $slot['hari'],
             $this->format($slot['mulai']),
@@ -394,6 +457,31 @@ class SchedulerService
             $terjadwal = [];
 
             foreach ($grup as $mk) {
+                // Cek apakah MK Pilihan ini sudah dijadwalkan secara manual
+                $manualPilihan = Jadwal::with('rombel')
+                    ->whereHas('rombel', fn ($q) => $q->where('mata_kuliah_detail_id', $mk->id))
+                    ->where('is_manual', true)
+                    ->where('is_active', true)
+                    ->first();
+
+                if ($manualPilihan) {
+                    $terjadwal[] = $mk->nama_mk.' (Manual)';
+                    $this->tersimpan[] = [
+                        'mk' => $mk,
+                        'no' => $manualPilihan->rombel?->nomor_rombel ?? 1,
+                        'slot' => [
+                            'hari' => $manualPilihan->hari,
+                            'mulai' => $this->menit($manualPilihan->jam_mulai),
+                            'selesai' => $this->menit($manualPilihan->jam_selesai),
+                        ],
+                        'ruangan' => $manualPilihan->ruangan,
+                        'dosenId' => $manualPilihan->dosen_id,
+                        'peran' => $manualPilihan->rombel?->peran_dosen,
+                    ];
+
+                    continue;
+                }
+
                 // MK tanpa ruangan (Skripsi, KKN, dll) tidak perlu alokasi ruangan.
                 if ($mk->tanpa_ruangan) {
                     $ruangan = null;
@@ -671,6 +759,41 @@ class SchedulerService
             $skor += 10;
         }
 
+        // Optimasi: Jam mengajar Dosen Ketua berurutan pada hari yang sama (tanpa jeda kosong)
+        if ($mk->dosen_ketua_id && ! empty($this->pakaiDosen[$mk->dosen_ketua_id])) {
+            $jadwalKetuaHariIni = array_filter(
+                $this->pakaiDosen[$mk->dosen_ketua_id],
+                fn ($p) => $p['hari'] === $slot['hari']
+            );
+
+            if (! empty($jadwalKetuaHariIni)) {
+                $selisihMenitTerkecil = null;
+                foreach ($jadwalKetuaHariIni as $jk) {
+                    if ($slot['mulai'] >= $jk['selesai']) {
+                        $gap = $slot['mulai'] - $jk['selesai'];
+                    } elseif ($jk['mulai'] >= $slot['selesai']) {
+                        $gap = $jk['mulai'] - $slot['selesai'];
+                    } else {
+                        $gap = 0;
+                    }
+
+                    if ($selisihMenitTerkecil === null || $gap < $selisihMenitTerkecil) {
+                        $selisihMenitTerkecil = $gap;
+                    }
+                }
+
+                if ($selisihMenitTerkecil !== null) {
+                    if ($selisihMenitTerkecil === 0 || $selisihMenitTerkecil <= 30) {
+                        $skor += 50; // Langsung berurutan atau jeda istirahat pendek
+                    } elseif ($selisihMenitTerkecil <= 60) {
+                        $skor += 25; // Jeda 1 jam
+                    } elseif ($selisihMenitTerkecil > 120) {
+                        $skor -= 30; // Penalti jeda kosong mengajar terlalu panjang
+                    }
+                }
+            }
+        }
+
         // MK butuh lab lebih baik di pagi/sebelum tengah hari
         if ($mk->butuh_lab && $slot['mulai'] < 780) {
             $skor += 15;
@@ -846,6 +969,8 @@ class SchedulerService
         return array_values(array_unique(array_filter([
             $mk->dosen_ketua_id,
             $mk->dosen_anggota_id,
+            $mk->dosen_anggota_2_id,
+            $mk->dosen_anggota_3_id,
         ])));
     }
 
@@ -872,6 +997,10 @@ class SchedulerService
             $kodeRombel = $mk->kode_mk.'-'.$no;
         }
 
+        $dosenAnggota1 = $mk->dosen_anggota_id;
+        $dosenAnggota2 = $mk->dosen_anggota_2_id;
+        $dosenAnggota3 = $mk->dosen_anggota_3_id;
+
         $rombel = Rombel::updateOrCreate(
             [
                 'mata_kuliah_detail_id' => $mk->id,
@@ -886,8 +1015,12 @@ class SchedulerService
                 'jam_mulai' => $this->format($slot['mulai']),
                 'jam_selesai' => $this->format($slot['selesai']),
                 'dosen_pengampu_id' => $dosenId,
+                'dosen_anggota_1_id' => $dosenAnggota1,
+                'dosen_anggota_2_id' => $dosenAnggota2,
+                'dosen_anggota_3_id' => $dosenAnggota3,
                 'peran_dosen' => $peran,
                 'is_active' => 1,
+                'is_manual' => false,
             ]
         );
 
@@ -896,10 +1029,14 @@ class SchedulerService
             [
                 'ruangan_id' => $ruangan?->id,
                 'dosen_id' => $dosenId,
+                'dosen_anggota_1_id' => $dosenAnggota1,
+                'dosen_anggota_2_id' => $dosenAnggota2,
+                'dosen_anggota_3_id' => $dosenAnggota3,
                 'hari' => $slot['hari'],
                 'jam_mulai' => $this->format($slot['mulai']),
                 'jam_selesai' => $this->format($slot['selesai']),
                 'is_active' => 1,
+                'is_manual' => false,
             ]
         );
 
@@ -937,8 +1074,17 @@ class SchedulerService
 
         if ($idsMk->isNotEmpty()) {
             $idsRombelLama = Rombel::whereIn('mata_kuliah_detail_id', $idsMk)->pluck('id');
-            Jadwal::whereIn('rombel_id', $idsRombelLama)->delete();
-            Rombel::whereIn('mata_kuliah_detail_id', $idsMk)->delete();
+
+            // Hapus HANYA jadwal otomatis (pertahankan jadwal manual)
+            Jadwal::whereIn('rombel_id', $idsRombelLama)
+                ->where('is_manual', false)
+                ->delete();
+
+            // Hapus rombel otomatis yang sudah tidak memiliki jadwal (manual) lagi
+            Rombel::whereIn('mata_kuliah_detail_id', $idsMk)
+                ->where('is_manual', false)
+                ->whereDoesntHave('jadwals')
+                ->delete();
         }
 
         // Bersihkan juga jika ada jadwal MK Ulang yang terplot pada hari kerja reguler (Senin - Jumat)
@@ -953,6 +1099,7 @@ class SchedulerService
         if ($idsMkUlang->isNotEmpty()) {
             $idsRombelUlang = Rombel::whereIn('mata_kuliah_detail_id', $idsMkUlang)->pluck('id');
             Jadwal::whereIn('rombel_id', $idsRombelUlang)
+                ->where('is_manual', false)
                 ->whereIn('hari', self::HARI)
                 ->delete();
         }
@@ -970,8 +1117,14 @@ class SchedulerService
                 'selesai' => $selesai,
             ];
 
-            if ($j->dosen_id) {
-                $this->pakaiDosen[$j->dosen_id][] = [
+            $dosenIds = array_filter([
+                $j->dosen_id,
+                $j->dosen_anggota_1_id,
+                $j->dosen_anggota_2_id,
+                $j->dosen_anggota_3_id,
+            ]);
+            foreach ($dosenIds as $dId) {
+                $this->pakaiDosen[$dId][] = [
                     'hari' => $j->hari,
                     'mulai' => $mulai,
                     'selesai' => $selesai,

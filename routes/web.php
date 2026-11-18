@@ -163,7 +163,10 @@ Route::middleware('auth')->group(function () {
         // Penjadwalan Kuliah Fakultas (MKWU & MKWF)
         Route::get('/fakultas/penjadwalan', [FakultasCourseController::class, 'penjadwalanIndex'])->name('fakultas.penjadwalan');
         Route::post('/fakultas/penjadwalan/generate', [FakultasCourseController::class, 'generateJadwal'])->name('fakultas.penjadwalan.generate');
+        Route::post('/fakultas/penjadwalan/manual', [FakultasCourseController::class, 'storeManualJadwal'])->name('fakultas.penjadwalan.manual.store');
+        Route::put('/fakultas/penjadwalan/{jadwal}', [FakultasCourseController::class, 'updateJadwal'])->name('fakultas.penjadwalan.update');
         Route::delete('/fakultas/penjadwalan/hapus-semua', [FakultasCourseController::class, 'destroyJadwalFakultas'])->name('fakultas.penjadwalan.destroy-all');
+        Route::delete('/fakultas/penjadwalan/{jadwal}', [FakultasCourseController::class, 'destroySingleJadwal'])->name('fakultas.penjadwalan.destroy-single');
 
         // Resources - Ruangan & Laboratorium (Terpadu)
         Route::get('/fakultas/ruangan', [FakultasRoomController::class, 'index'])->name('fakultas.rooms.index');

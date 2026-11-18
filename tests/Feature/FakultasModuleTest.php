@@ -5,10 +5,15 @@ namespace Tests\Feature;
 use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\CourseCategory;
+use App\Models\Dosen;
 use App\Models\Fakultas;
+use App\Models\Jadwal;
 use App\Models\Laboratory;
+use App\Models\MataKuliahDetail;
 use App\Models\Prodi;
+use App\Models\Rombel;
 use App\Models\Room;
+use App\Models\Ruangan;
 use App\Models\StudyProgramLaboratory;
 use App\Models\StudyProgramRoom;
 use App\Models\User;
@@ -760,5 +765,412 @@ class FakultasModuleTest extends TestCase
         $resDeleteAll = $this->actingAs($user)->delete(route('fakultas.penjadwalan.destroy-all'));
         $resDeleteAll->assertRedirect(route('fakultas.penjadwalan'));
         $resDeleteAll->assertSessionHas('flash_success');
+    }
+
+    /**
+     * 18. Test Akun Fakultas dapat menginput jadwal manual dan jadwal manual tidak hilang saat auto-generate.
+     */
+    public function test_fakultas_can_input_manual_schedule_and_preserves_it_during_auto_generate(): void
+    {
+        $user = $this->fakultasUser();
+
+        // Siapkan MKWU & MKWF
+        $mkManual = MataKuliahDetail::create([
+            'kode_mk' => 'UNV-MANUAL',
+            'nama_mk' => 'Pendidikan Pancasila Manual',
+            'sks' => 2,
+            'semester' => 1,
+            'tipe' => 'Wajib',
+            'kategori' => 'MK Universitas',
+            'prodi' => 'Universitas',
+            'is_active' => true,
+            'status_tawar' => true,
+            'jumlah_kelas' => 1,
+            'kapasitas_per_kelas' => 40,
+        ]);
+
+        $mkOtomatis = MataKuliahDetail::create([
+            'kode_mk' => 'FST-AUTO',
+            'nama_mk' => 'Pengantar Sains Data',
+            'sks' => 2,
+            'semester' => 1,
+            'tipe' => 'Wajib',
+            'kategori' => 'MK Fakultas',
+            'prodi' => 'Fakultas',
+            'is_active' => true,
+            'status_tawar' => true,
+            'jumlah_kelas' => 1,
+            'kapasitas_per_kelas' => 40,
+        ]);
+
+        $ruangan = Ruangan::firstOrCreate(
+            ['kode' => 'R-TEST-1'],
+            ['nama' => 'Ruang Teori 1', 'tipe' => 'Ruang Kelas', 'kapasitas' => 50, 'is_active' => true]
+        );
+
+        $dosen = Dosen::firstOrCreate(
+            ['nidn' => '99887766'],
+            ['nama' => 'Dr. Budi Santoso', 'jabatan' => 'Ketua', 'prodi' => 'Fakultas', 'is_active' => true]
+        );
+
+        // 1. Kunjungi halaman dan verifikasi tombol modal manual ada
+        $resIndex = $this->actingAs($user)->get(route('fakultas.penjadwalan'));
+        $resIndex->assertOk();
+        $resIndex->assertSee('Input Jadwal Manual');
+        $resIndex->assertSee('modalInputManualJadwal');
+
+        // 2. Simpan jadwal manual
+        $resStore = $this->actingAs($user)->post(route('fakultas.penjadwalan.manual.store'), [
+            'mata_kuliah_detail_id' => $mkManual->id,
+            'kelas' => 'A',
+            'hari' => 'Senin',
+            'jam_mulai' => '07:30',
+            'jam_selesai' => '09:10',
+            'ruangan_id' => $ruangan->id,
+            'dosen_id' => $dosen->id,
+            'kapasitas' => 45,
+        ]);
+
+        $resStore->assertRedirect(route('fakultas.penjadwalan'));
+        $resStore->assertSessionHas('flash_success');
+
+        $this->assertDatabaseHas('jadwals', [
+            'ruangan_id' => $ruangan->id,
+            'dosen_id' => $dosen->id,
+            'hari' => 'Senin',
+            'jam_mulai' => '07:30',
+            'jam_selesai' => '09:10',
+            'is_manual' => true,
+        ]);
+
+        $this->assertDatabaseHas('rombels', [
+            'mata_kuliah_detail_id' => $mkManual->id,
+            'kelas' => 'A',
+            'is_manual' => true,
+        ]);
+
+        // Verifikasi label Manual muncul di halaman
+        $resAfterStore = $this->actingAs($user)->get(route('fakultas.penjadwalan'));
+        $resAfterStore->assertOk();
+        $resAfterStore->assertSee('Manual');
+        $resAfterStore->assertSee('Pendidikan Pancasila Manual');
+
+        // 3. Jalankan Generate Jadwal Otomatis untuk semester 1
+        $resGenerate = $this->actingAs($user)->post(route('fakultas.penjadwalan.generate'), [
+            'semester_mode' => '1',
+            'target_mk' => 'all',
+            'hari' => ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'],
+            'jam_mulai' => ['07:30', '10:00', '13:00', '14:50', '15:30'],
+        ]);
+
+        $resGenerate->assertRedirect(route('fakultas.penjadwalan'));
+        $resGenerate->assertSessionHas('flash_success');
+
+        // 4. KUNCI UTAMA: Jadwal manual TIDAK HILANG / TIDAK TERHAPUS
+        $this->assertDatabaseHas('jadwals', [
+            'ruangan_id' => $ruangan->id,
+            'dosen_id' => $dosen->id,
+            'hari' => 'Senin',
+            'jam_mulai' => '07:30',
+            'jam_selesai' => '09:10',
+            'is_manual' => true,
+        ]);
+
+        // Dan MK otomatis juga berhasil tergenerate
+        $this->assertDatabaseHas('rombels', [
+            'mata_kuliah_detail_id' => $mkOtomatis->id,
+            'is_manual' => false,
+        ]);
+    }
+
+    /**
+     * 19. Test validasi konflik jadwal manual (bentrok ruangan & sholat Jumat).
+     */
+    public function test_fakultas_manual_schedule_conflict_validations(): void
+    {
+        $user = $this->fakultasUser();
+
+        $mk1 = MataKuliahDetail::create([
+            'kode_mk' => 'UNV-CONF-1',
+            'nama_mk' => 'Bahasa Indonesia',
+            'sks' => 2,
+            'semester' => 1,
+            'tipe' => 'Wajib',
+            'kategori' => 'MK Universitas',
+            'prodi' => 'Universitas',
+            'is_active' => true,
+            'status_tawar' => true,
+            'jumlah_kelas' => 1,
+        ]);
+
+        $mk2 = MataKuliahDetail::create([
+            'kode_mk' => 'UNV-CONF-2',
+            'nama_mk' => 'Kewarganegaraan',
+            'sks' => 2,
+            'semester' => 1,
+            'tipe' => 'Wajib',
+            'kategori' => 'MK Universitas',
+            'prodi' => 'Universitas',
+            'is_active' => true,
+            'status_tawar' => true,
+            'jumlah_kelas' => 1,
+        ]);
+
+        $ruangan = Ruangan::firstOrCreate(
+            ['kode' => 'R-CONF-1'],
+            ['nama' => 'Ruang Konflik 1', 'tipe' => 'Ruang Kelas', 'kapasitas' => 50, 'is_active' => true]
+        );
+
+        // Buat jadwal pertama
+        $this->actingAs($user)->post(route('fakultas.penjadwalan.manual.store'), [
+            'mata_kuliah_detail_id' => $mk1->id,
+            'kelas' => 'A',
+            'hari' => 'Selasa',
+            'jam_mulai' => '07:30',
+            'jam_selesai' => '09:10',
+            'ruangan_id' => $ruangan->id,
+        ]);
+
+        // Coba input jadwal kedua di ruangan dan hari yang sama dengan jam bertabrakan (08:00 - 09:40)
+        $resConflict = $this->actingAs($user)->post(route('fakultas.penjadwalan.manual.store'), [
+            'mata_kuliah_detail_id' => $mk2->id,
+            'kelas' => 'A',
+            'hari' => 'Selasa',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '09:40',
+            'ruangan_id' => $ruangan->id,
+        ]);
+
+        $resConflict->assertSessionHas('flash_error');
+
+        // Coba input pada hari Jumat di jam Sholat Jumat (12:00 - 13:40)
+        $resJumat = $this->actingAs($user)->post(route('fakultas.penjadwalan.manual.store'), [
+            'mata_kuliah_detail_id' => $mk2->id,
+            'kelas' => 'A',
+            'hari' => 'Jumat',
+            'jam_mulai' => '12:00',
+            'jam_selesai' => '13:40',
+            'ruangan_id' => $ruangan->id,
+        ]);
+
+        $resJumat->assertSessionHas('flash_error');
+    }
+
+    /**
+     * 20. Test Hapus single jadwal dan Reset Jadwal tetap mempertahankan manual.
+     */
+    public function test_fakultas_single_delete_and_reset_preserves_manual(): void
+    {
+        $user = $this->fakultasUser();
+
+        $mk = MataKuliahDetail::create([
+            'kode_mk' => 'UNV-DEL-1',
+            'nama_mk' => 'Agama Islam',
+            'sks' => 2,
+            'semester' => 1,
+            'tipe' => 'Wajib',
+            'kategori' => 'MK Universitas',
+            'prodi' => 'Universitas',
+            'is_active' => true,
+            'status_tawar' => true,
+            'jumlah_kelas' => 1,
+        ]);
+
+        $this->actingAs($user)->post(route('fakultas.penjadwalan.manual.store'), [
+            'mata_kuliah_detail_id' => $mk->id,
+            'kelas' => 'A',
+            'hari' => 'Kamis',
+            'jam_mulai' => '10:00',
+            'jam_selesai' => '11:40',
+        ]);
+
+        $jadwal = Jadwal::where('hari', 'Kamis')->where('is_manual', true)->firstOrFail();
+
+        // Reset Jadwal otomatis (manual tetap ada)
+        $resReset = $this->actingAs($user)->delete(route('fakultas.penjadwalan.destroy-all'));
+        $resReset->assertRedirect(route('fakultas.penjadwalan'));
+        $resReset->assertSessionHas('flash_success');
+
+        $this->assertDatabaseHas('jadwals', ['id' => $jadwal->id]);
+
+        // Hapus spesifik jadwal manual tersebut
+        $resDeleteSingle = $this->actingAs($user)->delete(route('fakultas.penjadwalan.destroy-single', $jadwal->id));
+        $resDeleteSingle->assertRedirect(route('fakultas.penjadwalan'));
+        $resDeleteSingle->assertSessionHas('flash_success');
+
+        $this->assertDatabaseMissing('jadwals', ['id' => $jadwal->id]);
+    }
+
+    /**
+     * 21. Test Akun Fakultas dapat menginput jadwal manual sekaligus menambahkan nama dosen baru langsung.
+     */
+    public function test_fakultas_can_input_manual_schedule_with_new_dosen_name(): void
+    {
+        $user = $this->fakultasUser();
+
+        $mk = MataKuliahDetail::create([
+            'kode_mk' => 'UNV-NEWDOS',
+            'nama_mk' => 'Kewirausahaan Maritim',
+            'sks' => 2,
+            'semester' => 2,
+            'tipe' => 'Wajib',
+            'kategori' => 'MK Universitas',
+            'prodi' => 'Universitas',
+            'is_active' => true,
+            'status_tawar' => true,
+            'jumlah_kelas' => 1,
+        ]);
+
+        $resStore = $this->actingAs($user)->post(route('fakultas.penjadwalan.manual.store'), [
+            'mata_kuliah_detail_id' => $mk->id,
+            'kelas' => 'B',
+            'hari' => 'Rabu',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '14:40',
+            'nama_dosen_baru' => 'Prof. Dr. Ir. H. Surya Atmaja, M.Eng.',
+        ]);
+
+        $resStore->assertRedirect(route('fakultas.penjadwalan'));
+        $resStore->assertSessionHas('flash_success');
+
+        $this->assertDatabaseHas('dosens', [
+            'nama' => 'Prof. Dr. Ir. H. Surya Atmaja, M.Eng.',
+        ]);
+
+        $dosenBaru = Dosen::where('nama', 'Prof. Dr. Ir. H. Surya Atmaja, M.Eng.')->firstOrFail();
+
+        $this->assertDatabaseHas('jadwals', [
+            'dosen_id' => $dosenBaru->id,
+            'hari' => 'Rabu',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '14:40',
+            'is_manual' => true,
+        ]);
+    }
+
+    /**
+     * 22. Test Akun Fakultas dapat menginput jadwal manual dengan 4 tim dosen (1 Ketua + 3 Anggota).
+     */
+    public function test_fakultas_can_input_manual_schedule_with_team_of_four_dosens(): void
+    {
+        $user = $this->fakultasUser();
+
+        $d1 = Dosen::create(['nama' => 'Dosen Ketua Test', 'jabatan' => 'Ketua', 'is_active' => true]);
+        $d2 = Dosen::create(['nama' => 'Dosen Anggota 1 Test', 'jabatan' => 'Anggota', 'is_active' => true]);
+        $d3 = Dosen::create(['nama' => 'Dosen Anggota 2 Test', 'jabatan' => 'Anggota', 'is_active' => true]);
+        $d4 = Dosen::create(['nama' => 'Dosen Anggota 3 Test', 'jabatan' => 'Anggota', 'is_active' => true]);
+
+        $mk = MataKuliahDetail::create([
+            'kode_mk' => 'UNV-TEAM4',
+            'nama_mk' => 'Studi Kasus Kemaritiman Tim 4',
+            'sks' => 2,
+            'semester' => 2,
+            'tipe' => 'Wajib',
+            'kategori' => 'MK Universitas',
+            'prodi' => 'Universitas',
+            'is_active' => true,
+            'status_tawar' => true,
+            'jumlah_kelas' => 1,
+        ]);
+
+        $res = $this->actingAs($user)->post(route('fakultas.penjadwalan.manual.store'), [
+            'mata_kuliah_detail_id' => $mk->id,
+            'kelas' => 'A',
+            'hari' => 'Selasa',
+            'jam_mulai' => '07:30',
+            'jam_selesai' => '09:10',
+            'dosen_id' => $d1->id,
+            'dosen_anggota_1_id' => $d2->id,
+            'dosen_anggota_2_id' => $d3->id,
+            'dosen_anggota_3_id' => $d4->id,
+        ]);
+
+        $res->assertRedirect(route('fakultas.penjadwalan'));
+        $res->assertSessionHas('flash_success');
+
+        $this->assertDatabaseHas('jadwals', [
+            'dosen_id' => $d1->id,
+            'dosen_anggota_1_id' => $d2->id,
+            'dosen_anggota_2_id' => $d3->id,
+            'dosen_anggota_3_id' => $d4->id,
+            'is_manual' => true,
+        ]);
+
+        $this->assertDatabaseHas('rombels', [
+            'dosen_pengampu_id' => $d1->id,
+            'dosen_anggota_1_id' => $d2->id,
+            'dosen_anggota_2_id' => $d3->id,
+            'dosen_anggota_3_id' => $d4->id,
+            'is_manual' => true,
+        ]);
+    }
+
+    /**
+     * 23. Test Akun Fakultas dapat mengedit jadwal otomatis dan mengubahnya menjadi manual terlindungi.
+     */
+    public function test_fakultas_can_edit_schedule_and_marks_as_manual(): void
+    {
+        $user = $this->fakultasUser();
+
+        $dKetua = Dosen::create(['nama' => 'Dosen Asli Auto', 'jabatan' => 'Ketua', 'is_active' => true]);
+        $dEdit = Dosen::create(['nama' => 'Dosen Pengganti Edit', 'jabatan' => 'Ketua', 'is_active' => true]);
+
+        $mk = MataKuliahDetail::create([
+            'kode_mk' => 'UNV-EDITABLE',
+            'nama_mk' => 'Mata Kuliah Diuji Edit',
+            'sks' => 2,
+            'semester' => 2,
+            'tipe' => 'Wajib',
+            'kategori' => 'MK Universitas',
+            'prodi' => 'Universitas',
+            'is_active' => true,
+            'status_tawar' => true,
+            'jumlah_kelas' => 1,
+        ]);
+
+        $rombel = Rombel::create([
+            'mata_kuliah_detail_id' => $mk->id,
+            'kode_rombel' => 'UNV-EDITABLE-A',
+            'nomor_rombel' => 1,
+            'kelas' => 'A',
+            'kapasitas' => 40,
+            'hari' => 'Senin',
+            'jam_mulai' => '07:30',
+            'jam_selesai' => '09:10',
+            'dosen_pengampu_id' => $dKetua->id,
+            'is_active' => true,
+            'is_manual' => false, // Awalnya jadwal otomatis
+        ]);
+
+        $jadwal = Jadwal::create([
+            'rombel_id' => $rombel->id,
+            'dosen_id' => $dKetua->id,
+            'hari' => 'Senin',
+            'jam_mulai' => '07:30',
+            'jam_selesai' => '09:10',
+            'is_active' => true,
+            'is_manual' => false, // Awalnya otomatis
+        ]);
+
+        // Lakukan pengeditan via PUT
+        $resUpdate = $this->actingAs($user)->put(route('fakultas.penjadwalan.update', $jadwal->id), [
+            'kelas' => 'B',
+            'hari' => 'Kamis',
+            'jam_mulai' => '10:00',
+            'jam_selesai' => '11:40',
+            'dosen_id' => $dEdit->id,
+            'kapasitas' => 45,
+        ]);
+
+        $resUpdate->assertRedirect(route('fakultas.penjadwalan'));
+        $resUpdate->assertSessionHas('flash_success');
+
+        $jadwal->refresh();
+        $this->assertEquals('B', $jadwal->rombel->kelas);
+        $this->assertEquals('Kamis', $jadwal->hari);
+        $this->assertEquals('10:00', substr($jadwal->jam_mulai, 0, 5));
+        $this->assertEquals($dEdit->id, $jadwal->dosen_id);
+        $this->assertTrue((bool) $jadwal->is_manual); // Menjadi manual!
+        $this->assertTrue((bool) $jadwal->rombel->is_manual);
     }
 }

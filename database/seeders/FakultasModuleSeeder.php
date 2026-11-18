@@ -4,8 +4,11 @@ namespace Database\Seeders;
 
 use App\Models\Course;
 use App\Models\CourseCategory;
+use App\Models\Dosen;
 use App\Models\Fakultas;
 use App\Models\Laboratory;
+use App\Models\MataKuliah;
+use App\Models\MataKuliahDetail;
 use App\Models\Prodi;
 use App\Models\Room;
 use App\Models\StudyProgramLaboratory;
@@ -50,12 +53,27 @@ class FakultasModuleSeeder extends Seeder
             ]
         );
 
-        // 2. Initial Courses (MKWU & MKWF)
+        // 2. Pastikan master dosen resmi kampus tersedia terlebih dahulu
+        foreach (Dosen::MAPPING_INISIAL as $inisial => $nama) {
+            Dosen::updateOrCreate(
+                ['nama' => $nama],
+                [
+                    'inisial' => $inisial,
+                    'jabatan' => 'Ketua & Anggota',
+                    'prodi' => 'Fakultas',
+                    'is_active' => true,
+                ]
+            );
+        }
+
+        $dosenByInisial = Dosen::pluck('id', 'inisial')->toArray();
+
+        // 3. Initial Courses (MKWU & MKWF)
         $mkwuCourses = [
-            ['code' => 'UNV101', 'name' => 'Pendidikan Agama', 'sks' => 2, 'semester' => 1, 'type' => 'THEORY'],
-            ['code' => 'UNV102', 'name' => 'Pancasila', 'sks' => 2, 'semester' => 1, 'type' => 'THEORY'],
-            ['code' => 'UNV103', 'name' => 'Bahasa Indonesia', 'sks' => 2, 'semester' => 2, 'type' => 'THEORY'],
-            ['code' => 'UNV104', 'name' => 'Kewarganegaraan', 'sks' => 2, 'semester' => 2, 'type' => 'THEORY'],
+            ['code' => 'UNV101', 'name' => 'Pendidikan Agama', 'sks' => 2, 'semester' => 1, 'type' => 'THEORY', 'ketua' => 'AS', 'anggota' => 'SK'],
+            ['code' => 'UNV102', 'name' => 'Pancasila', 'sks' => 2, 'semester' => 1, 'type' => 'THEORY', 'ketua' => 'RBP', 'anggota' => 'BAV'],
+            ['code' => 'UNV103', 'name' => 'Bahasa Indonesia', 'sks' => 2, 'semester' => 2, 'type' => 'THEORY', 'ketua' => 'PA', 'anggota' => 'BES'],
+            ['code' => 'UNV104', 'name' => 'Kewarganegaraan', 'sks' => 2, 'semester' => 2, 'type' => 'THEORY', 'ketua' => 'RBP', 'anggota' => 'BAV'],
         ];
 
         foreach ($mkwuCourses as $c) {
@@ -73,13 +91,48 @@ class FakultasModuleSeeder extends Seeder
                     'status' => 'ACTIVE',
                 ]
             );
+
+            $masterMk = MataKuliah::firstOrCreate(
+                ['kode' => $c['code']],
+                [
+                    'nama' => $c['name'],
+                    'sks' => $c['sks'],
+                    'semester' => $c['semester'],
+                    'tipe' => 'Fakultas',
+                    'kategori' => 'MK Universitas',
+                    'pemilik' => 'Universitas',
+                    'level_id' => 1,
+                ]
+            );
+
+            MataKuliahDetail::updateOrCreate(
+                ['kode_mk' => $c['code']],
+                [
+                    'master_mk_id' => $masterMk->id,
+                    'nama_mk' => $c['name'],
+                    'sks' => $c['sks'],
+                    'semester' => $c['semester'],
+                    'tipe' => 'Wajib',
+                    'kategori' => 'MK Universitas',
+                    'prodi' => 'Universitas',
+                    'dosen_ketua_id' => $dosenByInisial[$c['ketua']] ?? null,
+                    'dosen_anggota_id' => $dosenByInisial[$c['anggota']] ?? null,
+                    'dosen_anggota_2_id' => null,
+                    'dosen_anggota_3_id' => null,
+                    'jumlah_kelas' => 1,
+                    'kapasitas_per_kelas' => 40,
+                    'butuh_lab' => false,
+                    'is_active' => true,
+                    'status_tawar' => true,
+                ]
+            );
         }
 
         $mkwfCourses = [
-            ['code' => 'FST201', 'name' => 'Kalkulus I', 'sks' => 3, 'semester' => 1, 'type' => 'THEORY'],
-            ['code' => 'FST202', 'name' => 'Fisika Dasar', 'sks' => 3, 'semester' => 1, 'type' => 'THEORY'],
-            ['code' => 'FST203', 'name' => 'Praktikum Fisika Dasar', 'sks' => 1, 'semester' => 1, 'type' => 'PRACTICUM'],
-            ['code' => 'FST204', 'name' => 'Matematika Diskrit', 'sks' => 3, 'semester' => 2, 'type' => 'THEORY'],
+            ['code' => 'FST201', 'name' => 'Kalkulus I', 'sks' => 3, 'semester' => 1, 'type' => 'THEORY', 'ketua' => 'MB', 'anggota' => 'NN'],
+            ['code' => 'FST202', 'name' => 'Fisika Dasar', 'sks' => 3, 'semester' => 1, 'type' => 'THEORY', 'ketua' => 'TS', 'anggota' => 'RP'],
+            ['code' => 'FST203', 'name' => 'Praktikum Fisika Dasar', 'sks' => 1, 'semester' => 1, 'type' => 'PRACTICUM', 'ketua' => 'TS', 'anggota' => 'RP'],
+            ['code' => 'FST204', 'name' => 'Matematika Diskrit', 'sks' => 3, 'semester' => 2, 'type' => 'THEORY', 'ketua' => 'NR', 'anggota' => 'MRR'],
         ];
 
         foreach ($mkwfCourses as $c) {
@@ -97,6 +150,96 @@ class FakultasModuleSeeder extends Seeder
                     'status' => 'ACTIVE',
                 ]
             );
+
+            $masterFst = MataKuliah::firstOrCreate(
+                ['kode' => $c['code']],
+                [
+                    'nama' => $c['name'],
+                    'sks' => $c['sks'],
+                    'semester' => $c['semester'],
+                    'tipe' => 'Fakultas',
+                    'kategori' => 'MK Fakultas',
+                    'pemilik' => 'Fakultas',
+                    'level_id' => 1,
+                ]
+            );
+
+            MataKuliahDetail::updateOrCreate(
+                ['kode_mk' => $c['code']],
+                [
+                    'master_mk_id' => $masterFst->id,
+                    'nama_mk' => $c['name'],
+                    'sks' => $c['sks'],
+                    'semester' => $c['semester'],
+                    'tipe' => 'Wajib',
+                    'kategori' => 'MK Fakultas',
+                    'prodi' => 'Fakultas',
+                    'dosen_ketua_id' => $dosenByInisial[$c['ketua']] ?? null,
+                    'dosen_anggota_id' => $dosenByInisial[$c['anggota']] ?? null,
+                    'dosen_anggota_2_id' => null,
+                    'dosen_anggota_3_id' => null,
+                    'jumlah_kelas' => 1,
+                    'kapasitas_per_kelas' => 40,
+                    'butuh_lab' => $c['type'] === 'PRACTICUM',
+                    'is_active' => true,
+                    'status_tawar' => true,
+                ]
+            );
+        }
+
+        // 4. Tetapkan dosen default (1 Ketua, 1 Anggota) ke semua MK Universitas yang belum memiliki dosen
+        $allUnv = MataKuliahDetail::where(function ($q) {
+            $q->whereIn('kategori', ['MK Universitas', 'MK Fakultas'])
+                ->orWhere('prodi', 'Universitas')
+                ->orWhere('prodi', 'Fakultas')
+                ->orWhere('kode_mk', 'like', 'UNV%')
+                ->orWhere('kode_mk', 'like', 'FST%');
+        })->get();
+
+        foreach ($allUnv as $mk) {
+            if ($mk->dosen_ketua_id && $mk->dosen_anggota_id) {
+                continue;
+            }
+
+            $namaUpper = strtoupper($mk->nama_mk);
+            $kodeUpper = strtoupper($mk->kode_mk);
+
+            $ketuaInisial = 'AS';
+            $anggotaInisial = 'SK';
+
+            if (str_contains($namaUpper, 'AGAMA') || str_contains($kodeUpper, '12001') || str_contains($kodeUpper, '12101')) {
+                $ketuaInisial = 'AS';
+                $anggotaInisial = 'SK';
+            } elseif (str_contains($namaUpper, 'WARGA') || str_contains($namaUpper, 'PANCASILA') || str_contains($kodeUpper, '12103')) {
+                $ketuaInisial = 'RBP';
+                $anggotaInisial = 'BAV';
+            } elseif (str_contains($namaUpper, 'MARITIM') || str_contains($kodeUpper, '12106')) {
+                $ketuaInisial = 'MZ';
+                $anggotaInisial = 'RF';
+            } elseif (str_contains($namaUpper, 'MELAYU') || str_contains($namaUpper, 'TAMADUN') || str_contains($namaUpper, 'BAHASA') || str_contains($kodeUpper, '12107')) {
+                $ketuaInisial = 'PA';
+                $anggotaInisial = 'BES';
+            } elseif (str_contains($namaUpper, 'KUKERTA') || str_contains($namaUpper, 'KKN') || str_contains($kodeUpper, '12008') || str_contains($kodeUpper, '1200-A')) {
+                $ketuaInisial = 'DB';
+                $anggotaInisial = 'SR';
+            } elseif (str_contains($namaUpper, 'SKRIPSI') || str_contains($namaUpper, 'TUGAS AKHIR') || str_contains($kodeUpper, '12009')) {
+                $ketuaInisial = 'MB';
+                $anggotaInisial = 'NN';
+            } elseif (str_contains($namaUpper, 'KALKULUS')) {
+                $ketuaInisial = 'MB';
+                $anggotaInisial = 'NN';
+            } elseif (str_contains($namaUpper, 'FISIKA')) {
+                $ketuaInisial = 'TS';
+                $anggotaInisial = 'RP';
+            } elseif (str_contains($namaUpper, 'DISKRIT')) {
+                $ketuaInisial = 'NR';
+                $anggotaInisial = 'MRR';
+            }
+
+            $mk->update([
+                'dosen_ketua_id' => $mk->dosen_ketua_id ?: ($dosenByInisial[$ketuaInisial] ?? null),
+                'dosen_anggota_id' => $mk->dosen_anggota_id ?: ($dosenByInisial[$anggotaInisial] ?? null),
+            ]);
         }
 
         // 3. Rooms (11 Ruang FTTK - Prompt4 Section 5)

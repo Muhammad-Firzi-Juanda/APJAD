@@ -687,4 +687,64 @@ class SchedulerServiceTest extends TestCase
         $this->assertArrayHasKey('kegagalan', $hasil);
         $this->assertIsArray($hasil['kegagalan']);
     }
+
+    public function test_generate_preserves_manual_schedules_and_avoids_conflict(): void
+    {
+        $mk = MataKuliahDetail::where('semester', self::SEMESTER)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        $ruangan = Ruangan::where('is_active', true)->firstOrFail();
+
+        // Buat jadwal manual
+        $rombel = Rombel::create([
+            'mata_kuliah_detail_id' => $mk->id,
+            'kode_rombel' => $mk->kode_mk.'-M',
+            'nomor_rombel' => 99,
+            'kelas' => 'M',
+            'kapasitas' => 40,
+            'ruangan_id' => $ruangan->id,
+            'hari' => 'Senin',
+            'jam_mulai' => '07:30',
+            'jam_selesai' => '09:10',
+            'is_active' => true,
+            'is_manual' => true,
+        ]);
+
+        $jadwalManual = Jadwal::create([
+            'rombel_id' => $rombel->id,
+            'ruangan_id' => $ruangan->id,
+            'hari' => 'Senin',
+            'jam_mulai' => '07:30',
+            'jam_selesai' => '09:10',
+            'is_active' => true,
+            'is_manual' => true,
+        ]);
+
+        // Jalankan auto-generate
+        $hasil = $this->generate(self::SEMESTER);
+
+        // 1. Jadwal manual harus tetap ada di database
+        $this->assertDatabaseHas('jadwals', [
+            'id' => $jadwalManual->id,
+            'ruangan_id' => $ruangan->id,
+            'hari' => 'Senin',
+            'jam_mulai' => '07:30',
+            'jam_selesai' => '09:10',
+            'is_manual' => true,
+        ]);
+
+        // 2. Tidak boleh ada jadwal otomatis lain yang memakai ruangan tersebut di hari Senin jam 07:30 - 09:10
+        $bentrok = Jadwal::where('id', '!=', $jadwalManual->id)
+            ->where('ruangan_id', $ruangan->id)
+            ->where('hari', 'Senin')
+            ->where('is_active', true)
+            ->where(function ($q) {
+                $q->where('jam_mulai', '<', '09:10')
+                    ->where('jam_selesai', '>', '07:30');
+            })
+            ->exists();
+
+        $this->assertFalse($bentrok, 'Jadwal otomatis tidak boleh bentrok dengan slot ruangan jadwal manual.');
+    }
 }
