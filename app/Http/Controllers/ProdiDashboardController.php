@@ -87,7 +87,7 @@ class ProdiDashboardController extends Controller
             ->orderBy('kode_rombel')
             ->get();
 
-        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         $perHari = $jadwals->groupBy('hari');
         $semesterList = MataKuliahDetail::whereIn('prodi', $prodiNames)
             ->where('is_active', true)

@@ -250,7 +250,7 @@
 
                     <select name="hari" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
                         <option value="">Semua Hari</option>
-                        @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $h)
+                        @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
                             <option value="{{ $h }}" {{ request('hari') === $h ? 'selected' : '' }}>{{ $h }}</option>
                         @endforeach
                     </select>

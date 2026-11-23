@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'APJAD - Penjadwalan Otomatis')
 
@@ -807,10 +807,17 @@
             {{-- Header Toolbar --}}
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
                 <div>
-                    <h1 class="page-title" style="margin-bottom:4px;">Penjadwalan Kuliah Prodi {{ $userProdi ?? 'Teknik Informatika' }}</h1>
-                    <p style="color:#64748b; font-size:14px; margin:0;">
-                        Generate jadwal kuliah otomatis bebas bentrok untuk program studi {{ $userProdi ?? 'Teknik Informatika' }}.
-                    </p>
+                    @if (($userRole ?? '') === 'Prodi' && ! empty($userProdi))
+                        <h1 class="page-title" style="margin-bottom:4px;">Penjadwalan Kuliah Prodi {{ $userProdi }}</h1>
+                        <p style="color:#64748b; font-size:14px; margin:0;">
+                            Generate jadwal kuliah otomatis bebas bentrok untuk program studi {{ $userProdi }}.
+                        </p>
+                    @else
+                        <h1 class="page-title" style="margin-bottom:4px;">Penjadwalan Prodi</h1>
+                        <p style="color:#64748b; font-size:14px; margin:0;">
+                            Generate jadwal kuliah otomatis bebas bentrok untuk program studi.
+                        </p>
+                    @endif
                 </div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                     <a href="{{ route('penjadwalan.template') }}" style="display:inline-flex; align-items:center; gap:6px; background:#fff; color:#0369a1; border:1px solid #bae6fd; padding:9px 14px; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px; text-decoration:none;">
@@ -913,14 +920,14 @@
 
                 <form action="{{ route('penjadwalan.generate') }}" method="POST" id="formGenerate">
                     @csrf
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:18px; margin-bottom:20px;">
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:18px; margin-bottom:20px;">
                         <div>
                             <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:6px;">
                                 Periode Semester <span style="color:#ef4444;">*</span>
                             </label>
                             <select name="semester_mode" id="generatorSemesterMode" onchange="syncSemesterSelection(this.value)" required style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
-                                <option value="ganjil" selected>Semester Ganjil (1, 3, 5, 7)</option>
-                                <option value="genap">Semester Genap (2, 4, 6, 8)</option>
+                                <option value="genap" selected>Semester Genap (2, 4, 6, 8)</option>
+                                <option value="ganjil">Semester Ganjil (1, 3, 5, 7)</option>
                                 <option value="all">Semua Semester (1 s/d 8)</option>
                                 @foreach ($semesterAll as $sem)
                                     <option value="{{ $sem }}">Semester {{ $sem }}</option>
@@ -936,25 +943,35 @@
                                 <input type="text" name="prodi" value="{{ $userProdi ?? 'Teknik Informatika' }}" readonly style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#f8fafc; color:#334155; font-weight:600; cursor:not-allowed;">
                             @else
                                 <select name="prodi" style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff;">
+                                    <option value="Semua" selected>Semua Program Studi</option>
                                     @foreach ($daftarProdi as $dp)
-                                        <option value="{{ $dp->nama }}" @selected($loop->first)>{{ $dp->nama }} ({{ $dp->kode }})</option>
+                                        <option value="{{ $dp->nama }}">{{ $dp->nama }} ({{ $dp->kode }})</option>
                                     @endforeach
-                                    <option value="Semua">Semua Program Studi</option>
                                 </select>
                             @endif
+                        </div>
+
+                        <div>
+                            <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:6px;">
+                                Algoritma Generator <span style="color:#ef4444;">*</span>
+                            </label>
+                            <select name="algoritma" id="generatorAlgoritma" style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; background:#fff; font-weight:600; color:#0f172a;">
+                                <option value="greedy" selected>Greedy Heuristic Algorithm (Sangat Cepat & Bebas Bentrok ~2-4 Detik)</option>
+                                <option value="genetic">Genetic Algorithm (Optimasi Multi-Kandidat & Kualitas Tinggi ~10-15 Detik)</option>
+                            </select>
                         </div>
                     </div>
 
                     <!-- Hidden Semester Checkboxes to maintain backwards compatibility -->
                     <div id="hiddenSemesterInputs" style="display:none;">
                         @foreach ($semesterAll as $sem)
-                            <input type="checkbox" name="semester[]" value="{{ $sem }}" id="sem_input_{{ $sem }}" @checked($sem % 2 === 1)>
+                            <input type="checkbox" name="semester[]" value="{{ $sem }}" id="sem_input_{{ $sem }}" @checked($sem % 2 === 0)>
                         @endforeach
                     </div>
 
                     <div style="margin-bottom:18px;">
                         <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:8px;">
-                            Pilihan Hari Kuliah:
+                            Pilihan Hari Kuliah Reguler:
                         </label>
                         <div style="display:flex; flex-wrap:wrap; gap:16px;">
                             @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hari)
@@ -964,6 +981,9 @@
                                 </label>
                             @endforeach
                         </div>
+                        <small style="display:block; margin-top:5px; color:#64748b; font-size:12px;">
+                            * Hari Senin s.d. Jumat dikhususkan untuk perkuliahan reguler. Hari Sabtu digunakan khusus untuk kegiatan akademik (KP, Magang, Skripsi).
+                        </small>
                     </div>
 
                     <div style="margin-bottom:24px;">
@@ -987,19 +1007,19 @@
                         </button>
 
                         <button type="button" onclick="toggleElement('rulesInfoBox')" style="background:none; border:none; color:#64748b; font-size:13px; cursor:pointer; text-decoration:underline;">
-                            Lihat Aturan Penjadwalan â–¾
+                            Lihat Aturan Penjadwalan &#9662;
                         </button>
                     </div>
 
                     <div id="rulesInfoBox" style="display:none; margin-top:16px; padding:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:12.5px; color:#475569;">
                         <strong style="color:#1e293b;">Aturan Engine yang Dijalankan:</strong>
                         <ul style="margin:6px 0 0 18px; line-height:1.6;">
-                            <li>Bentrok kelas tidak diperbolehkan &mdash; satu rombel prodi+semester tidak memiliki 2 MK pada waktu bersamaan.</li>
-                            <li>Dosen ketua tidak boleh bentrok mengajar di MK mana pun.</li>
-                            <li>Jadwal aktif yang sudah ada ikut dihitung &mdash; ruangan, dosen, dan rombel tidak ditimpa.</li>
-                            <li>Hari dan jam yang tidak dicentang tidak akan digunakan oleh generator.</li>
-                            <li>Slot berurutan dimulai dari 07:30, 10:00, 13:00, 14:50, 15:30. Durasi dihitung berdasarkan SKS x 50 menit.</li>
-                            <li>MK Pilihan dibagi ke dalam kelompok slot untuk mencegah bentrok mahasiswa.</li>
+                            <li><strong>Mata Kuliah Reguler:</strong> Dijadwalkan hanya pada <strong>Senin s.d. Jumat</strong> (slot modular 07:30–18:00). Tidak ada pengalihan ke hari Sabtu jika slot hari kerja penuh.</li>
+                            <li><strong>Kegiatan Akademik Khusus (KP, Magang, Skripsi):</strong> Dijadwalkan khusus pada <strong>Hari Sabtu</strong> dengan proteksi bentrok dosen dan mahasiswa. Tidak memaksakan ruangan kuliah fisik apabila kegiatannya tanpa ruangan.</li>
+                            <li><strong>KKN / Kukerta:</strong> Sepenuhnya <strong>dikecualikan</strong> dari penjadwalan tatap muka (data tetap tersimpan aman di database dan tidak dihitung gagal).</li>
+                            <li><strong>Proteksi Sholat Jumat & Istirahat:</strong> Slot istirahat siang (12:30–13:00) dan ibadah Sholat Jumat (11:50–12:50) dilindungi dari bentrok jadwal.</li>
+                            <li><strong>Alokasi Ruangan:</strong> Menggunakan prinsip <em>Best-Fit</em> (Praktikum wajib Laboratorium yang sesuai, Teori disesuaikan kapasitas kursi).</li>
+                            <li><strong>Keamanan Transaksi:</strong> Menggunakan audit pra-simpan. Jadwal lama tidak akan dihapus jika proses generate gagal atau melanggar batasan wajib.</li>
                         </ul>
                     </div>
                 </form>
@@ -1267,6 +1287,9 @@
                         </div>
                         @php
                             $totalBerhasil = 0;
+                            $totalRegulerInLog = 0;
+                            $totalKhususInLog = 0;
+                            $totalKknInLog = 0;
                             $allFailuresCount = 0;
                             $totalPeringatan = 0;
                             $semestersInLog = [];
@@ -1275,6 +1298,11 @@
                                 $totalBerhasil += ($h['jumlah'] ?? 0);
                                 $totalPeringatan += count($h['peringatan'] ?? []);
                                 $semestersInLog[] = $h['semester'];
+
+                                $st = $h['statistik'] ?? [];
+                                $totalRegulerInLog += $st['mk_reguler_berhasil'] ?? ($h['jumlah'] ?? 0);
+                                $totalKhususInLog += $st['mk_khusus_berhasil'] ?? 0;
+                                $totalKknInLog += $st['mk_kkn_dikecualikan'] ?? 0;
                                 
                                 $semFailures = $h['kegagalan'] ?? [];
                                 $existingCodes = array_column($semFailures, 'kode_mk');
@@ -1320,10 +1348,22 @@
                                             <span class="log-summary-subtitle">Semester {{ implode(', ', $semestersList) }}</span>
                                         </div>
                                         <div class="log-summary-pills">
-                                            <span class="log-pill pill-success">
+                                            <span class="log-pill pill-success" title="Mata Kuliah Reguler Terjadwal pada Senin s.d. Jumat">
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                                {{ $totalBerhasil }} Berhasil Terjadwal
+                                                {{ $totalRegulerInLog }} Reguler (Senin–Jumat)
                                             </span>
+                                            @if ($totalKhususInLog > 0)
+                                                <span class="log-pill" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;" title="Kegiatan Akademik Khusus (KP, Magang, Skripsi) pada hari Sabtu">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                                    {{ $totalKhususInLog }} Khusus (Sabtu)
+                                                </span>
+                                            @endif
+                                            @if ($totalKknInLog > 0)
+                                                <span class="log-pill" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;" title="KKN / Kukerta dikecualikan dari jadwal tatap muka">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+                                                    {{ $totalKknInLog }} KKN Dikecualikan
+                                                </span>
+                                            @endif
                                             @if ($allFailuresCount > 0)
                                                 <span class="log-pill pill-danger">
                                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
@@ -1666,11 +1706,11 @@
                             {{-- Pill Toggle Ganjil | Genap --}}
                             <div class="pill-toggle-container" style="display:inline-flex; background:#e2e8f0; padding:4px; border-radius:30px; user-select:none;">
                                 <button type="button" id="btnToggleGanjil" onclick="switchPeriode('ganjil')" 
-                                    style="padding:7px 20px; border:none; border-radius:24px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s ease; background:#0860be; color:#ffffff; box-shadow:0 2px 4px rgba(8,96,190,0.25);">
+                                    style="padding:7px 20px; border:none; border-radius:24px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s ease; background:transparent; color:#64748b;">
                                     Ganjil
                                 </button>
                                 <button type="button" id="btnToggleGenap" onclick="switchPeriode('genap')" 
-                                    style="padding:7px 20px; border:none; border-radius:24px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s ease; background:transparent; color:#64748b;">
+                                    style="padding:7px 20px; border:none; border-radius:24px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s ease; background:#0860be; color:#ffffff; box-shadow:0 2px 4px rgba(8,96,190,0.25);">
                                     Genap
                                 </button>
                             </div>
@@ -1689,14 +1729,14 @@
                     </div>
 
                     {{-- Container Mode Ganjil (Semester 1, 3, 5, 7) --}}
-                    <div id="container-ganjil" class="periode-container">
+                    <div id="container-ganjil" class="periode-container" style="display:none;">
                         @foreach ($semesterGanjil as $sem)
                             @include('penjadwalan.partials.jadwal-semester', ['sem' => $sem, 'jadwal' => $jadwal])
                         @endforeach
                     </div>
 
                     {{-- Container Mode Genap (Semester 2, 4, 6, 8) --}}
-                    <div id="container-genap" class="periode-container" style="display:none;">
+                    <div id="container-genap" class="periode-container">
                         @foreach ($semesterGenap as $sem)
                             @include('penjadwalan.partials.jadwal-semester', ['sem' => $sem, 'jadwal' => $jadwal])
                         @endforeach
@@ -2348,18 +2388,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tentukan filter prodi awal
     const prodiSelect = document.getElementById('filterProdiSelect');
     if (prodiSelect) {
-        if (serverProdi && serverProdi !== 'all') {
+        if (serverProdi && serverProdi !== 'all' && serverProdi !== 'semua' && serverProdi !== '') {
             prodiSelect.value = serverProdi;
             filterProdi(serverProdi);
             localStorage.setItem('penjadwalan_filter_prodi', serverProdi);
-        } else if (localProdi) {
+        } else if (localProdi && localProdi !== 'all' && localProdi !== 'semua' && !localProdi.toLowerCase().includes('arsitektur')) {
             prodiSelect.value = localProdi;
             filterProdi(localProdi);
+        } else {
+            prodiSelect.value = 'all';
+            filterProdi('all');
+            localStorage.setItem('penjadwalan_filter_prodi', 'all');
         }
     }
 
-    // Tentukan periode awal
-    let targetPeriode = 'ganjil';
+    // Tentukan periode awal (default ke genap karena data aktif saat ini adalah semester genap)
+    let targetPeriode = 'genap';
     if (serverPeriode && (serverPeriode === 'ganjil' || serverPeriode === 'genap')) {
         targetPeriode = serverPeriode;
     } else if (queryPeriode && (queryPeriode === 'ganjil' || queryPeriode === 'genap')) {
@@ -2378,7 +2422,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     showTab(targetTab);
 
-    // Disabled state saat proses generate berjalan
+    // Feedback loading state saat proses generate berjalan
     const formGenerateEl = document.getElementById('formGenerate');
     if (formGenerateEl) {
         formGenerateEl.addEventListener('submit', function() {
@@ -2386,6 +2430,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (btn) {
                 setTimeout(function() {
                     btn.disabled = true;
+                    btn.style.opacity = '0.8';
+                    btn.style.cursor = 'wait';
+                    btn.innerHTML = `
+                        <svg style="width:18px; height:18px; animation: spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="32" stroke-linecap="round"></circle>
+                        </svg>
+                        <span>Sedang Memproses Jadwal... Mohon Tunggu</span>
+                    `;
                 }, 10);
             }
         });

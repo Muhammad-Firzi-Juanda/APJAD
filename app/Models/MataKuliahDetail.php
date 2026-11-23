@@ -136,6 +136,243 @@ class MataKuliahDetail extends Model
     }
 
     /**
+     * Memeriksa apakah mata kuliah ini adalah KKN / Kukerta.
+     * Kategori ini SEPENUHNYA dikecualikan dari proses generate jadwal (Senin-Jumat maupun Sabtu).
+     */
+    public function isKkn(): bool
+    {
+        $nama = strtolower(trim((string) ($this->nama_mk ?? '')));
+        $kode = strtolower(trim((string) ($this->kode_mk ?? '')));
+        $kategori = strtolower(trim((string) ($this->kategori ?? '')));
+        $tipe = strtolower(trim((string) ($this->tipe ?? '')));
+
+        return (bool) preg_match('/\b(kkn|kukerta|kuliah\s*kerja\s*nyata)\b/i', "{$nama} {$kode} {$kategori} {$tipe}");
+    }
+
+    /**
+     * Mendapatkan jenis Kegiatan Akademik Khusus ('KP', 'Magang', 'Skripsi') atau null jika bukan.
+     */
+    public function getJenisKegiatanKhusus(): ?string
+    {
+        if ($this->isKkn()) {
+            return null;
+        }
+
+        $nama = strtolower(trim((string) ($this->nama_mk ?? '')));
+        $kode = strtolower(trim((string) ($this->kode_mk ?? '')));
+        $kategori = strtolower(trim((string) ($this->kategori ?? '')));
+        $text = "{$nama} {$kode} {$kategori}";
+
+        if (preg_match('/\b(skripsi|tugas\s*akhir|thesis)\b/i', $text)) {
+            return 'Skripsi';
+        }
+
+        if (preg_match('/\b(kerja\s*prakt[ie]k|kp|pkl|prakt[ie]k\s*kerja\s*lapangan)\b/i', $text)) {
+            return 'KP';
+        }
+
+        if (preg_match('/\b(magang|mbkm|studi\s*independen|internship)\b/i', $text)) {
+            return 'Magang';
+        }
+
+        return null;
+    }
+
+    /**
+     * Memeriksa apakah mata kuliah merupakan Kegiatan Akademik Khusus (KP, Magang, Skripsi).
+     * Kegiatan ini dijadwalkan secara khusus pada hari Sabtu.
+     */
+    public function isKegiatanKhusus(): bool
+    {
+        return $this->getJenisKegiatanKhusus() !== null;
+    }
+
+    public function isKp(): bool
+    {
+        return $this->getJenisKegiatanKhusus() === 'KP';
+    }
+
+    public function isMagang(): bool
+    {
+        return $this->getJenisKegiatanKhusus() === 'Magang';
+    }
+
+    public function isSkripsi(): bool
+    {
+        return $this->getJenisKegiatanKhusus() === 'Skripsi';
+    }
+
+    /**
+     * Memeriksa apakah data mata kuliah tidak dapat dikenali / ambigu / memerlukan verifikasi.
+     */
+    public function isPerluDiperiksa(): bool
+    {
+        if (empty(trim((string) $this->kode_mk)) || empty(trim((string) $this->nama_mk))) {
+            return true;
+        }
+
+        if (! is_numeric($this->sks) || (int) $this->sks <= 0) {
+            return true;
+        }
+
+        if (! is_numeric($this->semester) || (int) $this->semester < 1 || (int) $this->semester > 8) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Memeriksa apakah mata kuliah merupakan perkuliahan reguler (Senin - Jumat).
+     */
+    public function isReguler(): bool
+    {
+        return ! $this->isUlang()
+            && ! $this->isKkn()
+            && ! $this->isKegiatanKhusus()
+            && ! $this->isPerluDiperiksa();
+    }
+
+    /**
+     * Menentukan kategori penjadwalan data:
+     * - 'reguler' : Mata kuliah reguler (Senin - Jumat)
+     * - 'khusus'  : Kegiatan akademik khusus (KP, Magang, Skripsi pada hari Sabtu)
+     * - 'kkn'     : KKN/Kukerta (dikecualikan dari generate)
+     * - 'ulang'   : Mata kuliah mengulang (dikecualikan dari jadwal reguler)
+     * - 'perlu_diperiksa' : Data ambigu / tidak lengkap
+     */
+    public function getKategoriPenjadwalan(): string
+    {
+        if ($this->isPerluDiperiksa()) {
+            return 'perlu_diperiksa';
+        }
+        if ($this->isUlang()) {
+            return 'ulang';
+        }
+        if ($this->isKkn()) {
+            return 'kkn';
+        }
+        if ($this->isKegiatanKhusus()) {
+            return 'khusus';
+        }
+
+        return 'reguler';
+    }
+
+    /**
+     * Memeriksa apakah mata kuliah ini merupakan kegiatan non-tatap-muka
+     * (Kukerta/KKN, Skripsi, Tugas Akhir, Kerja Praktik/KP, Magang/MBKM).
+     */
+    public function isNonTatapMuka(): bool
+    {
+        return $this->isKkn() || $this->isKegiatanKhusus();
+    }
+
+    /**
+     * Memeriksa apakah mata kuliah ini memerlukan alokasi jadwal kuliah tatap muka reguler.
+     */
+    public function isPerluJadwalTatapMuka(): bool
+    {
+        return $this->isReguler();
+    }
+
+    /**
+     * Scope untuk menyaring mata kuliah yang memerlukan penjadwalan tatap muka reguler.
+     */
+    public function scopePerluJadwalTatapMuka($query)
+    {
+        return $this->scopeReguler($query);
+    }
+
+    /**
+     * Scope untuk menyaring mata kuliah reguler (Senin - Jumat).
+     */
+    public function scopeReguler($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('kelas')
+                ->orWhereRaw('UPPER(TRIM(kelas)) != ?', ['ULANG']);
+        })
+            ->where('kode_mk', 'not like', '%-ULANG%')
+            ->where('kode_mk', 'not like', '%ULANG%')
+            ->where('nama_mk', 'not like', '%(ULANG)%')
+            ->where('nama_mk', 'not like', '%[ULANG]%')
+            ->where('nama_mk', 'not like', '%skripsi%')
+            ->where('nama_mk', 'not like', '%tugas akhir%')
+            ->where('nama_mk', 'not like', '%thesis%')
+            ->where('nama_mk', 'not like', '%kukerta%')
+            ->where('nama_mk', 'not like', '%kkn%')
+            ->where('nama_mk', 'not like', '%kerja praktek%')
+            ->where('nama_mk', 'not like', '%kerja praktik%')
+            ->where('nama_mk', 'not like', '%magang%')
+            ->where('nama_mk', 'not like', '%pkl%')
+            ->where('nama_mk', 'not like', '%mbkm%');
+    }
+
+    /**
+     * Scope untuk menyaring Kegiatan Akademik Khusus (KP, Magang, Skripsi).
+     */
+    public function scopeKegiatanKhusus($query, ?string $jenis = null)
+    {
+        return $query->where(function ($q) use ($jenis) {
+            if ($jenis === 'Skripsi') {
+                $q->where('nama_mk', 'like', '%skripsi%')
+                    ->orWhere('nama_mk', 'like', '%tugas akhir%')
+                    ->orWhere('nama_mk', 'like', '%thesis%');
+            } elseif ($jenis === 'KP') {
+                $q->where('nama_mk', 'like', '%kerja praktek%')
+                    ->orWhere('nama_mk', 'like', '%kerja praktik%')
+                    ->orWhere('nama_mk', 'like', '%pkl%');
+            } elseif ($jenis === 'Magang') {
+                $q->where('nama_mk', 'like', '%magang%')
+                    ->orWhere('nama_mk', 'like', '%mbkm%');
+            } else {
+                $q->where('nama_mk', 'like', '%skripsi%')
+                    ->orWhere('nama_mk', 'like', '%tugas akhir%')
+                    ->orWhere('nama_mk', 'like', '%thesis%')
+                    ->orWhere('nama_mk', 'like', '%kerja praktek%')
+                    ->orWhere('nama_mk', 'like', '%kerja praktik%')
+                    ->orWhere('nama_mk', 'like', '%pkl%')
+                    ->orWhere('nama_mk', 'like', '%magang%')
+                    ->orWhere('nama_mk', 'like', '%mbkm%');
+            }
+        });
+    }
+
+    /**
+     * Scope untuk menyaring KKN / Kukerta.
+     */
+    public function scopeKkn($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('nama_mk', 'like', '%kukerta%')
+                ->orWhere('nama_mk', 'like', '%kkn%')
+                ->orWhere('nama_mk', 'like', '%kuliah kerja nyata%')
+                ->orWhere('kategori', 'like', '%kkn%')
+                ->orWhere('kategori', 'like', '%kukerta%');
+        });
+    }
+
+    /**
+     * Scope untuk menyaring mata kuliah non-tatap-muka (Skripsi, KP, Magang, Kukerta/KKN).
+     */
+    public function scopeNonTatapMuka($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('tanpa_ruangan', true)
+                ->orWhere('nama_mk', 'like', '%skripsi%')
+                ->orWhere('nama_mk', 'like', '%tugas akhir%')
+                ->orWhere('nama_mk', 'like', '%kukerta%')
+                ->orWhere('nama_mk', 'like', '%kkn%')
+                ->orWhere('nama_mk', 'like', '%kerja praktek%')
+                ->orWhere('nama_mk', 'like', '%kerja praktik%')
+                ->orWhere('nama_mk', 'like', '%magang%')
+                ->orWhere('nama_mk', 'like', '%pkl%')
+                ->orWhere('nama_mk', 'like', '%mbkm%');
+        });
+    }
+
+    /**
      * Kode mata kuliah murni tanpa imbuhan kelas (-A, -B, dll).
      */
     public function getCleanKodeMkAttribute(): string

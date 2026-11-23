@@ -270,7 +270,7 @@ class AdminCourseController extends Controller
             ->orderBy('jam_mulai')
             ->get();
 
-        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         $perHari = $jadwals->groupBy('hari');
 
         $allProdis = Prodi::with('jurusan')

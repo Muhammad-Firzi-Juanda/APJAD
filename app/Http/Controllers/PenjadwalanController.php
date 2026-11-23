@@ -316,6 +316,9 @@ class PenjadwalanController extends Controller
 
     public function generate(Request $request, SchedulerService $scheduler, GeneticSchedulerService $geneticScheduler)
     {
+        @set_time_limit(300);
+        @ini_set('memory_limit', '512M');
+
         $user = auth()->user();
 
         if ($request->has('semester_mode') && ! $request->has('semester')) {
@@ -362,6 +365,12 @@ class PenjadwalanController extends Controller
 
         $log = [];
         $totalBerhasil = 0;
+        $totalReguler = 0;
+        $totalKhusus = 0;
+        $totalKp = 0;
+        $totalMagang = 0;
+        $totalSkripsi = 0;
+        $totalKknDikecualikan = 0;
         $allKegagalan = [];
 
         foreach ($semesters as $sem) {
@@ -371,7 +380,15 @@ class PenjadwalanController extends Controller
                 $hasil = $scheduler->generate((int) $sem, $prodiScheduler, $options);
             }
 
+            $stat = $hasil['statistik'] ?? [];
             $totalBerhasil += $hasil['jumlah_jadwal'] ?? 0;
+            $totalReguler += $stat['mk_reguler_berhasil'] ?? ($hasil['jumlah_jadwal'] ?? 0);
+            $totalKhusus += $stat['mk_khusus_berhasil'] ?? 0;
+            $totalKp += $stat['mk_khusus_kp'] ?? 0;
+            $totalMagang += $stat['mk_khusus_magang'] ?? 0;
+            $totalSkripsi += $stat['mk_khusus_skripsi'] ?? 0;
+            $totalKknDikecualikan += $stat['mk_kkn_dikecualikan'] ?? 0;
+
             $kegagalanSem = $hasil['kegagalan'] ?? [];
             if (! empty($kegagalanSem)) {
                 $allKegagalan = array_merge($allKegagalan, $kegagalanSem);
@@ -385,18 +402,15 @@ class PenjadwalanController extends Controller
                 'kegagalan' => $kegagalanSem,
                 'slot_pilihan' => array_column($hasil['slot_pilihan'] ?? [], 'label'),
                 'kuota_pilihan' => $hasil['kuota_pilihan'] ?? 0,
-                'statistik' => $hasil['statistik'] ?? [],
-                'metode' => $hasil['metode'] ?? 'Greedy',
+                'statistik' => $stat,
+                'metode' => $hasil['metode'] ?? 'Greedy Algorithm',
                 'prodi' => $prodi,
             ];
         }
 
-        $periodeTarget = 'ganjil';
         $hasGanjil = ! empty(array_intersect($semesters, self::SEMESTER_GANJIL));
         $hasGenap = ! empty(array_intersect($semesters, self::SEMESTER_GENAP));
-        if ($hasGenap && ! $hasGanjil) {
-            $periodeTarget = 'genap';
-        }
+        $periodeTarget = $hasGenap ? 'genap' : ($hasGanjil ? 'ganjil' : 'genap');
 
         $metodeLabel = $algoritma === 'genetic' ? 'Genetic Algorithm' : 'Greedy Algorithm';
         $prodiFilterView = $prodiScheduler ?: 'all';
@@ -416,13 +430,17 @@ class PenjadwalanController extends Controller
             ->with('periode_aktif', $periodeTarget)
             ->with('prodi_aktif', $prodiFilterView);
 
+        $kknNote = $totalKknDikecualikan > 0 ? " ({$totalKknDikecualikan} KKN/Kukerta dikecualikan dari jadwal tatap muka)." : '';
+
         if (! empty($allKegagalan)) {
             $totalGagal = count($allKegagalan);
 
-            return $response->with('flash_warning', "Penjadwalan selesai dengan {$totalBerhasil} kelas berhasil dan {$totalGagal} kelas membutuhkan penyesuaian/gagal ditempatkan. Silakan periksa Log Diagnosa Penjadwalan.");
+            return $response->with('flash_warning', "Penjadwalan selesai: {$totalReguler} MK reguler (Senin–Jumat) & {$totalKhusus} kegiatan khusus (Sabtu) berhasil. {$totalGagal} kelas membutuhkan penyesuaian.{$kknNote} Silakan periksa Log Diagnosa Penjadwalan.");
         }
 
-        return $response->with('flash_success', "Jadwal berhasil digenerate 100% menggunakan {$metodeLabel} untuk semester ".implode(', ', $semesters).'.');
+        $khususDetail = $totalKhusus > 0 ? " dan {$totalKhusus} kegiatan khusus (Sabtu: KP={$totalKp}, Magang={$totalMagang}, Skripsi={$totalSkripsi})" : '';
+
+        return $response->with('flash_success', "Jadwal berhasil digenerate 100% bebas bentrok menggunakan {$metodeLabel}: {$totalReguler} kelas reguler (Senin–Jumat){$khususDetail} untuk semester ".implode(', ', $semesters).".{$kknNote}");
     }
 
     public function clearLog(): RedirectResponse

@@ -2,7 +2,7 @@
 @php
     $baris = $jadwal[$sem] ?? collect();
     $perHari = $baris->groupBy('hari');
-    $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+    $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     $totalJadwal = $baris->count();
 @endphp
 
@@ -59,7 +59,12 @@
                         <div class="hari-jadwal-group">
                             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                                 <div style="width: 8px; height: 8px; background: #0860be; border-radius: 50%;"></div>
-                                <h4 style="margin: 0; font-size: 1rem; color: #1e3a5f; font-weight: 700;">{{ $hari }}</h4>
+                                <h4 style="margin: 0; font-size: 1rem; color: #1e3a5f; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                    {{ $hari }}
+                                    @if ($hari === 'Sabtu')
+                                        <span style="font-size: 0.75rem; font-weight: 600; color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; padding: 2px 10px; border-radius: 12px;">Kegiatan Khusus (KP / Magang / Skripsi)</span>
+                                    @endif
+                                </h4>
                                 <span class="hari-count-badge" style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 12px;">{{ $perHari[$hari]->count() }} kelas</span>
                             </div>
                             <div style="overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid #e2e8f0;">

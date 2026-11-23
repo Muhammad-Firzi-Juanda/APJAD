@@ -109,7 +109,7 @@ class ProdiManagementController extends Controller
             ->orderBy('jam_mulai')
             ->get();
 
-        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         $perHari = $jadwals->groupBy('hari');
         $semesterList = MataKuliahDetail::whereIn('prodi', $prodiNames)
             ->where('is_active', true)

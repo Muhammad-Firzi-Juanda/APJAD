@@ -96,7 +96,7 @@ class JurusanDashboardController extends Controller
                 ->get();
         }
 
-        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
         return view('jurusan.dashboard', compact(
             'jurusan',
@@ -143,7 +143,7 @@ class JurusanDashboardController extends Controller
             : Dosen::whereIn('prodi', $allAliases)->where('is_active', true)->orderBy('nama')->get();
 
         $conflicts = $this->monitoringService->detectCrossProdiConflicts($jurusan);
-        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
         $listKategori = CatatanEvaluasiJadwal::listKategori();
 
