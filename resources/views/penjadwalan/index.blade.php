@@ -1012,14 +1012,14 @@
                     </div>
 
                     <div id="rulesInfoBox" style="display:none; margin-top:16px; padding:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:12.5px; color:#475569;">
-                        <strong style="color:#1e293b;">Aturan Engine yang Dijalankan:</strong>
+                        <strong style="color:#1e293b;">Aturan & Kebijakan Optimasi Penjadwalan:</strong>
                         <ul style="margin:6px 0 0 18px; line-height:1.6;">
-                            <li><strong>Mata Kuliah Reguler:</strong> Dijadwalkan hanya pada <strong>Senin s.d. Jumat</strong> (slot modular 07:30–18:00). Tidak ada pengalihan ke hari Sabtu jika slot hari kerja penuh.</li>
-                            <li><strong>Kegiatan Akademik Khusus (KP, Magang, Skripsi):</strong> Dijadwalkan khusus pada <strong>Hari Sabtu</strong> dengan proteksi bentrok dosen dan mahasiswa. Tidak memaksakan ruangan kuliah fisik apabila kegiatannya tanpa ruangan.</li>
-                            <li><strong>KKN / Kukerta:</strong> Sepenuhnya <strong>dikecualikan</strong> dari penjadwalan tatap muka (data tetap tersimpan aman di database dan tidak dihitung gagal).</li>
-                            <li><strong>Proteksi Sholat Jumat & Istirahat:</strong> Slot istirahat siang (12:30–13:00) dan ibadah Sholat Jumat (11:50–12:50) dilindungi dari bentrok jadwal.</li>
-                            <li><strong>Alokasi Ruangan:</strong> Menggunakan prinsip <em>Best-Fit</em> (Praktikum wajib Laboratorium yang sesuai, Teori disesuaikan kapasitas kursi).</li>
-                            <li><strong>Keamanan Transaksi:</strong> Menggunakan audit pra-simpan. Jadwal lama tidak akan dihapus jika proses generate gagal atau melanggar batasan wajib.</li>
+                            <li><strong>Mata Kuliah Reguler (Senin s.d. Jumat):</strong> Disusun seefektif mungkin tanpa jam kosong berlebihan. Jadwal mengajar dosen dan kuliah mahasiswa dipadatkan secara berurutan dalam satu hari (tidak ada jeda pagi lalu baru mengajar sore).</li>
+                            <li><strong>MK Dikecualikan dari Penjadwalan Otomatis:</strong> Mata kuliah <strong>Ulang, KP (Kerja Praktik), Skripsi/Tugas Akhir, Kukerta/KKN, dan PPS</strong> tidak dibuatkan jadwal otomatis (diselesaikan melalui bimbingan mandiri, lapangan, atau input jadwal manual bila diperlukan).</li>
+                            <li><strong>Mata Kuliah Lanjutan / Terkait:</strong> Mata kuliah serupa/berkaitan (seperti Kalkulus 1 & 2, Teori & Praktikum) diposisikan secara teratur dan berdekatan waktunya.</li>
+                            <li><strong>Alokasi Laboratorium per Prodi:</strong> Penggunaan lab disesuaikan dengan kebutuhan masing-masing prodi (seperti Lab Teknik Informatika, Lab Teknik Elektro, dll.) melalui pembeda kode/peruntukan prodi.</li>
+                            <li><strong>Proteksi Sholat Jumat & Istirahat:</strong> Slot istirahat siang dan ibadah Sholat Jumat dilindungi 100% dari bentrok jadwal.</li>
+                            <li><strong>Keamanan Transaksi:</strong> Validasi ketat pra-simpan menjamin jadwal tersimpan bebas bentrok.</li>
                         </ul>
                     </div>
                 </form>
@@ -1192,6 +1192,7 @@
                                 <th>Kode Ruangan</th>
                                 <th>Nama Ruangan</th>
                                 <th>Tipe</th>
+                                <th>Peruntukan Prodi</th>
                                 <th>Kapasitas</th>
                                 <th>Gedung & Lantai</th>
                                 <th style="text-align:center;">Status</th>
@@ -1217,6 +1218,19 @@
                                             <span style="display: inline-block; padding: 3px 10px; background: #f3e8ff; color: #7e22ce; border-radius: 12px; font-size: 0.82rem; font-weight: 600;">Auditorium</span>
                                         @else
                                             <span style="display: inline-block; padding: 3px 10px; background: #fef3c7; color: #92400e; border-radius: 12px; font-size: 0.82rem; font-weight: 600;">{{ $r->tipe }}</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($r->prodi)
+                                            <span style="display: inline-block; padding: 2px 8px; background: #e0e7ff; color: #3730a3; border-radius: 8px; font-size: 0.78rem; font-weight: 600;" title="{{ $r->prodi->nama }}">
+                                                {{ $r->prodi->nama }} ({{ $r->prodi->kode }})
+                                            </span>
+                                        @elseif ($r->tipe === 'Lab')
+                                            <span style="display: inline-block; padding: 2px 8px; background: #f1f5f9; color: #475569; border-radius: 8px; font-size: 0.78rem; font-weight: 600;">
+                                                Lab Bersama / Multidisiplin
+                                            </span>
+                                        @else
+                                            <span style="color: #94a3b8; font-size: 0.82rem;">Umum</span>
                                         @endif
                                     </td>
                                     <td>{{ $r->kapasitas }} Kursi</td>
@@ -1359,9 +1373,9 @@
                                                 </span>
                                             @endif
                                             @if ($totalKknInLog > 0)
-                                                <span class="log-pill" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;" title="KKN / Kukerta dikecualikan dari jadwal tatap muka">
+                                                <span class="log-pill" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;" title="MK Non-Generate: Ulang, KP, Skripsi, Kukerta/KKN, dan PPS dikecualikan dari jadwal otomatis">
                                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-                                                    {{ $totalKknInLog }} KKN Dikecualikan
+                                                    {{ $totalKknInLog }} MK Non-Generate (Dikecualikan)
                                                 </span>
                                             @endif
                                             @if ($allFailuresCount > 0)
@@ -2044,14 +2058,17 @@
                 <div class="modal-form-row">
                     <label for="ruanganKode">Kode Ruangan</label>
                     <div class="modal-input-container">
-                        <input type="text" id="ruanganKode" name="kode" placeholder="Contoh: R01-FTTK, LAB-03" required>
+                        <input type="text" id="ruanganKode" name="kode" placeholder="Contoh: LAB-TIF-01, LAB-TE-01, R01-FTTK" required>
+                        <span style="font-size:11.5px; color:#64748b; margin-top:4px; display:block;">
+                            Boleh menyertakan kode/singkatan prodi untuk pembeda (misal LAB-TIF untuk Informatika, LAB-TE untuk Elektro).
+                        </span>
                     </div>
                 </div>
 
                 <div class="modal-form-row">
                     <label for="ruanganNama">Nama Ruangan</label>
                     <div class="modal-input-container">
-                        <input type="text" id="ruanganNama" name="nama" placeholder="Contoh: Ruang Kelas 01 FTTK" required>
+                        <input type="text" id="ruanganNama" name="nama" placeholder="Contoh: Lab Rekayasa Perangkat Lunak, Ruang Kelas 01 FTTK" required>
                     </div>
                 </div>
 
@@ -2064,6 +2081,21 @@
                             <option value="Aula">Auditorium / Aula</option>
                             <option value="Lainnya">Lainnya</option>
                         </select>
+                    </div>
+                </div>
+
+                <div class="modal-form-row">
+                    <label for="ruanganProdiId">Peruntukan Prodi</label>
+                    <div class="modal-input-container">
+                        <select id="ruanganProdiId" name="prodi_id">
+                            <option value="">-- Umum / Semua Prodi (Ruang Kelas / Lab Bersama) --</option>
+                            @foreach ($daftarProdi as $p)
+                                <option value="{{ $p->id }}">{{ $p->nama }} ({{ $p->kode }})</option>
+                            @endforeach
+                        </select>
+                        <span style="font-size:11.5px; color:#64748b; margin-top:4px; display:block;">
+                            Khusus Lab, pilih program studi pemilik ruangan agar penggunaan lab sesuai kebutuhan prodi.
+                        </span>
                     </div>
                 </div>
 
@@ -2358,6 +2390,66 @@ function toggleAccordion(sem) {
     }
 }
 
+function sortTabelJadwal(sem, hari, mode) {
+    const tbody = document.getElementById('tbody-jadwal-' + sem + '-' + hari);
+    if (!tbody) return;
+    const btnDosen = document.getElementById('btn-sort-dosen-' + sem + '-' + hari);
+    const btnJam = document.getElementById('btn-sort-jam-' + sem + '-' + hari);
+
+    const rows = Array.from(tbody.querySelectorAll('tr.jadwal-row-item'));
+    if (mode === 'dosen') {
+        rows.sort((a, b) => {
+            const dosenA = (a.dataset.dosen || '').toLowerCase();
+            const dosenB = (b.dataset.dosen || '').toLowerCase();
+            if (dosenA !== dosenB) return dosenA.localeCompare(dosenB);
+            const jamA = a.dataset.jam || '';
+            const jamB = b.dataset.jam || '';
+            return jamA.localeCompare(jamB);
+        });
+        if (btnDosen) {
+            btnDosen.style.background = '#e0f2fe';
+            btnDosen.style.color = '#0284c7';
+            btnDosen.style.borderColor = '#bae6fd';
+        }
+        if (btnJam) {
+            btnJam.style.background = '#ffffff';
+            btnJam.style.color = '#64748b';
+            btnJam.style.borderColor = '#e2e8f0';
+        }
+    } else {
+        rows.sort((a, b) => {
+            const jamA = a.dataset.jam || '';
+            const jamB = b.dataset.jam || '';
+            if (jamA !== jamB) return jamA.localeCompare(jamB);
+            const dosenA = (a.dataset.dosen || '').toLowerCase();
+            const dosenB = (b.dataset.dosen || '').toLowerCase();
+            return dosenA.localeCompare(dosenB);
+        });
+        if (btnJam) {
+            btnJam.style.background = '#e0f2fe';
+            btnJam.style.color = '#0284c7';
+            btnJam.style.borderColor = '#bae6fd';
+        }
+        if (btnDosen) {
+            btnDosen.style.background = '#ffffff';
+            btnDosen.style.color = '#64748b';
+            btnDosen.style.borderColor = '#e2e8f0';
+        }
+    }
+
+    let prevDosen = null;
+    rows.forEach(r => {
+        const curDosen = r.dataset.dosen;
+        if (mode === 'dosen') {
+            r.style.borderTop = (prevDosen !== null && prevDosen !== curDosen) ? '2px solid #cbd5e1' : '';
+        } else {
+            r.style.borderTop = '';
+        }
+        prevDosen = curDosen;
+        tbody.appendChild(r);
+    });
+}
+
 // Update Checkbox Semester di Tab Generate Jadwal
 function updateSemesterCheckboxes(mode) {
     const checkboxes = document.querySelectorAll('.sem-check-input');
@@ -2469,6 +2561,7 @@ function openTambahRuangan() {
     document.getElementById('ruanganKode').readOnly = false;
     document.getElementById('ruanganKapasitas').value = '40';
     document.getElementById('ruanganTipe').value = 'Ruang Kelas';
+    const prodiEl = document.getElementById('ruanganProdiId'); if (prodiEl) prodiEl.value = '';
     document.getElementById('ruanganIsActive').value = '1';
     openModal('modalRuangan');
 }
@@ -2481,6 +2574,7 @@ function openEditRuangan(r) {
     document.getElementById('ruanganKode').value = r.kode;
     document.getElementById('ruanganNama').value = r.nama;
     document.getElementById('ruanganTipe').value = r.tipe;
+    const prodiEl = document.getElementById('ruanganProdiId'); if (prodiEl) prodiEl.value = r.prodi_id || '';
     document.getElementById('ruanganKapasitas').value = r.kapasitas;
     document.getElementById('ruanganGedung').value = r.gedung || '';
     document.getElementById('ruanganLantai').value = r.lantai || '';

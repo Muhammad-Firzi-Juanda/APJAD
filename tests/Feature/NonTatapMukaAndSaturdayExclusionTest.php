@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Dosen;
 use App\Models\Jadwal;
 use App\Models\MataKuliahDetail;
-use App\Models\Ruangan;
 use App\Services\GeneticSchedulerService;
 use App\Services\SchedulerService;
 use Database\Seeders\JadwalKuliahSchedulerSeeder;
@@ -23,7 +22,7 @@ class NonTatapMukaAndSaturdayExclusionTest extends TestCase
     }
 
     /**
-     * 1. KKN / Kukerta sepenuhnya dikecualikan dari proses generate (tidak ada di Senin-Jumat maupun Sabtu),
+     * 1. KKN / Kukerta sepenuhnya dikecualikan dari proses generate (tidak dijadwalkan otomatis),
      * tidak dihitung sebagai kegagalan, dan datanya tetap utuh di database.
      */
     public function test_kkn_is_completely_excluded_from_generator(): void
@@ -63,6 +62,7 @@ class NonTatapMukaAndSaturdayExclusionTest extends TestCase
         ]);
 
         $this->assertTrue($mkKkn->isKkn());
+        $this->assertTrue($mkKkn->isDikecualikanDariGenerate());
         $this->assertEquals('kkn', $mkKkn->getKategoriPenjadwalan());
 
         $scheduler = app(SchedulerService::class);
@@ -80,7 +80,7 @@ class NonTatapMukaAndSaturdayExclusionTest extends TestCase
 
         $this->assertContains($mkReguler->id, $scheduledMkIds);
 
-        // Pastikan KKN sama sekali TIDAK dijadwalkan
+        // Pastikan KKN sama sekali TIDAK dijadwalkan secara otomatis
         $this->assertNotContains($mkKkn->id, $scheduledMkIds);
 
         // Pastikan KKN tidak dilaporkan sebagai kegagalan
@@ -95,10 +95,10 @@ class NonTatapMukaAndSaturdayExclusionTest extends TestCase
     }
 
     /**
-     * 2. Kegiatan khusus KP, Magang, dan Skripsi dijadwalkan khusus pada hari Sabtu,
-     * tidak memaksakan alokasi ruangan bila tanpa_ruangan = true, dan mematuhi bentrok dosen.
+     * 2. MK Khusus/Non-Generate (KP dan Skripsi) sepenuhnya dikecualikan dari proses generate otomatis,
+     * tidak dijadwalkan ke hari manapun, tidak dilaporkan sebagai kegagalan, dan datanya tetap aman.
      */
-    public function test_special_activities_kp_magang_skripsi_scheduled_on_saturday(): void
+    public function test_special_activities_kp_magang_skripsi_excluded_from_auto_generate(): void
     {
         $dosenA = Dosen::first();
         $dosenB = Dosen::skip(1)->first();
@@ -116,7 +116,7 @@ class NonTatapMukaAndSaturdayExclusionTest extends TestCase
             'is_active' => 1,
             'status_tawar' => 1,
             'butuh_lab' => false,
-            'tanpa_ruangan' => true, // Tanpa ruangan
+            'tanpa_ruangan' => true,
         ]);
 
         $mkSkripsi = MataKuliahDetail::create([
@@ -132,55 +132,51 @@ class NonTatapMukaAndSaturdayExclusionTest extends TestCase
             'is_active' => 1,
             'status_tawar' => 1,
             'butuh_lab' => false,
-            'tanpa_ruangan' => false, // Butuh ruangan sidang/seminar
+            'tanpa_ruangan' => false,
         ]);
 
-        $this->assertTrue($mkKP->isKegiatanKhusus());
-        $this->assertEquals('KP', $mkKP->getJenisKegiatanKhusus());
-        $this->assertTrue($mkSkripsi->isKegiatanKhusus());
-        $this->assertEquals('Skripsi', $mkSkripsi->getJenisKegiatanKhusus());
+        $this->assertTrue($mkKP->isKp());
+        $this->assertTrue($mkKP->isDikecualikanDariGenerate());
+        $this->assertEquals('kp', $mkKP->getKategoriPenjadwalan());
+
+        $this->assertTrue($mkSkripsi->isSkripsi());
+        $this->assertTrue($mkSkripsi->isDikecualikanDariGenerate());
+        $this->assertEquals('skripsi', $mkSkripsi->getKategoriPenjadwalan());
 
         $scheduler = app(SchedulerService::class);
         $hasil = $scheduler->generate(7, 'Informatika');
 
-        $this->assertGreaterThanOrEqual(2, $hasil['jumlah_jadwal']);
-
-        // Periksa jadwal KP
+        // Pastikan KP dan Skripsi TIDAK dibuatkan jadwal otomatis
         $jadwalKp = Jadwal::whereHas('rombel', fn ($q) => $q->where('mata_kuliah_detail_id', $mkKP->id))->first();
-        $this->assertNotNull($jadwalKp);
-        $this->assertEquals('Sabtu', $jadwalKp->hari, 'KP harus dijadwalkan pada hari Sabtu');
-        $this->assertNull($jadwalKp->ruangan_id, 'KP tanpa ruangan tidak boleh dipaksakan ruangan');
+        $this->assertNull($jadwalKp, 'KP tidak boleh dibuatkan jadwal otomatis');
 
-        // Periksa jadwal Skripsi
         $jadwalSkripsi = Jadwal::whereHas('rombel', fn ($q) => $q->where('mata_kuliah_detail_id', $mkSkripsi->id))->first();
-        $this->assertNotNull($jadwalSkripsi);
-        $this->assertEquals('Sabtu', $jadwalSkripsi->hari, 'Skripsi harus dijadwalkan pada hari Sabtu');
-        $this->assertNotNull($jadwalSkripsi->ruangan_id, 'Skripsi dengan tanpa_ruangan=false harus dialokasikan ruangan');
+        $this->assertNull($jadwalSkripsi, 'Skripsi tidak boleh dibuatkan jadwal otomatis');
 
-        // Periksa statistik terpisah
-        $this->assertGreaterThanOrEqual(2, $hasil['statistik']['mk_khusus_berhasil'] ?? 0);
-        $this->assertGreaterThanOrEqual(1, $hasil['statistik']['mk_khusus_kp'] ?? 0);
-        $this->assertGreaterThanOrEqual(1, $hasil['statistik']['mk_khusus_skripsi'] ?? 0);
-        $this->assertEquals(
-            ($hasil['statistik']['mk_khusus_kp'] ?? 0) + ($hasil['statistik']['mk_khusus_skripsi'] ?? 0) + ($hasil['statistik']['mk_khusus_magang'] ?? 0),
-            $hasil['statistik']['mk_khusus_berhasil'] ?? 0
-        );
+        // Periksa statistik dikecualikan
+        $this->assertGreaterThanOrEqual(2, $hasil['statistik']['mk_dikecualikan_total'] ?? 0);
+        $this->assertGreaterThanOrEqual(1, $hasil['statistik']['mk_dikecualikan_rincian']['kp'] ?? 0);
+        $this->assertGreaterThanOrEqual(1, $hasil['statistik']['mk_dikecualikan_rincian']['skripsi'] ?? 0);
+
+        // Pastikan tidak dihitung gagal
+        $kegagalanCodes = array_column($hasil['kegagalan'] ?? [], 'kode_mk');
+        $this->assertNotContains('TIF7002', $kegagalanCodes);
+        $this->assertNotContains('TIF7003', $kegagalanCodes);
     }
 
     /**
-     * Pengujian khusus Magang:
-     * - Memastikan Magang diproses oleh generator ke hari Sabtu
-     * - Memeriksa penugasan dosen pembimbing/koordinator
-     * - Memeriksa pemisahan alokasi tanpa ruangan vs dengan ruangan fisik
-     * - Memverifikasi tidak terjadi tumpang tindih waktu untuk kelompok/cohort yang sama
+     * 3. Pengujian MK Khusus lainnya seperti Magang, PPS, dan MK Mengulang (Ulang):
+     * - Terdeteksi sebagai dikecualikan dari auto-generate
+     * - Tidak dijadwalkan secara otomatis
+     * - Tidak dicatat sebagai error/kegagalan
      */
-    public function test_magang_is_processed_on_saturday_with_lecturer_cohort_and_room_checks(): void
+    public function test_magang_pps_ulang_excluded_from_auto_generate(): void
     {
         $dosenA = Dosen::first();
         $dosenB = Dosen::skip(1)->first();
 
-        // 1. Magang Industri (Tanpa Ruangan - aktivitas di luar kampus/mitra)
-        $mkMagangIndustri = MataKuliahDetail::create([
+        // Magang
+        $mkMagang = MataKuliahDetail::create([
             'kode_mk' => 'TIF7021',
             'nama_mk' => 'Magang Industri Bersertifikat',
             'sks' => 3,
@@ -196,13 +192,13 @@ class NonTatapMukaAndSaturdayExclusionTest extends TestCase
             'tanpa_ruangan' => true,
         ]);
 
-        // 2. Magang Riset / Studi Independen (Dengan Ruangan - evaluasi/presentasi di kampus)
-        $mkMagangRiset = MataKuliahDetail::create([
+        // PPS (Praktik Pengenalan Lapangan / Persekolahan)
+        $mkPps = MataKuliahDetail::create([
             'kode_mk' => 'TIF7022',
-            'nama_mk' => 'Studi Independen / Magang Riset',
-            'sks' => 3,
+            'nama_mk' => 'Praktik Pengenalan Persekolahan (PPS)',
+            'sks' => 2,
             'semester' => 7,
-            'tipe' => 'Pilihan',
+            'tipe' => 'Wajib',
             'prodi' => 'Teknik Informatika',
             'dosen_ketua_id' => $dosenB->id,
             'jumlah_kelas' => 1,
@@ -210,45 +206,54 @@ class NonTatapMukaAndSaturdayExclusionTest extends TestCase
             'is_active' => 1,
             'status_tawar' => 1,
             'butuh_lab' => false,
+            'tanpa_ruangan' => true,
+        ]);
+
+        // Mengulang
+        $mkUlang = MataKuliahDetail::create([
+            'kode_mk' => 'TIF7023',
+            'nama_mk' => 'Kalkulus 1 (Mengulang)',
+            'sks' => 3,
+            'semester' => 7,
+            'tipe' => 'Pilihan',
+            'prodi' => 'Teknik Informatika',
+            'dosen_ketua_id' => $dosenA->id,
+            'jumlah_kelas' => 1,
+            'kapasitas_per_kelas' => 20,
+            'is_active' => 1,
+            'status_tawar' => 1,
+            'butuh_lab' => false,
             'tanpa_ruangan' => false,
         ]);
 
         // Verifikasi identifikasi model
-        $this->assertTrue($mkMagangIndustri->isKegiatanKhusus());
-        $this->assertEquals('Magang', $mkMagangIndustri->getJenisKegiatanKhusus());
-        $this->assertTrue($mkMagangRiset->isKegiatanKhusus());
-        $this->assertEquals('Magang', $mkMagangRiset->getJenisKegiatanKhusus());
+        $this->assertTrue($mkMagang->isMagang());
+        $this->assertTrue($mkMagang->isDikecualikanDariGenerate());
+
+        $this->assertTrue($mkPps->isPps());
+        $this->assertTrue($mkPps->isDikecualikanDariGenerate());
+
+        $this->assertTrue($mkUlang->isUlang());
+        $this->assertTrue($mkUlang->isDikecualikanDariGenerate());
 
         // Jalankan generator
         $scheduler = app(SchedulerService::class);
         $hasil = $scheduler->generate(7, 'Informatika');
 
-        // Verifikasi jadwal Magang Industri di database
-        $jadwalIndustri = Jadwal::whereHas('rombel', fn ($q) => $q->where('mata_kuliah_detail_id', $mkMagangIndustri->id))->first();
-        $this->assertNotNull($jadwalIndustri, 'Magang Industri harus berhasil dijadwalkan');
-        $this->assertEquals('Sabtu', $jadwalIndustri->hari, 'Magang harus dijadwalkan pada hari Sabtu');
-        $this->assertEquals($dosenA->id, $jadwalIndustri->dosen_id, 'Dosen pembimbing Magang Industri harus sesuai');
-        $this->assertNull($jadwalIndustri->ruangan_id, 'Magang tanpa_ruangan=true tidak boleh dialokasikan ruangan fisik');
+        // Verifikasi tidak ada jadwal otomatis yang dibuat
+        $this->assertNull(Jadwal::whereHas('rombel', fn ($q) => $q->where('mata_kuliah_detail_id', $mkMagang->id))->first());
+        $this->assertNull(Jadwal::whereHas('rombel', fn ($q) => $q->where('mata_kuliah_detail_id', $mkPps->id))->first());
+        $this->assertNull(Jadwal::whereHas('rombel', fn ($q) => $q->where('mata_kuliah_detail_id', $mkUlang->id))->first());
 
-        // Verifikasi jadwal Magang Riset di database
-        $jadwalRiset = Jadwal::whereHas('rombel', fn ($q) => $q->where('mata_kuliah_detail_id', $mkMagangRiset->id))->first();
-        $this->assertNotNull($jadwalRiset, 'Magang Riset harus berhasil dijadwalkan');
-        $this->assertEquals('Sabtu', $jadwalRiset->hari, 'Magang harus dijadwalkan pada hari Sabtu');
-        $this->assertEquals($dosenB->id, $jadwalRiset->dosen_id, 'Dosen pembimbing Magang Riset harus sesuai');
-        $this->assertNotNull($jadwalRiset->ruangan_id, 'Magang tanpa_ruangan=false harus mendapatkan ruangan');
-
-        // Verifikasi proteksi tumpang tindih waktu untuk kelompok mahasiswa / cohort yang sama
-        $audit = $scheduler->auditValidasiJadwal($scheduler->getRencanaJadwal());
-        $this->assertTrue($audit['valid'], 'Audit rencana jadwal tidak boleh memiliki bentrok');
-
-        // Verifikasi statistik khusus Magang
-        $this->assertGreaterThanOrEqual(2, $hasil['statistik']['mk_khusus_magang'] ?? 0);
-        $this->assertGreaterThanOrEqual(2, $hasil['statistik']['mk_khusus_berhasil'] ?? 0);
+        // Verifikasi rincian statistik
+        $this->assertGreaterThanOrEqual(1, $hasil['statistik']['mk_dikecualikan_rincian']['magang'] ?? 0);
+        $this->assertGreaterThanOrEqual(1, $hasil['statistik']['mk_dikecualikan_rincian']['pps'] ?? 0);
+        $this->assertGreaterThanOrEqual(1, $hasil['statistik']['mk_dikecualikan_rincian']['ulang'] ?? 0);
     }
 
     /**
-     * 3. Perkuliahan reguler HANYA menggunakan hari Senin-Jumat,
-     * dan tidak pernah dipindahkan ke hari Sabtu sekalipun slot hari kerja terbatas.
+     * 4. Perkuliahan reguler HANYA menggunakan hari Senin-Jumat,
+     * dan tidak pernah dijadwalkan pada hari Sabtu.
      */
     public function test_regular_courses_never_overflow_to_saturday(): void
     {
@@ -271,7 +276,7 @@ class NonTatapMukaAndSaturdayExclusionTest extends TestCase
     }
 
     /**
-     * 4. Keamanan Transaksi: Jika generate gagal karena audit atau bentrok wajib,
+     * 5. Keamanan Transaksi: Jika generate gagal karena audit atau bentrok wajib,
      * jadwal lama di database tetap utuh dan tidak terhapus.
      */
     public function test_transaction_safety_failed_generate_preserves_old_schedule(): void
@@ -305,15 +310,16 @@ class NonTatapMukaAndSaturdayExclusionTest extends TestCase
     }
 
     /**
-     * 5. Pastikan GeneticSchedulerService juga mematuhi pemisahan 3 kategori:
-     * Reguler di Senin-Jumat, Khusus di Sabtu, dan KKN dikecualikan.
+     * 6. Pastikan GeneticSchedulerService juga mematuhi pengecualian MK non-generate:
+     * KKN, KP, Magang, PPS, Ulang, dan Skripsi dikecualikan dari jadwal otomatis,
+     * hanya perkuliahan reguler yang dijadwalkan pada Senin-Jumat.
      */
     public function test_genetic_scheduler_respects_all_categories(): void
     {
         $dosen = Dosen::first();
 
         // KKN
-        MataKuliahDetail::create([
+        $mkKkn = MataKuliahDetail::create([
             'kode_mk' => 'UNV7009',
             'nama_mk' => 'KUKERTA Tematik',
             'sks' => 4,
@@ -385,28 +391,20 @@ class NonTatapMukaAndSaturdayExclusionTest extends TestCase
 
         $this->assertEquals('Genetic Algorithm', $hasil['metode']);
 
-        // KKN tidak ada
+        // KKN, KP, Magang TIDAK dijadwalkan otomatis
         $allScheduledCodes = Jadwal::with('rombel.mataKuliah')
             ->where('is_active', 1)
             ->get()
             ->pluck('rombel.mataKuliah.kode_mk')
             ->all();
 
-        $this->assertNotContains('UNV7009', $allScheduledCodes);
-
-        // KP ada di Sabtu
-        $jadwalKp = Jadwal::whereHas('rombel', fn ($q) => $q->where('mata_kuliah_detail_id', $mkKp->id))->first();
-        $this->assertNotNull($jadwalKp);
-        $this->assertEquals('Sabtu', $jadwalKp->hari);
-
-        // Magang ada di Sabtu
-        $jadwalMagang = Jadwal::whereHas('rombel', fn ($q) => $q->where('mata_kuliah_detail_id', $mkMagang->id))->first();
-        $this->assertNotNull($jadwalMagang);
-        $this->assertEquals('Sabtu', $jadwalMagang->hari);
+        $this->assertNotContains('UNV7009', $allScheduledCodes, 'KKN tidak boleh dijadwalkan');
+        $this->assertNotContains('TIF7010', $allScheduledCodes, 'KP tidak boleh dijadwalkan otomatis');
+        $this->assertNotContains('TIF7012', $allScheduledCodes, 'Magang tidak boleh dijadwalkan otomatis');
 
         // Reguler ada di Senin-Jumat
         $jadwalReguler = Jadwal::whereHas('rombel', fn ($q) => $q->where('mata_kuliah_detail_id', $mkReguler->id))->first();
-        $this->assertNotNull($jadwalReguler);
+        $this->assertNotNull($jadwalReguler, 'MK Reguler harus berhasil dijadwalkan');
         $this->assertContains($jadwalReguler->hari, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']);
     }
 }

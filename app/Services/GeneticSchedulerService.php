@@ -60,15 +60,20 @@ class GeneticSchedulerService extends SchedulerService
         // 1. Ambil data terklasifikasi secara ketat
         $mkReguler = $this->ambilMkReguler($semester, $prodi);
         $mkKhusus = $this->ambilMkKhusus($semester, $prodi);
-        $mkKkn = $this->ambilMkKkn($semester, $prodi);
+        $mkDikecualikan = $this->ambilMkDikecualikan($semester, $prodi);
         $mkPerluDiperiksa = $this->ambilMkPerluDiperiksa($semester, $prodi);
 
-        // Catat KKN yang sepenuhnya dikecualikan dari proses generate
-        if ($mkKkn->isNotEmpty()) {
+        // Catat MK yang dikecualikan dari proses generate (Ulang, KP, Skripsi, Kukerta/KKN, PPS)
+        if ($mkDikecualikan->isNotEmpty()) {
+            $rincian = $mkDikecualikan->groupBy(fn ($m) => $m->getAlasanDikecualikan() ?? 'Khusus')
+                ->map(fn ($g, $k) => "{$k}: ".$g->count().' MK ('.$g->pluck('nama_mk')->unique()->take(3)->implode(', ').')')
+                ->values()
+                ->implode(' | ');
+
             $this->log[] = sprintf(
-                '[Info Akademik] %d MK KKN/Kukerta (%s) sepenuhnya dikecualikan dari proses penjadwalan kuliah (kegiatan pengabdian masyarakat lapangan).',
-                $mkKkn->count(),
-                $mkKkn->pluck('nama_mk')->unique()->implode(', ')
+                '[Info Akademik] %d MK dikecualikan dari jadwal otomatis (Ulang, KP, Skripsi, Kukerta/KKN, PPS): %s',
+                $mkDikecualikan->count(),
+                $rincian
             );
         }
 
@@ -80,15 +85,15 @@ class GeneticSchedulerService extends SchedulerService
         }
 
         if ($mkReguler->isEmpty() && $mkKhusus->isEmpty()) {
-            $stat = $this->hitungStatistikBaru($mkReguler, $mkKhusus, $mkKkn, $mkPerluDiperiksa, 0, 0, 0, 0, 0);
+            $stat = $this->hitungStatistikBaru($mkReguler, $mkKhusus, $mkDikecualikan, $mkPerluDiperiksa, 0, 0, 0, 0, 0);
 
-            return $this->hasil($semester, 0, 'Belum ada mata kuliah reguler maupun kegiatan khusus aktif untuk semester ini.', $stat, 'Genetic Algorithm');
+            return $this->hasil($semester, 0, 'Belum ada mata kuliah reguler aktif untuk semester ini.', $stat, 'Genetic Algorithm');
         }
 
         // 2. Validasi resource reguler sebelum generate
         $validasi = $this->validasiResource($mkReguler, $semester, $prodi);
         if (! $validasi['status']) {
-            $stat = $this->hitungStatistikBaru($mkReguler, $mkKhusus, $mkKkn, $mkPerluDiperiksa, 0, 0, 0, 0, 0);
+            $stat = $this->hitungStatistikBaru($mkReguler, $mkKhusus, $mkDikecualikan, $mkPerluDiperiksa, 0, 0, 0, 0, 0);
 
             return $this->hasil($semester, 0, $validasi['pesan'], $stat, 'Genetic Algorithm');
         }
@@ -160,7 +165,7 @@ class GeneticSchedulerService extends SchedulerService
         if (! $audit['valid']) {
             $this->peringatan = array_merge($this->peringatan, $audit['errors']);
             $stat = $this->hitungStatistikBaru(
-                $mkReguler, $mkKhusus, $mkKkn, $mkPerluDiperiksa,
+                $mkReguler, $mkKhusus, $mkDikecualikan, $mkPerluDiperiksa,
                 0, 0, 0, 0, 0
             );
 
@@ -180,7 +185,7 @@ class GeneticSchedulerService extends SchedulerService
 
         // 9. Hitung statistik dan metrik telemetri
         $statistik = $this->hitungStatistikBaru(
-            $mkReguler, $mkKhusus, $mkKkn, $mkPerluDiperiksa,
+            $mkReguler, $mkKhusus, $mkDikecualikan, $mkPerluDiperiksa,
             $regulerBerhasilCount, $khususBerhasilCount,
             $kpBerhasilCount, $magangBerhasilCount, $skripsiBerhasilCount
         );
@@ -219,12 +224,36 @@ class GeneticSchedulerService extends SchedulerService
         int $semester,
         int $kandidatIndex
     ): array {
-        // Diversifikasi urutan penempatan
+        $dosenLoad = [];
+        foreach ($wajib as $m) {
+            $dId = $m->dosen_ketua_id ?: 0;
+            $dosenLoad[$dId] = ($dosenLoad[$dId] ?? 0) + ($m->sks * max(1, (int) $m->jumlah_kelas));
+        }
+
+        $urutanDosenPadat = $wajib->sort(function ($a, $b) use ($dosenLoad) {
+            $dIdA = $a->dosen_ketua_id ?: 0;
+            $dIdB = $b->dosen_ketua_id ?: 0;
+            $loadA = $dosenLoad[$dIdA] ?? 0;
+            $loadB = $dosenLoad[$dIdB] ?? 0;
+            if ($loadA !== $loadB) {
+                return $loadB <=> $loadA;
+            }
+            if ($dIdA !== $dIdB) {
+                return $dIdA <=> $dIdB;
+            }
+            if ($a->butuh_lab !== $b->butuh_lab) {
+                return $b->butuh_lab <=> $a->butuh_lab;
+            }
+
+            return $b->sks <=> $a->sks;
+        })->values();
+
+        // Diversifikasi urutan penempatan dengan tetap mengutamakan pemadatan jadwal per dosen
         $urutanWajib = match ($kandidatIndex % 4) {
-            0 => $wajib->sortByDesc(fn ($m) => [$m->butuh_lab, $m->sks, $m->jumlah_kelas])->values(),
-            1 => $wajib->sortByDesc(fn ($m) => [$m->dosen_ketua_id ? 1 : 0, $m->sks, $m->butuh_lab])->values(),
-            2 => $wajib->sortByDesc(fn ($m) => [$m->sks, $m->butuh_lab, $m->jumlah_kelas])->values(),
-            default => $wajib->shuffle()->sortByDesc(fn ($m) => [$m->butuh_lab])->values(),
+            0 => $urutanDosenPadat,
+            1 => $wajib->sortByDesc(fn ($m) => [$m->dosen_ketua_id ? 1 : 0, $dosenLoad[$m->dosen_ketua_id ?: 0] ?? 0, $m->sks, $m->butuh_lab])->values(),
+            2 => $urutanDosenPadat->reverse()->values(),
+            default => $urutanDosenPadat,
         };
 
         // Simpan snapshot state saat ini
@@ -328,18 +357,22 @@ class GeneticSchedulerService extends SchedulerService
                             $gap = $slots[$k + 1]['mulai'] - $slots[$k]['selesai'];
                             $gapCount++;
                             if ($gap <= 30) {
-                                $gapScoreSum += 1.0; // Berurutan
+                                $gapScoreSum += 1.0; // Berurutan rapat
                             } elseif ($gap <= 60) {
-                                $gapScoreSum += 0.8; // Jeda wajar
+                                $gapScoreSum += 0.85; // Jeda pendek wajar
+                            } elseif ($gap <= 90) {
+                                $gapScoreSum += 0.70; // Istirahat makan siang
+                            } elseif ($gap <= 150) {
+                                $gapScoreSum += 0.20; // Jeda mengambang
                             } else {
-                                $gapScoreSum += 0.2; // Jeda terlalu lama
+                                $gapScoreSum -= 0.60; // Penalti berat untuk gap > 150 menit (misal 10:00 ke 15:00)
                             }
                         }
                     }
                 }
-                $gapScore = $gapCount > 0 ? ($gapScoreSum / $gapCount) : 1.0;
+                $gapScore = $gapCount > 0 ? max(0.0, min(1.0, ($gapScoreSum / $gapCount))) : 1.0;
 
-                $dosenEfficiencySum += ($hariScore * 0.6 + $gapScore * 0.4);
+                $dosenEfficiencySum += ($hariScore * 0.4 + $gapScore * 0.6);
             }
             $dosenEfficiencyPct = round(($dosenEfficiencySum / $totalDosenCount) * 100, 1);
         } else {
@@ -370,23 +403,27 @@ class GeneticSchedulerService extends SchedulerService
                             $gap = $slots[$k + 1]['mulai'] - $slots[$k]['selesai'];
                             $cGapCount++;
                             if ($gap <= 30) {
-                                $cGapSum += 1.0;
+                                $cGapSum += 1.0; // Mahasiswa kuliah berurutan
                             } elseif ($gap <= 60) {
-                                $cGapSum += 0.8;
+                                $cGapSum += 0.85; // Jeda pendek
+                            } elseif ($gap <= 90) {
+                                $cGapSum += 0.70; // Jeda makan siang
+                            } elseif ($gap <= 150) {
+                                $cGapSum += 0.20; // Jeda kosong
                             } else {
-                                $cGapSum += 0.2;
+                                $cGapSum -= 0.50; // Penalti mahasiswa kosong 3-4 jam
                             }
                         }
                     }
                 }
-                $cohortCompactSum += $cGapCount > 0 ? ($cGapSum / $cGapCount) : 1.0;
+                $cohortCompactSum += $cGapCount > 0 ? max(0.0, min(1.0, ($cGapSum / $cGapCount))) : 1.0;
             }
             $studentCompactnessPct = round(($cohortCompactSum / $totalCohortCount) * 100, 1);
         } else {
             $studentCompactnessPct = 100.0;
         }
 
-        // 3. Best-Fit Ruangan (Room Fit)
+        // 3. Best-Fit Ruangan & Kesesuaian Prodi (Room Fit)
         $roomFitSum = 0;
         $roomCount = 0;
         foreach ($jadwals as $item) {
@@ -395,13 +432,21 @@ class GeneticSchedulerService extends SchedulerService
             if ($ruangan && $mk) {
                 $kuota = $mk->kapasitas_per_kelas ?: 40;
                 $roomCount++;
-                $ratio = min(1.0, $kuota / max(1, $ruangan->kapasitas));
-                if ($ratio >= 0.70) {
-                    $roomFitSum += 1.0;
-                } elseif ($ratio >= 0.50) {
-                    $roomFitSum += 0.8;
+                if ($mk->butuh_lab) {
+                    if ($ruangan->tipe === 'Lab' && $ruangan->matchesProdi($mk->prodi)) {
+                        $roomFitSum += $ruangan->prodi_id !== null ? 1.0 : 0.85;
+                    } else {
+                        $roomFitSum += 0.2;
+                    }
                 } else {
-                    $roomFitSum += 0.4;
+                    $ratio = min(1.0, $kuota / max(1, $ruangan->kapasitas));
+                    if ($ratio >= 0.70) {
+                        $roomFitSum += 1.0;
+                    } elseif ($ratio >= 0.50) {
+                        $roomFitSum += 0.8;
+                    } else {
+                        $roomFitSum += 0.4;
+                    }
                 }
             }
         }

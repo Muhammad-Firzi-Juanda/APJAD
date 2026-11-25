@@ -56,19 +56,30 @@
             <div style="display: flex; flex-direction: column; gap: 20px;">
                 @foreach ($hariList as $hari)
                     @if (($perHari[$hari] ?? collect())->isNotEmpty())
-                        <div class="hari-jadwal-group">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                <div style="width: 8px; height: 8px; background: #0860be; border-radius: 50%;"></div>
-                                <h4 style="margin: 0; font-size: 1rem; color: #1e3a5f; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                    {{ $hari }}
-                                    @if ($hari === 'Sabtu')
-                                        <span style="font-size: 0.75rem; font-weight: 600; color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; padding: 2px 10px; border-radius: 12px;">Kegiatan Khusus (KP / Magang / Skripsi)</span>
-                                    @endif
-                                </h4>
-                                <span class="hari-count-badge" style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 12px;">{{ $perHari[$hari]->count() }} kelas</span>
+                        <div class="hari-jadwal-group" id="hari-group-{{ $sem }}-{{ $hari }}">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 8px; height: 8px; background: #0860be; border-radius: 50%;"></div>
+                                    <h4 style="margin: 0; font-size: 1rem; color: #1e3a5f; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                        {{ $hari }}
+                                        @if ($hari === 'Sabtu')
+                                            <span style="font-size: 0.75rem; font-weight: 600; color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; padding: 2px 10px; border-radius: 12px;">Kegiatan Khusus (KP / Magang / Skripsi)</span>
+                                        @endif
+                                    </h4>
+                                    <span class="hari-count-badge" style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 12px;">{{ $perHari[$hari]->count() }} kelas</span>
+                                </div>
+                                <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem;">
+                                    <span style="color: #64748b; font-weight: 500;">Urutan:</span>
+                                    <button type="button" class="btn-sort-toggle active" id="btn-sort-dosen-{{ $sem }}-{{ $hari }}" onclick="sortTabelJadwal('{{ $sem }}', '{{ $hari }}', 'dosen')" style="border: 1px solid #bae6fd; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                                        Dosen Berurutan
+                                    </button>
+                                    <button type="button" class="btn-sort-toggle" id="btn-sort-jam-{{ $sem }}-{{ $hari }}" onclick="sortTabelJadwal('{{ $sem }}', '{{ $hari }}', 'jam')" style="border: 1px solid #e2e8f0; background: #ffffff; color: #64748b; padding: 2px 8px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                                        Jam Kuliah
+                                    </button>
+                                </div>
                             </div>
                             <div style="overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid #e2e8f0;">
-                                <table class="data-table" style="min-width: 760px; margin: 0;">
+                                <table class="data-table" id="tabel-jadwal-{{ $sem }}-{{ $hari }}" style="min-width: 760px; margin: 0;">
                                     <thead>
                                         <tr style="background: #f8fafc;">
                                             <th style="width: 130px;">Jam</th>
@@ -82,7 +93,10 @@
                                             <th style="width: 80px;">Tipe</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="tbody-jadwal-{{ $sem }}-{{ $hari }}">
+                                        @php
+                                            $prevDosenId = null;
+                                        @endphp
                                         @foreach ($perHari[$hari] as $j)
                                             @php
                                                 $cleanKodeMk = preg_replace('/-[A-Za-z0-9]+$/', '', $j->kode_mk ?? '');
@@ -95,8 +109,11 @@
                                                 }
                                                 $kelasLabel = strtoupper(trim((string) ($kelasLabel ?: 'A')));
                                                 $dosenInisial = ! empty($j->inisial_dosen) ? $j->inisial_dosen : (\App\Models\Dosen::generateInisialFromName($j->nama_dosen) ?: '-');
+                                                $currentDosenKey = $j->nama_dosen ?: $dosenInisial;
+                                                $isNewDosen = ($prevDosenId !== null && $prevDosenId !== $currentDosenKey);
+                                                $prevDosenId = $currentDosenKey;
                                             @endphp
-                                            <tr class="jadwal-row-item" data-prodi="{{ $j->prodi }}">
+                                            <tr class="jadwal-row-item" data-prodi="{{ $j->prodi }}" data-jam="{{ $j->jam_mulai }}" data-dosen="{{ $currentDosenKey }}" style="{{ $isNewDosen ? 'border-top: 2px solid #cbd5e1;' : '' }}">
                                                 <td style="white-space: nowrap; font-weight: 600; color: #0860be;">
                                                     {{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}
                                                 </td>
@@ -109,9 +126,16 @@
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <span title="{{ $j->nama_dosen ?? '-' }}" style="font-weight: 700; color: #1e3a5f; cursor: help; background: #f8fafc; padding: 3px 8px; border-radius: 6px; font-size: 0.85rem; display: inline-block; border: 1px solid #cbd5e1;">
-                                                        {{ $dosenInisial }}
-                                                    </span>
+                                                    <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                                        <span title="{{ $j->nama_dosen ?? '-' }}" style="font-weight: 700; color: #1e3a5f; cursor: help; background: #f8fafc; padding: 3px 8px; border-radius: 6px; font-size: 0.85rem; display: inline-block; border: 1px solid #cbd5e1;">
+                                                            {{ $dosenInisial }}
+                                                        </span>
+                                                        @if(! empty($j->nama_dosen))
+                                                            <span style="font-size: 0.82rem; color: #475569;" title="{{ $j->nama_dosen }}">
+                                                                {{ \Illuminate\Support\Str::limit($j->nama_dosen, 20) }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     @if($j->kode_ruangan)

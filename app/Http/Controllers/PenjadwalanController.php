@@ -112,6 +112,7 @@ class PenjadwalanController extends Controller
             ])
             ->orderBy('mata_kuliah_details.semester')
             ->orderBy('jadwals.hari')
+            ->orderBy('dosens.nama')
             ->orderBy('jadwals.jam_mulai')
             ->orderBy('rombels.nomor_rombel')
             ->get()
@@ -430,15 +431,15 @@ class PenjadwalanController extends Controller
             ->with('periode_aktif', $periodeTarget)
             ->with('prodi_aktif', $prodiFilterView);
 
-        $kknNote = $totalKknDikecualikan > 0 ? " ({$totalKknDikecualikan} KKN/Kukerta dikecualikan dari jadwal tatap muka)." : '';
+        $kknNote = $totalKknDikecualikan > 0 ? " ({$totalKknDikecualikan} MK Non-Generate [Ulang, KP, Skripsi, Kukerta/KKN, PPS] dikecualikan dari jadwal otomatis)." : '';
 
         if (! empty($allKegagalan)) {
             $totalGagal = count($allKegagalan);
 
-            return $response->with('flash_warning', "Penjadwalan selesai: {$totalReguler} MK reguler (Senin–Jumat) & {$totalKhusus} kegiatan khusus (Sabtu) berhasil. {$totalGagal} kelas membutuhkan penyesuaian.{$kknNote} Silakan periksa Log Diagnosa Penjadwalan.");
+            return $response->with('flash_warning', "Penjadwalan selesai: {$totalReguler} MK reguler berhasil. {$totalGagal} kelas membutuhkan penyesuaian.{$kknNote} Silakan periksa Log Diagnosa Penjadwalan.");
         }
 
-        $khususDetail = $totalKhusus > 0 ? " dan {$totalKhusus} kegiatan khusus (Sabtu: KP={$totalKp}, Magang={$totalMagang}, Skripsi={$totalSkripsi})" : '';
+        $khususDetail = $totalKhusus > 0 ? " dan {$totalKhusus} kegiatan khusus" : '';
 
         return $response->with('flash_success', "Jadwal berhasil digenerate 100% bebas bentrok menggunakan {$metodeLabel}: {$totalReguler} kelas reguler (Senin–Jumat){$khususDetail} untuk semester ".implode(', ', $semesters).".{$kknNote}");
     }

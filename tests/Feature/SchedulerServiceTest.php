@@ -747,4 +747,75 @@ class SchedulerServiceTest extends TestCase
 
         $this->assertFalse($bentrok, 'Jadwal otomatis tidak boleh bentrok dengan slot ruangan jadwal manual.');
     }
+
+    /**
+     * Memastikan dosen yang mengajar beberapa mata kuliah (atau mata kuliah berbeda)
+     * dijadwalkan secara berurutan padat dalam satu hari (misal 07:30 - 10:00 lanjut 10:00 - dst).
+     */
+    public function test_dosen_teaching_multiple_courses_scheduled_consecutively_on_same_day(): void
+    {
+        $dosen = Dosen::create([
+            'nip' => 'NIP_CONSECUTIVE_TEST',
+            'nama' => 'Dosen Multimatkul Berurutan',
+            'jabatan' => 'Ketua',
+            'prodi' => 'Teknik Informatika',
+            'inisial' => 'DMB',
+            'is_active' => 1,
+        ]);
+
+        $mk1 = MataKuliahDetail::create([
+            'kode_mk' => 'TIF1091',
+            'nama_mk' => 'Matakuliah Pertama Dosen A',
+            'sks' => 3,
+            'semester' => 1,
+            'tipe' => 'Wajib',
+            'prodi' => 'Teknik Informatika',
+            'dosen_ketua_id' => $dosen->id,
+            'jumlah_kelas' => 1,
+            'kapasitas_per_kelas' => 30,
+            'is_active' => 1,
+            'status_tawar' => 1,
+            'butuh_lab' => false,
+            'tanpa_ruangan' => false,
+        ]);
+
+        $mk2 = MataKuliahDetail::create([
+            'kode_mk' => 'TIF1092',
+            'nama_mk' => 'Matakuliah Kedua Dosen A Berbeda',
+            'sks' => 3,
+            'semester' => 1,
+            'tipe' => 'Wajib',
+            'prodi' => 'Teknik Informatika',
+            'dosen_ketua_id' => $dosen->id,
+            'jumlah_kelas' => 1,
+            'kapasitas_per_kelas' => 30,
+            'is_active' => 1,
+            'status_tawar' => 1,
+            'butuh_lab' => false,
+            'tanpa_ruangan' => false,
+        ]);
+
+        $hasil = $this->generate(1);
+
+        $jadwalDosen = Jadwal::where('dosen_id', $dosen->id)
+            ->where('is_active', true)
+            ->orderBy('hari')
+            ->orderBy('jam_mulai')
+            ->get();
+
+        $this->assertCount(2, $jadwalDosen, 'Kedua matakuliah dosen harus terjadwal');
+
+        $j1 = $jadwalDosen[0];
+        $j2 = $jadwalDosen[1];
+
+        // Pastikan dijadwalkan pada HARI YANG SAMA
+        $this->assertEquals($j1->hari, $j2->hari, 'Dosen yang mengajar beberapa matkul harus dipadatkan pada hari yang sama');
+
+        // Pastikan waktu mengajar berurutan (gap langsung <= 30 menit atau jeda siang wajar <= 90 menit)
+        $selesai1 = $this->menit($j1->jam_selesai);
+        $mulai2 = $this->menit($j2->jam_mulai);
+        $gap = abs($mulai2 - $selesai1);
+
+        $this->assertLessThanOrEqual(90, $gap, 'Jadwal dosen harus berurutan langsung (07:30 - 10:00 lanjut 10:00 - 12:30 / 13:00) tanpa jam kosong panjang');
+    }
 }

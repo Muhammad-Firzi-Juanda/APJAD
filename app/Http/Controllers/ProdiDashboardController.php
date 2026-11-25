@@ -74,6 +74,7 @@ class ProdiDashboardController extends Controller
             })
             ->where('is_active', true)
             ->orderBy('hari')
+            ->orderBy('dosen_id')
             ->orderBy('jam_mulai')
             ->get();
 

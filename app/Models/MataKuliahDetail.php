@@ -129,10 +129,67 @@ class MataKuliahDetail extends Model
         $nama = strtoupper(trim((string) ($this->nama_mk ?? '')));
 
         return $kelas === 'ULANG'
+            || str_contains($kelas, 'ULANG')
             || str_contains($kode, '-ULANG')
             || str_contains($kode, 'ULANG')
+            || (bool) preg_match('/\b(ulang|mengulang)\b/i', $nama)
             || str_contains($nama, '(ULANG)')
             || str_contains($nama, '[ULANG]');
+    }
+
+    /**
+     * Memeriksa apakah mata kuliah ini adalah PPS (Pra Praktik Survei / Praktik Profesi / dsb).
+     * Kategori ini dikecualikan dari proses generate jadwal otomatis.
+     */
+    public function isPps(): bool
+    {
+        $nama = strtolower(trim((string) ($this->nama_mk ?? '')));
+        $kode = strtolower(trim((string) ($this->kode_mk ?? '')));
+        $kategori = strtolower(trim((string) ($this->kategori ?? '')));
+        $text = "{$nama} {$kode} {$kategori}";
+
+        return (bool) preg_match('/\b(pps|praktik\s*pengenalan\s*sekolah|pra\s*praktik\s*survei|praktik\s*profesi|seminar\s*proposal|seminar\s*pps)\b/i', $text);
+    }
+
+    /**
+     * Memeriksa apakah mata kuliah ini sepenuhnya DIKECUALIKAN dari penjadwalan otomatis
+     * (MK Ulang, KP, Skripsi/TA, Kukerta/KKN, dan PPS).
+     */
+    public function isDikecualikanDariGenerate(): bool
+    {
+        return $this->isUlang()
+            || $this->isKp()
+            || $this->isSkripsi()
+            || $this->isKkn()
+            || $this->isPps()
+            || $this->isMagang();
+    }
+
+    /**
+     * Mendapatkan label rincian alasan pengecualian dari generate.
+     */
+    public function getAlasanDikecualikan(): ?string
+    {
+        if ($this->isUlang()) {
+            return 'Ulang';
+        }
+        if ($this->isKp()) {
+            return 'KP';
+        }
+        if ($this->isSkripsi()) {
+            return 'Skripsi';
+        }
+        if ($this->isKkn()) {
+            return 'Kukerta/KKN';
+        }
+        if ($this->isPps()) {
+            return 'PPS';
+        }
+        if ($this->isMagang()) {
+            return 'Magang/MBKM';
+        }
+
+        return null;
     }
 
     /**
@@ -227,18 +284,19 @@ class MataKuliahDetail extends Model
      */
     public function isReguler(): bool
     {
-        return ! $this->isUlang()
-            && ! $this->isKkn()
-            && ! $this->isKegiatanKhusus()
+        return ! $this->isDikecualikanDariGenerate()
             && ! $this->isPerluDiperiksa();
     }
 
     /**
      * Menentukan kategori penjadwalan data:
      * - 'reguler' : Mata kuliah reguler (Senin - Jumat)
-     * - 'khusus'  : Kegiatan akademik khusus (KP, Magang, Skripsi pada hari Sabtu)
-     * - 'kkn'     : KKN/Kukerta (dikecualikan dari generate)
-     * - 'ulang'   : Mata kuliah mengulang (dikecualikan dari jadwal reguler)
+     * - 'kkn'     : KKN/Kukerta
+     * - 'ulang'   : Mata kuliah mengulang
+     * - 'kp'      : Kerja Praktik
+     * - 'skripsi' : Skripsi / Tugas Akhir
+     * - 'pps'     : Praktik Profesi / PPS
+     * - 'magang'  : Magang / MBKM
      * - 'perlu_diperiksa' : Data ambigu / tidak lengkap
      */
     public function getKategoriPenjadwalan(): string
@@ -252,20 +310,28 @@ class MataKuliahDetail extends Model
         if ($this->isKkn()) {
             return 'kkn';
         }
-        if ($this->isKegiatanKhusus()) {
-            return 'khusus';
+        if ($this->isPps()) {
+            return 'pps';
+        }
+        if ($this->isKp()) {
+            return 'kp';
+        }
+        if ($this->isSkripsi()) {
+            return 'skripsi';
+        }
+        if ($this->isMagang()) {
+            return 'magang';
         }
 
         return 'reguler';
     }
 
     /**
-     * Memeriksa apakah mata kuliah ini merupakan kegiatan non-tatap-muka
-     * (Kukerta/KKN, Skripsi, Tugas Akhir, Kerja Praktik/KP, Magang/MBKM).
+     * Memeriksa apakah mata kuliah ini merupakan kegiatan non-tatap-muka.
      */
     public function isNonTatapMuka(): bool
     {
-        return $this->isKkn() || $this->isKegiatanKhusus();
+        return $this->isDikecualikanDariGenerate();
     }
 
     /**
@@ -306,7 +372,36 @@ class MataKuliahDetail extends Model
             ->where('nama_mk', 'not like', '%kerja praktik%')
             ->where('nama_mk', 'not like', '%magang%')
             ->where('nama_mk', 'not like', '%pkl%')
-            ->where('nama_mk', 'not like', '%mbkm%');
+            ->where('nama_mk', 'not like', '%mbkm%')
+            ->where('nama_mk', 'not like', '%pps%')
+            ->where('kode_mk', 'not like', '%pps%');
+    }
+
+    /**
+     * Scope untuk menyaring mata kuliah yang dikecualikan dari generate otomatis
+     * (Ulang, KP, Skripsi, Kukerta/KKN, PPS, Magang).
+     */
+    public function scopeDikecualikanDariGenerate($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereRaw('UPPER(TRIM(COALESCE(kelas, ""))) = ?', ['ULANG'])
+                ->orWhere('kode_mk', 'like', '%-ULANG%')
+                ->orWhere('kode_mk', 'like', '%ULANG%')
+                ->orWhere('nama_mk', 'like', '%(ULANG)%')
+                ->orWhere('nama_mk', 'like', '%[ULANG]%')
+                ->orWhere('nama_mk', 'like', '%skripsi%')
+                ->orWhere('nama_mk', 'like', '%tugas akhir%')
+                ->orWhere('nama_mk', 'like', '%thesis%')
+                ->orWhere('nama_mk', 'like', '%kukerta%')
+                ->orWhere('nama_mk', 'like', '%kkn%')
+                ->orWhere('nama_mk', 'like', '%kerja praktek%')
+                ->orWhere('nama_mk', 'like', '%kerja praktik%')
+                ->orWhere('nama_mk', 'like', '%magang%')
+                ->orWhere('nama_mk', 'like', '%pkl%')
+                ->orWhere('nama_mk', 'like', '%mbkm%')
+                ->orWhere('nama_mk', 'like', '%pps%')
+                ->orWhere('kode_mk', 'like', '%pps%');
+        });
     }
 
     /**

@@ -97,15 +97,20 @@ class SchedulerService
         // 1. Ambil data terklasifikasi secara ketat
         $mkReguler = $this->ambilMkReguler($semester, $prodi);
         $mkKhusus = $this->ambilMkKhusus($semester, $prodi);
-        $mkKkn = $this->ambilMkKkn($semester, $prodi);
+        $mkDikecualikan = $this->ambilMkDikecualikan($semester, $prodi);
         $mkPerluDiperiksa = $this->ambilMkPerluDiperiksa($semester, $prodi);
 
-        // Catat KKN yang sepenuhnya dikecualikan dari proses generate
-        if ($mkKkn->isNotEmpty()) {
+        // Catat MK yang dikecualikan dari proses generate (Ulang, KP, Skripsi, Kukerta/KKN, PPS)
+        if ($mkDikecualikan->isNotEmpty()) {
+            $rincian = $mkDikecualikan->groupBy(fn ($m) => $m->getAlasanDikecualikan() ?? 'Khusus')
+                ->map(fn ($g, $k) => "{$k}: ".$g->count().' MK ('.$g->pluck('nama_mk')->unique()->take(3)->implode(', ').')')
+                ->values()
+                ->implode(' | ');
+
             $this->log[] = sprintf(
-                '[Info Akademik] %d MK KKN/Kukerta (%s) sepenuhnya dikecualikan dari proses penjadwalan kuliah (kegiatan pengabdian masyarakat lapangan).',
-                $mkKkn->count(),
-                $mkKkn->pluck('nama_mk')->unique()->implode(', ')
+                '[Info Akademik] %d MK dikecualikan dari jadwal otomatis (Ulang, KP, Skripsi, Kukerta/KKN, PPS): %s',
+                $mkDikecualikan->count(),
+                $rincian
             );
         }
 
@@ -117,15 +122,15 @@ class SchedulerService
         }
 
         if ($mkReguler->isEmpty() && $mkKhusus->isEmpty()) {
-            $statistik = $this->hitungStatistikBaru($mkReguler, $mkKhusus, $mkKkn, $mkPerluDiperiksa, 0, 0, 0, 0, 0);
+            $statistik = $this->hitungStatistikBaru($mkReguler, $mkKhusus, $mkDikecualikan, $mkPerluDiperiksa, 0, 0, 0, 0, 0);
 
-            return $this->hasil($semester, 0, 'Belum ada mata kuliah reguler maupun kegiatan khusus aktif untuk semester ini.', $statistik);
+            return $this->hasil($semester, 0, 'Belum ada mata kuliah reguler aktif untuk semester ini.', $statistik);
         }
 
         // 2. Validasi resource reguler sebelum generate
         $validasi = $this->validasiResource($mkReguler, $semester, $prodi);
         if (! $validasi['status']) {
-            $statistik = $this->hitungStatistikBaru($mkReguler, $mkKhusus, $mkKkn, $mkPerluDiperiksa, 0, 0, 0, 0, 0);
+            $statistik = $this->hitungStatistikBaru($mkReguler, $mkKhusus, $mkDikecualikan, $mkPerluDiperiksa, 0, 0, 0, 0, 0);
 
             return $this->hasil($semester, 0, $validasi['pesan'], $statistik);
         }
@@ -133,8 +138,45 @@ class SchedulerService
         $cohort = $this->namaCohort($prodi, $semester);
 
         // 3. Penjadwalan Perkuliahan Reguler (Hanya Senin - Jumat)
+        // Hitung total beban SKS per dosen pengampu utama
+        $dosenLoad = [];
+        foreach ($mkReguler as $m) {
+            $dId = $m->dosen_ketua_id ?: 0;
+            $dosenLoad[$dId] = ($dosenLoad[$dId] ?? 0) + ($m->sks * max(1, (int) $m->jumlah_kelas));
+        }
+
+        // Urutkan mata kuliah dengan memprioritaskan DOSEN:
+        // - Dosen dengan beban total lebih besar dijadwalkan lebih awal agar slot 1 hari penuh (pagi sampai sore) bisa diisi padat.
+        // - Semua mata kuliah dari dosen yang sama dikelompokkan berdampingan dalam antrian,
+        //   sehingga ketika dosen A mulai dijadwalkan (misal 07:30 - 10:00), mata kuliah berikutnya (meskipun berbeda matkul)
+        //   langsung mengambil slot berikutnya (10:00 - 12:30, 13:00 - 15:30, dst) pada hari yang sama sampai mentok sore.
         $wajibReguler = $mkReguler->where('tipe', 'Wajib')
-            ->sortByDesc(fn ($m) => [$m->butuh_lab, $m->sks, $m->jumlah_kelas])
+            ->sort(function ($a, $b) use ($dosenLoad) {
+                $dIdA = $a->dosen_ketua_id ?: 0;
+                $dIdB = $b->dosen_ketua_id ?: 0;
+
+                // 1. Dosen dengan beban SKS terbesar lebih dulu
+                $loadA = $dosenLoad[$dIdA] ?? 0;
+                $loadB = $dosenLoad[$dIdB] ?? 0;
+                if ($loadA !== $loadB) {
+                    return $loadB <=> $loadA;
+                }
+
+                // 2. Satukan mata kuliah milik dosen yang sama
+                if ($dIdA !== $dIdB) {
+                    return $dIdA <=> $dIdB;
+                }
+
+                // 3. Di dalam dosen yang sama: utamakan butuh lab, SKS besar, lalu kode MK
+                if ($a->butuh_lab !== $b->butuh_lab) {
+                    return $b->butuh_lab <=> $a->butuh_lab;
+                }
+                if ($a->sks !== $b->sks) {
+                    return $b->sks <=> $a->sks;
+                }
+
+                return strcmp((string) $a->kode_mk, (string) $b->kode_mk);
+            })
             ->values();
 
         foreach ($wajibReguler as $m) {
@@ -169,7 +211,7 @@ class SchedulerService
         if (! $audit['valid']) {
             $this->peringatan = array_merge($this->peringatan, $audit['errors']);
             $statistik = $this->hitungStatistikBaru(
-                $mkReguler, $mkKhusus, $mkKkn, $mkPerluDiperiksa,
+                $mkReguler, $mkKhusus, $mkDikecualikan, $mkPerluDiperiksa,
                 0, 0, 0, 0, 0
             );
 
@@ -188,7 +230,7 @@ class SchedulerService
 
         // 7. Hitung statistik hasil terpisah
         $statistik = $this->hitungStatistikBaru(
-            $mkReguler, $mkKhusus, $mkKkn, $mkPerluDiperiksa,
+            $mkReguler, $mkKhusus, $mkDikecualikan, $mkPerluDiperiksa,
             $regulerBerhasilCount, $khususBerhasilCount,
             $kpBerhasilCount, $magangBerhasilCount, $skripsiBerhasilCount
         );
@@ -253,27 +295,24 @@ class SchedulerService
 
     public function ambilMkKhusus(int $semester, ?string $prodi): Collection
     {
-        $query = MataKuliahDetail::with(['dosenKetua', 'dosenAnggota', 'dosenAnggota2', 'dosenAnggota3'])
-            ->where('semester', $semester)
+        // KP, Skripsi, Kukerta/KKN, PPS, Ulang tidak dibuatkan jadwal otomatis
+        return collect();
+    }
+
+    public function ambilMkDikecualikan(int $semester, ?string $prodi): Collection
+    {
+        $query = MataKuliahDetail::where('semester', $semester)
             ->where('is_active', 1)
-            ->where('status_tawar', 1)
-            ->kegiatanKhusus();
+            ->where('status_tawar', 1);
 
         $this->applyProdiFilter($query, $prodi);
 
-        return $query->get()->filter(fn ($m) => $m->isKegiatanKhusus())->values();
+        return $query->get()->filter(fn ($m) => $m->isDikecualikanDariGenerate())->values();
     }
 
     public function ambilMkKkn(int $semester, ?string $prodi): Collection
     {
-        $query = MataKuliahDetail::where('semester', $semester)
-            ->where('is_active', 1)
-            ->where('status_tawar', 1)
-            ->kkn();
-
-        $this->applyProdiFilter($query, $prodi);
-
-        return $query->get()->filter(fn ($m) => $m->isKkn())->values();
+        return $this->ambilMkDikecualikan($semester, $prodi);
     }
 
     public function ambilMkPerluDiperiksa(int $semester, ?string $prodi): Collection
@@ -294,7 +333,7 @@ class SchedulerService
 
     protected function ambilMkNonTatapMuka(int $semester, ?string $prodi): Collection
     {
-        return $this->ambilMkKkn($semester, $prodi);
+        return $this->ambilMkDikecualikan($semester, $prodi);
     }
 
     public function isMkBelongsToProdi(?MataKuliahDetail $mk, ?string $prodi): bool
@@ -369,15 +408,15 @@ class SchedulerService
     public function hitungStatistikBaru(
         Collection $mkReguler,
         Collection $mkKhusus,
-        Collection $mkKkn,
+        Collection $mkDikecualikan,
         Collection $mkPerluDiperiksa,
         int $regulerBerhasil,
-        int $khususBerhasil,
+        int $khususBerhasil = 0,
         int $kpBerhasil = 0,
         int $magangBerhasil = 0,
         int $skripsiBerhasil = 0
     ): array {
-        $totalRegistered = $mkReguler->count() + $mkKhusus->count() + $mkKkn->count() + $mkPerluDiperiksa->count();
+        $totalRegistered = $mkReguler->count() + $mkKhusus->count() + $mkDikecualikan->count() + $mkPerluDiperiksa->count();
         $totalTerjadwal = $regulerBerhasil + $khususBerhasil;
         $totalGagal = count($this->kegagalan);
 
@@ -391,16 +430,25 @@ class SchedulerService
             'mk_khusus_kp' => $kpBerhasil,
             'mk_khusus_magang' => $magangBerhasil,
             'mk_khusus_skripsi' => $skripsiBerhasil,
-            'mk_kkn_dikecualikan' => $mkKkn->count(),
+            'mk_kkn_dikecualikan' => $mkDikecualikan->filter(fn ($m) => $m->isKkn())->count(),
+            'mk_dikecualikan_total' => $mkDikecualikan->count(),
+            'mk_dikecualikan_rincian' => [
+                'ulang' => $mkDikecualikan->filter(fn ($m) => $m->isUlang())->count(),
+                'kp' => $mkDikecualikan->filter(fn ($m) => $m->isKp())->count(),
+                'skripsi' => $mkDikecualikan->filter(fn ($m) => $m->isSkripsi())->count(),
+                'kkn' => $mkDikecualikan->filter(fn ($m) => $m->isKkn())->count(),
+                'pps' => $mkDikecualikan->filter(fn ($m) => $m->isPps())->count(),
+                'magang' => $mkDikecualikan->filter(fn ($m) => $m->isMagang())->count(),
+            ],
             'mk_perlu_diperiksa' => $mkPerluDiperiksa->count(),
             'mk_gagal' => $totalGagal,
             'mk_wajib' => $mkReguler->where('tipe', 'Wajib')->count(),
             'mk_pilihan' => $mkReguler->where('tipe', 'Pilihan')->count(),
             'total_sks' => $mkReguler->sum('sks') + $mkKhusus->sum('sks'),
             'mk_butuh_lab' => $mkReguler->where('butuh_lab', 1)->count(),
-            'mk_tanpa_ruangan' => $mkKhusus->where('tanpa_ruangan', 1)->count(),
+            'mk_tanpa_ruangan' => $mkReguler->where('tanpa_ruangan', 1)->count(),
             'mk_tatap_muka' => $mkReguler->count(),
-            'mk_non_tatap_muka' => $mkKkn->count(),
+            'mk_non_tatap_muka' => $mkDikecualikan->count(),
         ];
     }
 
@@ -983,7 +1031,7 @@ class SchedulerService
     {
         $skor = 0;
 
-        // 1. Kapasitas & Best-Fit Ruangan (prioritaskan ruangan yang selisihnya paling pas)
+        // 1. Kapasitas & Best-Fit Ruangan (prioritaskan ruangan yang selisihnya paling pas & sesuai prodi)
         $skor += min(50, $skorRuangan * 5);
         if (! $mk->tanpa_ruangan) {
             $ruangBestFit = $this->cariRuangan($mk, $slot);
@@ -994,31 +1042,41 @@ class SchedulerService
                 } elseif ($selisihKapasitas <= 25) {
                     $skor += 15;
                 }
+
+                // Kesesuaian Laboratorium berdasarkan Prodi (Poin 3)
+                if ($mk->butuh_lab && $ruangBestFit->tipe === 'Lab') {
+                    if ($ruangBestFit->matchesProdi($mk->prodi) && $ruangBestFit->prodi_id !== null) {
+                        $skor += 60; // Prioritas tinggi untuk lab khusus milik prodi bersangkutan
+                    } elseif ($ruangBestFit->matchesProdi($mk->prodi)) {
+                        $skor += 30; // Lab bersama
+                    }
+                }
             }
         }
 
         // 2. Ketersediaan Dosen
         $skor += $skorDosen;
 
-        // 3. Posisi waktu: MK Wajib diutamakan pagi hari
+        // 3. Posisi waktu: MK Wajib diutamakan pagi hari jika belum ada rangkaian mengajar
         if ($mk->tipe === 'Wajib') {
             if ($slot['mulai'] === 450) { // 07:30
-                $skor += 35;
-            } elseif ($slot['mulai'] === 550 || $slot['mulai'] === 600) { // 09:10 / 10:00
                 $skor += 25;
+            } elseif ($slot['mulai'] === 550 || $slot['mulai'] === 600) { // 09:10 / 10:00
+                $skor += 20;
             } elseif ($slot['mulai'] === 780) { // 13:00
                 $skor += 15;
             }
         }
 
-        // MK berat (SKS >= 3) diutamakan sebelum tengah hari
+        // MK berat (SKS >= 3) diutamakan sebelum tengah hari jika belum ada rangkaian
         if ($mk->sks >= 3 && $slot['mulai'] < 600) {
-            $skor += 20;
-        } elseif ($mk->sks >= 3 && $slot['mulai'] < 780) {
             $skor += 15;
+        } elseif ($mk->sks >= 3 && $slot['mulai'] < 780) {
+            $skor += 10;
         }
 
-        // 4. Optimasi Dosen: Kepadatan hari mengajar & minimasi jeda mengambang
+        // 4. Optimasi Dosen: Memusatkan hari mengajar & HINDARI JAM KOSONG (GAP)
+        // Aturan ketat: Dosen mengajar berurutan di hari yang sama (misal 07:30 - 10:00 lanjut 10:00 - 12:30 lanjut 13:00 - dst sampai mentok sore)
         $dosenList = $this->dosenList($mk);
         foreach ($dosenList as $dId) {
             if (! empty($this->pakaiDosen[$dId])) {
@@ -1028,8 +1086,6 @@ class SchedulerService
                 );
 
                 if (! empty($jadwalDosenHariIni)) {
-                    $skor += 40; // Bonus memusatkan hari mengajar dosen
-
                     $selisihTerkecil = null;
                     foreach ($jadwalDosenHariIni as $jd) {
                         if ($slot['mulai'] >= $jd['selesai']) {
@@ -1047,18 +1103,35 @@ class SchedulerService
 
                     if ($selisihTerkecil !== null) {
                         if ($selisihTerkecil <= 30) {
-                            $skor += 50; // Langsung berurutan
+                            $skor += 280; // Langsung berurutan (07:30 -> 10:00 -> 12:30 -> 13:00 -> 15:30 -> 18:00)
                         } elseif ($selisihTerkecil <= 60) {
-                            $skor += 25; // Jeda pendek
-                        } elseif ($selisihTerkecil > 90) {
-                            $skor -= 35; // Penalti jeda kosong terlalu lama
+                            $skor += 160; // Jeda pendek wajar
+                        } elseif ($selisihTerkecil <= 90) {
+                            $skor += 140; // Waktu istirahat/makan siang (11:40 ke 13:00 atau 12:30 ke 13:00)
+                        } elseif ($selisihTerkecil <= 150) {
+                            $skor -= 100; // Penalti jeda kosong 1.5 - 2.5 jam
+                        } else {
+                            // Jeda > 150 menit (misal selesai jam 10:00 lalu baru mengajar lagi jam 15:00 = 5 jam kosong)
+                            // HUKUMAN BERAT agar susunan tidak bolong pagi-sore
+                            $skor -= 400;
+                        }
+                    }
+                } else {
+                    // Dosen ini sudah punya jadwal di hari lain, tetapi belum ada jadwal di hari kandidat ini.
+                    // Beri penalti jika membuka hari baru agar dosen dimaksimalkan pada hari yang sudah aktif dulu sampai mentok sore!
+                    $dosenHariCount = count(array_unique(array_column($this->pakaiDosen[$dId], 'hari')));
+                    if ($dosenHariCount > 0) {
+                        $skor -= 100; // Penalti membuka hari baru saat hari yang sudah ada masih bisa diisi
+                        if ($dosenHariCount >= 2) {
+                            $skor -= 60; // Total -160 untuk hari ke-3 dst
                         }
                     }
                 }
             }
         }
 
-        // 5. Optimasi Rombel / Cohort: Minimasi jeda mengambang mahasiswa
+        // 5. Optimasi Rombel / Cohort Mahasiswa: HINDARI JAM KOSONG (GAP)
+        // Mahasiswa tidak boleh kuliah pagi terus nongkrong kosong 3-4 jam baru masuk sore
         $cohortKey = $this->namaCohort($mk->prodi, (int) $mk->semester, $mk->kelas);
         if (! empty($this->kunciCohort[$cohortKey])) {
             $jadwalCohortHariIni = array_filter(
@@ -1067,7 +1140,6 @@ class SchedulerService
             );
 
             if (! empty($jadwalCohortHariIni)) {
-                $skor += 25;
                 $selisihCohort = null;
                 foreach ($jadwalCohortHariIni as $jc) {
                     if ($slot['mulai'] >= $jc['selesai']) {
@@ -1084,20 +1156,27 @@ class SchedulerService
 
                 if ($selisihCohort !== null) {
                     if ($selisihCohort <= 30) {
-                        $skor += 40; // Mahasiswa kuliah berurutan
-                    } elseif ($selisihCohort > 90) {
-                        $skor -= 30; // Penalti jeda kosong mahasiswa terlalu panjang
+                        $skor += 110; // Mahasiswa kuliah berurutan (efisien)
+                    } elseif ($selisihCohort <= 60) {
+                        $skor += 50; // Jeda pendek
+                    } elseif ($selisihCohort <= 90) {
+                        $skor += 25; // Jeda makan siang
+                    } elseif ($selisihCohort <= 150) {
+                        $skor -= 80; // Penalti jeda kosong
+                    } else {
+                        // Jeda > 150 menit (3-4 jam kosong)
+                        $skor -= 300;
                     }
                 }
             }
         }
 
-        // 6. Mata Kuliah Berhubungan (Related Courses Co-location)
+        // 6. Mata Kuliah Berhubungan / Lanjutan (Kalkulus 1 & 2, Teori & Praktikum)
         $skor += $this->cekMkBerhubungan($mk, $slot);
 
         // 7. MK butuh lab lebih baik di pagi atau awal siang
         if ($mk->butuh_lab && $slot['mulai'] < 780) {
-            $skor += 15;
+            $skor += 20;
         }
 
         // 8. Distribusi hari seimbang (Senin - Jumat)
@@ -1129,12 +1208,21 @@ class SchedulerService
 
             if ($namaLain === $namaBersih || (strlen($mk->kode_mk) >= 6 && str_starts_with($mk->kode_mk, substr($mkLain->kode_mk, 0, 6)))) {
                 if ($slotLain['hari'] === $slot['hari']) {
-                    $skor += 35; // Berada di hari yang sama
                     $gap = abs($slot['mulai'] - $slotLain['selesai']);
                     $gap2 = abs($slotLain['mulai'] - $slot['selesai']);
                     $minGap = min($gap, $gap2);
                     if ($minGap <= 30) {
-                        $skor += 40; // Berurutan atau jeda pendek
+                        $skor += 80; // Berurutan pada hari yang sama
+                    } elseif ($minGap <= 60) {
+                        $skor += 40;
+                    } elseif ($minGap > 120) {
+                        $skor -= 80; // Hindari jeda terlalu renggang jika ditaruh di hari yang sama
+                    }
+                } else {
+                    // Jika di hari berbeda, prioritaskan susunan waktu yang teratur (jam mulai serupa)
+                    $selisihJamMulai = abs($slot['mulai'] - $slotLain['mulai']);
+                    if ($selisihJamMulai <= 60) {
+                        $skor += 30; // Teratur pada jam yang serupa antar hari
                     }
                 }
             }
@@ -1240,17 +1328,37 @@ class SchedulerService
 
         $ruangans = $this->cacheRuanganAktif->filter(function ($r) use ($mk) {
             if ($mk->butuh_lab) {
-                return $r->tipe === 'Lab';
+                if ($r->tipe !== 'Lab') {
+                    return false;
+                }
+
+                // Filter lab sesuai program studi mata kuliah (Poin 3)
+                return $r->matchesProdi($mk->prodi);
             }
 
             return in_array($r->tipe, ['Ruang Kelas', 'Aula', 'Auditorium']);
         });
 
-        // Prioritas 1: Ruangan dengan kapasitas mencukupi (Best-fit)
+        // Fallback: Jika belum ada lab spesifik prodi yang bebas, gunakan Lab Bersama / Multidisiplin
+        if ($mk->butuh_lab && $ruangans->isEmpty()) {
+            $ruangans = $this->cacheRuanganAktif->filter(fn ($r) => $r->tipe === 'Lab' && $r->matchesProdi('semua'));
+        }
+
+        // Prioritas 1: Ruangan dengan kapasitas mencukupi (Best-fit & Prodi-fit)
         $cukup = $ruangans
             ->filter(fn ($r) => $r->kapasitas >= $kuota)
             ->reject(fn ($r) => $this->ruanganBentrok($r->id, $slot))
-            ->sortBy(fn ($r) => $r->kapasitas - $kuota)
+            ->sort(function ($a, $b) use ($mk, $kuota) {
+                if ($mk->butuh_lab) {
+                    $aExact = $a->prodi_id !== null ? 1 : 0;
+                    $bExact = $b->prodi_id !== null ? 1 : 0;
+                    if ($aExact !== $bExact) {
+                        return $bExact <=> $aExact; // Lab spesifik prodi didahulukan
+                    }
+                }
+
+                return ($a->kapasitas - $kuota) <=> ($b->kapasitas - $kuota);
+            })
             ->values();
 
         if ($cukup->isNotEmpty()) {
@@ -1264,7 +1372,15 @@ class SchedulerService
             return $ruangans
                 ->filter(fn ($r) => $r->kapasitas >= 30)
                 ->reject(fn ($r) => $this->ruanganBentrok($r->id, $slot))
-                ->sortByDesc('kapasitas')
+                ->sort(function ($a, $b) {
+                    $aExact = $a->prodi_id !== null ? 1 : 0;
+                    $bExact = $b->prodi_id !== null ? 1 : 0;
+                    if ($aExact !== $bExact) {
+                        return $bExact <=> $aExact;
+                    }
+
+                    return $b->kapasitas <=> $a->kapasitas;
+                })
                 ->values();
         }
 

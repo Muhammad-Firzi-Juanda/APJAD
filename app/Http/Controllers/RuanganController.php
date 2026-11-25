@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Prodi;
 use App\Models\Ruangan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -31,7 +32,7 @@ class RuanganController extends Controller
      */
     public function show(Ruangan $ruangan): JsonResponse
     {
-        return response()->json($ruangan);
+        return response()->json($ruangan->load('prodi'));
     }
 
     /**
@@ -40,12 +41,13 @@ class RuanganController extends Controller
     public function store(Request $request): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
-            'kode' => ['required', 'string', 'max:20', 'unique:ruangans,kode'],
+            'kode' => ['required', 'string', 'max:30', 'unique:ruangans,kode'],
             'nama' => ['required', 'string', 'max:100'],
             'tipe' => ['required', 'string', Rule::in(['Lab', 'Ruang Kelas', 'Aula', 'Auditorium', 'Lainnya'])],
             'kapasitas' => ['required', 'integer', 'min:1', 'max:500'],
             'gedung' => ['nullable', 'string', 'max:50'],
             'lantai' => ['nullable', 'string', 'max:10'],
+            'prodi_id' => ['nullable', 'exists:prodi,id'],
             'is_active' => ['nullable'],
         ], [
             'kode.required' => 'Kode ruangan wajib diisi.',
@@ -57,12 +59,17 @@ class RuanganController extends Controller
 
         $validated['is_active'] = $request->has('is_active') ? (bool) $request->input('is_active') : true;
 
+        // Auto-detect prodi_id dari kode jika tidak diisi langsung
+        if (empty($validated['prodi_id']) && ! empty($validated['kode'])) {
+            $validated['prodi_id'] = $this->inferProdiIdFromKode($validated['kode']);
+        }
+
         $ruangan = Ruangan::create($validated);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'data' => $ruangan,
+                'data' => $ruangan->load('prodi'),
                 'message' => "Ruangan {$ruangan->kode} berhasil ditambahkan!",
             ]);
         }
@@ -87,12 +94,13 @@ class RuanganController extends Controller
     public function update(Request $request, Ruangan $ruangan): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
-            'kode' => ['required', 'string', 'max:20', Rule::unique('ruangans', 'kode')->ignore($ruangan->id)],
+            'kode' => ['required', 'string', 'max:30', Rule::unique('ruangans', 'kode')->ignore($ruangan->id)],
             'nama' => ['required', 'string', 'max:100'],
             'tipe' => ['required', 'string', Rule::in(['Lab', 'Ruang Kelas', 'Aula', 'Auditorium', 'Lainnya'])],
             'kapasitas' => ['required', 'integer', 'min:1', 'max:500'],
             'gedung' => ['nullable', 'string', 'max:50'],
             'lantai' => ['nullable', 'string', 'max:10'],
+            'prodi_id' => ['nullable', 'exists:prodi,id'],
             'is_active' => ['nullable'],
         ], [
             'kode.required' => 'Kode ruangan wajib diisi.',
@@ -104,12 +112,16 @@ class RuanganController extends Controller
 
         $validated['is_active'] = $request->has('is_active') ? (bool) $request->input('is_active') : $ruangan->is_active;
 
+        if (empty($validated['prodi_id']) && ! empty($validated['kode'])) {
+            $validated['prodi_id'] = $this->inferProdiIdFromKode($validated['kode']);
+        }
+
         $ruangan->update($validated);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'data' => $ruangan,
+                'data' => $ruangan->load('prodi'),
                 'message' => "Ruangan {$ruangan->kode} berhasil diperbarui!",
             ]);
         }
@@ -121,60 +133,66 @@ class RuanganController extends Controller
     }
 
     /**
+     * Toggle status aktif ruangan.
+     */
+    public function toggleStatus(Ruangan $ruangan): RedirectResponse
+    {
+        $ruangan->update(['is_active' => ! $ruangan->is_active]);
+
+        $statusText = $ruangan->is_active ? 'diaktifkan' : 'dinonaktifkan';
+
+        return redirect()
+            ->route('penjadwalan.index')
+            ->with('tab_aktif', 'tab-ruangan')
+            ->with('flash_success', "Ruangan {$ruangan->kode} berhasil {$statusText}.");
+    }
+
+    /**
      * Hapus ruangan dari database.
      */
-    public function destroy(Request $request, Ruangan $ruangan): JsonResponse|RedirectResponse
+    public function destroy(Ruangan $ruangan): RedirectResponse
     {
         if ($ruangan->isDefault()) {
-            $pesan = "Ruangan bawaan resmi kampus ({$ruangan->kode}) tidak dapat dihapus. Anda dapat menonaktifkannya jika tidak digunakan.";
-            if ($request->wantsJson() || $request->ajax()) {
-                return response()->json(['success' => false, 'message' => $pesan], 422);
-            }
-
             return redirect()
                 ->route('penjadwalan.index')
                 ->with('tab_aktif', 'tab-ruangan')
-                ->with('flash_error', $pesan);
+                ->with('flash_error', "Ruangan {$ruangan->kode} adalah ruangan bawaan resmi kampus dan tidak dapat dihapus. Anda dapat menonaktifkannya jika tidak digunakan.");
+        }
+
+        if ($ruangan->jadwals()->where('is_active', true)->exists()) {
+            return redirect()
+                ->route('penjadwalan.index')
+                ->with('tab_aktif', 'tab-ruangan')
+                ->with('flash_error', "Ruangan {$ruangan->kode} tidak dapat dihapus karena masih digunakan dalam jadwal aktif.");
         }
 
         $kode = $ruangan->kode;
         $ruangan->delete();
 
-        if ($request->wantsJson() || $request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => "Ruangan {$kode} berhasil dihapus!",
-            ]);
-        }
-
         return redirect()
             ->route('penjadwalan.index')
             ->with('tab_aktif', 'tab-ruangan')
-            ->with('flash_success', "Ruangan {$kode} berhasil dihapus!");
+            ->with('flash_success', "Ruangan {$kode} berhasil dihapus.");
     }
 
     /**
-     * Toggle status aktif / nonaktif ruangan.
+     * Infer prodi_id dari kode ruangan bila ada pengenal prodi.
      */
-    public function toggleStatus(Request $request, Ruangan $ruangan): JsonResponse|RedirectResponse
+    protected function inferProdiIdFromKode(string $kode): ?int
     {
-        $ruangan->is_active = ! $ruangan->is_active;
-        $ruangan->save();
+        $kodeUpper = strtoupper(trim($kode));
+        $prodis = Prodi::all();
 
-        $statusText = $ruangan->is_active ? 'diaktifkan' : 'dinonaktifkan';
-        $pesan = "Ruangan {$ruangan->kode} berhasil {$statusText}!";
-
-        if ($request->wantsJson() || $request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'is_active' => $ruangan->is_active,
-                'message' => $pesan,
-            ]);
+        foreach ($prodis as $pr) {
+            $pk = strtoupper($pr->kode);
+            if ($pk && (str_contains($kodeUpper, "-{$pk}") || str_contains($kodeUpper, "_{$pk}") || str_contains($kodeUpper, "{$pk}-") || str_contains($kodeUpper, "{$pk}_"))) {
+                return $pr->id;
+            }
+            if ($pk === 'TI' && (str_contains($kodeUpper, 'TIF') || str_contains($kodeUpper, 'INF'))) {
+                return $pr->id;
+            }
         }
 
-        return redirect()
-            ->route('penjadwalan.index')
-            ->with('tab_aktif', 'tab-ruangan')
-            ->with('flash_success', $pesan);
+        return null;
     }
 }
